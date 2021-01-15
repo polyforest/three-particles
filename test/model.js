@@ -7,10 +7,4 @@ describe('model', () => {
       assert.strictEqual(getEase('linear'), easing.linear);
     });
   });
-
-  describe('#randomFromRange()', () => {
-    it('should return min when ', () => {
-      assert.strictEqual([1, 2, 3].indexOf(4), -1);
-    });
-  });
 });

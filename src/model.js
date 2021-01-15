@@ -2,7 +2,7 @@
  * @fileoverview Data descriptors for a particle effect.
  */
 
-import {RNG} from './Random.js';
+import {RNG} from './random.js';
 import {easing} from './easing';
 
 /**
