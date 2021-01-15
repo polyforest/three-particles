@@ -24,6 +24,16 @@ jobs:
       - run: |
           npm ci
           npm run test
+  doc:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12.x
+      - run: |
+          npm ci
           npm run doc
 
       - name: Deploy JS Docs
@@ -34,3 +44,4 @@ jobs:
           FOLDER: jsdocs # The folder the action should deploy.
           CLEAN: true # Automatically remove deleted files from the deploy branch
           TARGET_FOLDER: jsdocs
+          COMMIT_MESSAGE: 'Update docs'
