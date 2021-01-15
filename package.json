@@ -9,7 +9,7 @@
     "doc": "jsdoc -c jsdoc.conf.json",
     "build": "rollup -c --environment BUILD:production",
     "dev": "rollup -c -w",
-    "test": "node test/test.js",
+    "test": "mocha",
     "pretest": "npm run build"
   },
   "files": [
@@ -35,6 +35,7 @@
     "url": "https://github.com/polyforest/three-particles/issues"
   },
   "homepage": "https://github.com/polyforest/three-particles#readme",
+  "type": "module",
   "devDependencies": {
     "@rollup/plugin-commonjs": "^17.0.0",
     "@rollup/plugin-multi-entry": "^4.0.0",

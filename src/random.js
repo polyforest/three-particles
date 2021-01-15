@@ -5,7 +5,7 @@ export class Random {
 
     /**
      * Constructs a new Random number generator.
-     * @param {number} seed
+     * @param {number} [seed]
      */
     constructor(seed = 16270110) {
         this._seed = seed % 2147483647;
@@ -20,8 +20,8 @@ export class Random {
 
     /**
      * Returns a random number between `min` and `max` (exclusive).
-     * @param {number} min The minimum (inclusive) value.
-     * @param {number} max The minimum (exclusive) value.
+     * @param {number} [min] The minimum (inclusive) value.
+     * @param {number} [max] The minimum (exclusive) value.
      * @return {number} Returns a pseudo-random number in range [min, max).
      */
     nextFloat(min = 0, max = 1) {
@@ -32,8 +32,8 @@ export class Random {
 
     /**
      * Returns a random floored number between `min` and `max` (exclusive).
-     * @param {number} min The minimum (inclusive) value.
-     * @param {number} max The minimum (exclusive) value.
+     * @param {number} [min] The minimum (inclusive) value.
+     * @param {number} [max] The minimum (exclusive) value.
      * @return {number} Returns a pseudo-random floored number in range
      * [min, max).
      */

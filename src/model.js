@@ -3,14 +3,7 @@
  */
 
 import {RNG} from './Random.js';
-
-/**
- * Function representing an interpolation.
- *
- * @typedef {function} Ease
- * @param {number} alpha A number with range 0-1.
- * @return {number} The alpha after easing.
- */
+import {easing} from './easing';
 
 /**
  * Data for a particle emitter.
@@ -66,28 +59,35 @@ import {RNG} from './Random.js';
  * @property {boolean} relative If true, the final value will not be the high
  *     value, but the high + low.
  *
- * @property {Range} low When the values are initialized / reset for a new
+ * @property {ValueRange} low When the values are initialized / reset for a new
  *     particle, this will be the low range.
  *
- * @property {Range} high When the values are initialized / reset for a new
+ * @property {ValueRange} high When the values are initialized / reset for a new
  *     particle, this will be the high range.
  */
 
 /**
  * A number range with easing.
- * @typedef {object} Range
+ * @typedef {object} ValueRange
  * @property {number} min The minimum value.
  * @property {number} max The maximum value.
- * @property {Ease} ease The interpolation from min to max.
+ * @property {EaseType} ease The interpolation from min to max.
+ */
+
+/**
+ * Generates a number between 0 and 1 (exclusive).
+ * @callback numberGen
+ * @return {number}
  */
 
 /**
  * Generates a random number within the given range, interpolated by its easing.
- * @param {Range} range
+ * @param {ValueRange} range
+ * @param {numberGen} rng
  * @return {number}
  */
-export function randomFromRange(range) {
-  return range.ease.apply(RNG.nextFloat()) * (range.max - range.min) +
+export function randomFromRange(range, rng = RNG.nextFloat) {
+  const ease = easing[range.ease];
+  return ease(rng()) * (range.max - range.min) +
     range.min;
 }
-
