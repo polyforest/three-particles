@@ -1,4 +1,7 @@
-on: release
+name: Publish release
+on:
+  release:
+    types: [ published ]
 
 jobs:
   publish:
