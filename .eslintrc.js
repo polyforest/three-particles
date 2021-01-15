@@ -13,6 +13,6 @@ module.exports = {
   'rules': {
     'linebreak-style': 'off',
     'indent': 'off',
-    'padded-blocks': 'off'
+    'padded-blocks': 'off',
   },
 };
