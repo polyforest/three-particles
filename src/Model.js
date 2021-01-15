@@ -1,11 +1,19 @@
 /**
+ * @fileoverview Data descriptors for a particle effect.
+ */
+
+import {RNG} from './Random.js';
+
+/**
  * Function representing an interpolation.
+ *
  * @typedef {function} Ease
- * @param {number} alpha A number with range 0-1
+ * @param {number} alpha A number with range 0-1.
  * @return {number} The alpha after easing.
  */
 
 /**
+ * Data for a particle emitter.
  *
  * @typedef {Object} ParticleEmitterVo
  *
@@ -13,20 +21,25 @@
  *
  * @property {boolean} enabled True if the emitter is enabled. (default is true)
  *
- * @property {boolean} loops If true, this emitter will loop after the total duration. (default is true)
+ * @property {boolean} loops If true, this emitter will loop after the total
+ *     duration. (default is true)
  *
- * @property {EmitterDurationVo} duration Represents when and how long this emitter will be active.
+ * @property {EmitterDurationVo} duration Represents when and how long this
+ *     emitter will be active.
  *
  * @property {number} count The maximum number of particles to create.
  *
- * @property {PropertyTimelineVo} emissionRate The rate of emissions, in particles per second.
+ * @property {PropertyTimelineVo} emissionRate The rate of emissions, in
+ *     particles per second.
  *
- * @property {PropertyTimelineVo} particleLifeExpectancy Calculates the life of a newly created particle.
+ * @property {PropertyTimelineVo} particleLifeExpectancy Calculates the life of
+ *     a newly created particle.
  *
- * @property {boolean} orientToForwardDirection If true, the forward direction affects the rotation.
+ * @property {boolean} orientToForwardDirection If true, the forward direction
+ *     affects the rotation.
  *
- * @property {PropertyTimelineVo[]} propertyTimelines Timelines relative to the particle life.
- *
+ * @property {PropertyTimelineVo[]} propertyTimelines Timelines relative to the
+ *     particle life.
  */
 
 /**
@@ -41,48 +54,40 @@
  * @property {string} property The name of the property this timeline controls.
  *
  * @property {number[]} timeline A list of [time, value0, value1, valueN, ... ]
- * Where each set starts with a time (in seconds) followed by [numComponent] values.
+ *     Where each set starts with a time (in seconds) followed by [numComponent]
+ *     values.
  *
- * @property {number} numComponents The number of values for each set in the timeline.
+ * @property {number} numComponents The number of values for each set in the
+ *     timeline.
  *
- * @property {boolean} useEmitterDuration If true, relative to the particle's lifespan, if false, relative to the
- * emitter duration.
+ * @property {boolean} useEmitterDuration If true, relative to the particle's
+ *     lifespan, if false, relative to the emitter duration.
  *
+ * @property {boolean} relative If true, the final value will not be the high
+ *     value, but the high + low.
+ *
+ * @property {Range} low When the values are initialized / reset for a new
+ *     particle, this will be the low range.
+ *
+ * @property {Range} high When the values are initialized / reset for a new
+ *     particle, this will be the high range.
  */
 
-// val id: Int = nextId(),
-//
-//     /**
-//      * The name of the property this timeline controls.
-//      */
-//     val property: String,
-//
-//     /**
-//      * A list of `[time, value0, value1, valueN, ... ]`
-//      */
-//     val timeline: FloatArray = floatArrayOf(),
-//
-//     /**
-//      * The number of values for each set in the timeline.
-//      */
-//     val numComponents: Int = 1,
-//
-//     /**
-//      * If true, relative to the particle's lifespan, if false, relative to the emitter duration.
-//      */
-//     val useEmitterDuration: Boolean = false,
-//
-//     /**
-//      * If true, the final value will not be the high value, but the high + low.
-//      */
-//     val relative: Boolean = false,
-//
-//     /**
-//      * When the values are initialized / reset for a new particle, this will be the low range.
-//      */
-//     val low: FloatRange = FloatRange(0f),
-//
-// /**
-//  * When the values are initialized / reset for a new particle, this will be the high range.
-//  */
-// val high: FloatRange = FloatRange(0f)
+/**
+ * A number range with easing.
+ * @typedef {object} Range
+ * @property {number} min The minimum value.
+ * @property {number} max The maximum value.
+ * @property {Ease} ease The interpolation from min to max.
+ */
+
+/**
+ * Generates a random number within the given range, interpolated by its easing.
+ * @param {Range} range
+ * @return {number}
+ */
+export function randomFromRange(range) {
+  return range.ease.apply(RNG.nextFloat()) * (range.max - range.min) +
+    range.min;
+}
+
