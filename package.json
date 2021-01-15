@@ -6,11 +6,11 @@
   "module": "dist/three-particles.esm.js",
   "browser": "dist/three-particles.umd.js",
   "scripts": {
-    "doc": "jsdoc -c jsdoc.conf.json",
     "build": "rollup -c --environment BUILD:production",
     "dev": "rollup -c -w",
     "test": "mocha",
-    "pretest": "npm run build"
+    "pretest": "npm run build",
+    "doc": "node makefile.js doc"
   },
   "files": [
     "dist",
