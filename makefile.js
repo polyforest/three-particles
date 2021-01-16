@@ -42,9 +42,8 @@ const version = process.env.npm_package_version;
 
 targets.doc = () => {
   cmd(`${getBinFile('jsdoc')} -c jsdoc.conf.json -d jsdocs/v${version}`, () => {
-    // RewriteRule ^subdirectory/(.*)$ /anotherdirectory/$1 [R=301,NC,L]
-    const data = `RewriteRule ^latest/(.*)$ v${version}/$1 [R=301,NC,L]`;
-    fs.writeFileSync('jsdocs/.htaccess', data);
+    const data = `<script>window.location.replace("./v${version}/");</script>`;
+    fs.writeFileSync('jsdocs/index.html', data);
   });
 };
 
