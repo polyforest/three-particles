@@ -1,5 +1,10 @@
 /**
- * A Pseudo-random number generator.
+ * A Pseudo-random number generator. 
+ * Only meant to satisfy the requirements of particles without
+ * external dependencies.
+ * Borrowed from Blixt 
+ * https://gist.github.com/blixt/f17b47c62508be59987b
+ * Which is in turn borrowed from Park-Miller PRNG.
  */
 export class Random {
 
