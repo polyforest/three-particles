@@ -5,7 +5,7 @@ on:
       - main
 
 jobs:
-# https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
+  # https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
   bump-version:
     name: "Bump version on master"
     runs-on: ubuntu-latest
@@ -34,8 +34,8 @@ jobs:
         run: echo "new tag $NEW_TAG"
       - name: "Merge new version back into development branch"
         run: |
-          git checkout development
-          git merge main -m "Merge main into development [skip-ci]"
+          git checkout development &&
+          git merge main -m "Merge main into development [skip-ci]" &&
           git push origin development
   publish:
     name: "Publish on NPMJS"
