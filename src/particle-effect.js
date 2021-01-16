@@ -13,6 +13,7 @@ import {
  * @param {number} canvasRadius
  * @param {number} canvasW
  * @param {number} canvasH
+ * @private
  */
 function drawRadialGradient(ctx, canvasRadius,
                              canvasW, canvasH) {
@@ -31,6 +32,7 @@ function drawRadialGradient(ctx, canvasRadius,
  * Creates a circle gradient texture.
  * @param {number} textureSize The diameter of the circle gradient.
  * @return {Texture}
+ * @private
  */
 function createCircleGradientTexture(textureSize = 64.0) {
   const canvas = document.createElement('canvas');
