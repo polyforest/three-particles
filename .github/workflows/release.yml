@@ -5,9 +5,34 @@ on:
       - main
 
 jobs:
+  publish:
+    name: "Publish on NPMJS"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - run: |
+          npm ci
+          npm run test
+          npm run doc
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+      - name: Deploy JS Docs
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: jsdocs # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
+          TARGET_FOLDER: jsdocs
+          COMMIT_MESSAGE: 'Update docs'
   # https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
   bump-version:
     name: "Bump version on master"
+    needs: publish
     runs-on: ubuntu-latest
 
     steps:
@@ -31,28 +56,3 @@ jobs:
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
-  publish:
-    name: "Publish on NPMJS"
-    needs: bump-version
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
-        with:
-          node-version: 12
-      - run: |
-          npm ci
-          npm run test
-          npm run doc
-      - uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-      - name: Deploy JS Docs
-        uses: JamesIves/github-pages-deploy-action@3.7.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: jsdocs # The folder the action should deploy.
-          CLEAN: true # Automatically remove deleted files from the deploy branch
-          TARGET_FOLDER: jsdocs
-          COMMIT_MESSAGE: 'Update docs'
