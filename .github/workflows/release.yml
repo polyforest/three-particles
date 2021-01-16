@@ -13,8 +13,6 @@ jobs:
     steps:
       - name: "Checkout source code"
         uses: actions/checkout@v2
-        with:
-          ref: ${{ github.ref }}
       - name: "cat package.json"
         run: cat ./package.json
       - name: "Setup Node.js"
@@ -26,17 +24,13 @@ jobs:
         uses: phips28/gh-action-bump-version@v8.0.18
         with:
           tag-prefix: ""
+          target-branch: "development"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: "Echo new tag"
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
-      - name: "Merge new version back into development branch"
-        run: |
-          git checkout development &&
-          git merge main -m "Merge main into development [skip-ci]" &&
-          git push origin development
   publish:
     name: "Publish on NPMJS"
     needs: bump-version
