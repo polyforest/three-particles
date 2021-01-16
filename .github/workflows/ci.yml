@@ -17,31 +17,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Build and test ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
       - run: |
           npm ci
           npm run test
-  doc:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: 12.x
-      - run: |
-          npm ci
-          npm run doc
-
-      - name: Deploy JS Docs
-        uses: JamesIves/github-pages-deploy-action@3.7.1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages # The branch the action should deploy to.
-          FOLDER: jsdocs # The folder the action should deploy.
-          CLEAN: true # Automatically remove deleted files from the deploy branch
-          TARGET_FOLDER: jsdocs
-          COMMIT_MESSAGE: 'Update docs'

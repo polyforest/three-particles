@@ -1,19 +1,59 @@
 name: Publish release
 on:
-  release:
-    types: [ published ]
+  push:
+    branches:
+      - "master"
 
 jobs:
+  bump-version:
+    name: "Bump version on master"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: "Checkout source code"
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.ref }}
+      - name: "cat package.json"
+        run: cat ./package.json
+      - name: "Setup Node.js"
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: "Automated Version Bump"
+        id: version-bump
+        uses: phips28/gh-action-bump-version@v8.0.18
+        with:
+          tag-prefix: "v"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: "cat package.json"
+        run: cat ./package.json
+      - name: "Output Step"
+        env:
+          NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
+        run: echo "new tag $NEW_TAG"
   publish:
+    needs: bump-version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
           node-version: 12
       - run: |
           npm ci
-          npm run build
+          npm run test
+          npm run doc
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
+      - name: Deploy JS Docs
+        uses: JamesIves/github-pages-deploy-action@3.7.1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: gh-pages # The branch the action should deploy to.
+          FOLDER: jsdocs # The folder the action should deploy.
+          CLEAN: true # Automatically remove deleted files from the deploy branch
+          TARGET_FOLDER: jsdocs
+          COMMIT_MESSAGE: 'Update docs'
