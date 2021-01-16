@@ -22,7 +22,7 @@ export default [
     },
     plugins: [
       resolve(), // Resolve node_modules
-      eslint(),
+      eslint({throwOnError: true}),
       multi(),
       commonjs(),
       production && terser(), // minify, but only in production
