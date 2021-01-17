@@ -8,7 +8,6 @@ jobs:
   # https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
   bump-version:
     name: "Bump version on master"
-    needs: publish
     runs-on: ubuntu-latest
 
     steps:
@@ -43,6 +42,7 @@ jobs:
           git push $GITHUB_ORIGIN
   publish:
     name: "Publish on NPMJS"
+    needs: bump-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
