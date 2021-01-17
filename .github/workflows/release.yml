@@ -7,8 +7,7 @@ on:
 jobs:
   # https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
   bump-version:
-    name: "Bump version on master"
-    needs: publish
+    name: "Bump version on main"
     runs-on: ubuntu-latest
 
     steps:
@@ -31,15 +30,9 @@ jobs:
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
-      - name: "Merge main into development"
-        uses: mtanzi/action-automerge@v1
-        id: merge
-        with:
-         github_token: ${{ github.token }}
-         source: "main"
-         target: "development"
   publish:
     name: "Publish on NPMJS"
+    needs: bump-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
