@@ -7,8 +7,7 @@ on:
 jobs:
   # https://github.com/phips28/gh-action-bump-version/blob/master/.github/workflows/push.yml
   bump-version:
-    name: "Bump version on master"
-    needs: publish
+    name: "Bump version on main"
     runs-on: ubuntu-latest
 
     steps:
@@ -33,6 +32,7 @@ jobs:
         run: echo "new tag $NEW_TAG"
   publish:
     name: "Publish on NPMJS"
+    needs: bump-version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
