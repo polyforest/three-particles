@@ -9,16 +9,19 @@ jobs:
     name: "Publish"
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy to NPMJS
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Set up Node
+        uses: actions/setup-node@v1
         with:
           node-version: 12
-      - run: |
+      - name: Build dist and docs
+        run: |
           npm ci
-          npm run test
+          npm run build
           npm run doc
-      - uses: JS-DevTools/npm-publish@v1
+      - name: Deploy to NPMJS
+        uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NPM_TOKEN }}
       - name: Deploy JS Docs to Github Pages
