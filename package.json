@@ -1,6 +1,6 @@
 {
   "name": "three-particles",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "WIP - A particle engine for THREE JS.",
   "main": "dist/three-particles.cjs.js",
   "module": "dist/three-particles.esm.js",
