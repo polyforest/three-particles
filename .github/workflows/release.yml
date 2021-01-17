@@ -30,7 +30,7 @@ jobs:
         env:
           NEW_TAG: ${{ steps.version-bump.outputs.newTag }}
         run: echo "new tag $NEW_TAG"
-      - name: "Reset development to master"
+      - name: "Reset development to main"
         env:
           GITHUB_ORIGIN: "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
           GITHUB_ACTOR: ${{ github.actor }}
@@ -38,7 +38,7 @@ jobs:
           git config --global user.name "$GITHUB_ACTOR"
           git clone $GITHUB_ORIGIN .
           git checkout development
-          git pull --rebase origin master
+          git pull --rebase origin main
           git push $GITHUB_ORIGIN
   publish:
     name: "Publish on NPMJS"
