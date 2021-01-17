@@ -36,7 +36,8 @@ jobs:
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
           git config --global user.name "$GITHUB_ACTOR"
-          git clone $GITHUB_ORIGIN .
+          git clone $GITHUB_ORIGIN $GITHUB_RUN_ID
+          cd $GITHUB_RUN_ID
           git checkout development
           git pull --rebase origin main
           git push $GITHUB_ORIGIN
