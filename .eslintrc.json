@@ -1,17 +1,27 @@
 {
   "env": {
-    "browser": true,
-    "es2020": true
+	"browser": true,
+	"es2020": true
   },
   "extends": [
-    "google"
+	"google"
   ],
   "parserOptions": {
-    "sourceType": "module"
+	"sourceType": "module"
   },
   "rules": {
-    "linebreak-style": "off",
-    "indent": "off",
-    "padded-blocks": "off"
+	"linebreak-style": "off",
+	"indent": "off",
+	"padded-blocks": [
+	  "error",
+	  {
+		"classes": "always",
+		"switches": "never",
+		"blocks": "never"
+	  },
+	  {
+		"allowSingleLineBlocks": true
+	  }
+	]
   }
 }
