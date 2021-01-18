@@ -9,7 +9,9 @@ import semver from 'semver';
  * Sets the git user.name to GITHUB_ACTOR.
  */
 function setGitUser() {
-  execSync(`git config user.name "${process.env.GITHUB_ACTOR}"`);
+  execSync(`git config user.name "GitHub Actions Bot"`);
+  execSync(`git config user.email ` +
+    `"41898282+github-actions[bot]@users.noreply.github.com"`);
 }
 
 /**
@@ -33,7 +35,7 @@ targets.doc = () => {
 
 targets.bumpVersion = () => {
   setGitUser();
-  execSync(`git fetch --all --tags`);
+  execSync(`git fetch -t`);
   const tagsStr = execSync(`git tag -l`).toString();
   const tags = tagsStr.trim().split('\n');
   let lastVersion = null;
@@ -51,15 +53,19 @@ targets.bumpVersion = () => {
   }
   if (semver.gt(lastVersion, version)) {
     console.error(`Current version '${version}' should not be less than last ` +
-    `version '${lastVersion}'`);
+      `version '${lastVersion}'`);
     process.exit(-1);
   }
-  console.log(`Last tagged version: ${lastVersion}`);
+
+  // Fetch commits since last tag
+  const tagDate = execSync(`git log -1 --format=%ai ${lastTag}`);
+  console.log(`Last tagged version: ${lastVersion}, date: ${tagDate}`);
+  execSync(`git fetch --shallow-since="${tagDate}"`);
 
   const log = execSync(`git log ${lastTag}..HEAD`).toString();
   let type;
-  if (/\bmajor\b/.test(log)) type = 'major';
-  else if (/\bminor\b/.test(log)) type = 'minor';
+  if (/#major\b/.test(log)) type = 'major';
+  else if (/#minor\b/.test(log)) type = 'minor';
   else type = 'patch';
   const newVersion = semver.inc(lastVersion, type);
   console.log(`Incrementing last tagged version by '${type}'. New minimum ` +
@@ -68,8 +74,13 @@ targets.bumpVersion = () => {
     const msg = `Bumping ${type} version. New version: ${newVersion}`;
     execSync(`npm version ${type} --git-tag-version=false`);
     execSync(`git add package.json package-lock.json`);
-    execSync(`git commit -m "ci: ${msg}"`);
-    execSync(`git push`);
+    if (process.env.CI) {
+      console.log('Committing');
+      execSync(`git commit -m "ci: ${msg}"`);
+      execSync(`git push`);
+    } else {
+      console.log('Not a CI environment, not committing.');
+    }
   } else {
     console.log(`Current version ${version} is greater or equal.`);
   }
@@ -85,4 +96,3 @@ if (args.length === 0) throw new Error('No target specified');
 
 // Run the target
 targets[args[0]]();
-
