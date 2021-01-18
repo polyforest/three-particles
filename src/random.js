@@ -52,6 +52,7 @@ export class Random {
     nextBoolean() {
         return this.nextFloat() >= 0.5;
     }
+
 }
 
 export const RNG = new Random();

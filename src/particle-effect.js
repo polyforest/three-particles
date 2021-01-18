@@ -16,10 +16,10 @@ import {
  * @private
  */
 function drawRadialGradient(ctx, canvasRadius,
-                             canvasW, canvasH) {
+                            canvasW, canvasH) {
   ctx.save();
   const gradient = ctx.createRadialGradient(canvasRadius, canvasRadius, 0,
-      canvasRadius, canvasRadius, canvasRadius);
+    canvasRadius, canvasRadius, canvasRadius);
   gradient.addColorStop(0, 'rgba(255,255,255,1.0)');
   gradient.addColorStop(0.5, 'rgba(255,255,255,0.5)');
   gradient.addColorStop(1, 'rgba(255,255,255,0)');
@@ -139,4 +139,5 @@ export class ParticleEffect {
 
     this.geometry.verticesNeedUpdate = true;
   }
+
 }
