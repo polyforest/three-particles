@@ -6,43 +6,63 @@ import {RNG} from './random.js';
 import {easing} from './easing';
 
 /**
+ * Parameters for creating a new particle effect.
+ * @typedef {object} ParticleEffectVo
+ *
+ * @property {string} [version] A version string, potentially used for backwards
+ * compatibility.
+ * @property {ParticleEmitterVo[]} emitters
+ */
+
+/**
  * Data for a particle emitter.
  *
- * @typedef {Object} ParticleEmitterVo
+ * @typedef {object} ParticleEmitterVo
  *
- * @property {string} id The id of the emitter.
+ * @property {string} [id] The id of the emitter.
  *
- * @property {boolean} enabled True if the emitter is enabled. (default is true)
+ * @property {boolean} [enabled] True if the emitter is enabled. (default is
+ * true)
  *
- * @property {boolean} loops If true, this emitter will loop after the total
- *     duration. (default is true)
+ * @property {boolean} [loops] If true, this emitter will loop after the total
+ * duration. (default is true)
  *
- * @property {EmitterDurationVo} duration Represents when and how long this
- *     emitter will be active.
+ * @property {EmitterDurationVo} [duration] Represents when and how long this
+ * emitter will be active.
  *
- * @property {number} count The maximum number of particles to create.
+ * @property {number} [count] The maximum number of particles to create.
  *
- * @property {PropertyTimelineVo} emissionRate The rate of emissions, in
- *     particles per second.
+ * @property {PropertyTimelineVo} [emissionRate] The rate of emissions, in
+ * particles per second.
  *
- * @property {PropertyTimelineVo} particleLifeExpectancy Calculates the life of
- *     a newly created particle.
+ * @property {PropertyTimelineVo} [particleLifeExpectancy] Calculates the
+ * life of a newly created particle.
  *
- * @property {boolean} orientToForwardDirection If true, the forward direction
- *     affects the rotation.
+ * @property {boolean} [orientToForwardDirection] (Default false) If true, the
+ * forward direction affects the rotation.
  *
- * @property {PropertyTimelineVo[]} propertyTimelines Timelines relative to the
- *     particle life.
+ * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
+ * to the particle life.
+ *
+ * @property {THREE.PointsMaterialParameters} [material]
  */
 
 /**
+ * A model describing the duration and delay padding for an emitter.
+ * @typedef {object} EmitterDurationVo
  *
- * @typedef {Object} EmitterDurationVo
+ * @property {RangeVo} duration The number of seconds this emitter will create
+ * particles.
  *
+ * @property {RangeVo} delayBefore The time, in seconds, before the emitter
+ * begins.
+ *
+ * @property {RangeVo} delayAfter The time, in seconds, after completion before
+ * restarting.
  */
 
 /**
- * @typedef {Object} PropertyTimelineVo
+ * @typedef {object} PropertyTimelineVo
  *
  * @property {string} property The name of the property this timeline controls.
  *
@@ -59,16 +79,16 @@ import {easing} from './easing';
  * @property {boolean} relative If true, the final value will not be the high
  *     value, but the high + low.
  *
- * @property {ValueRange} low When the values are initialized / reset for a new
+ * @property {RangeVo} low When the values are initialized / reset for a new
  *     particle, this will be the low range.
  *
- * @property {ValueRange} high When the values are initialized / reset for a new
+ * @property {RangeVo} high When the values are initialized / reset for a new
  *     particle, this will be the high range.
  */
 
 /**
  * A number range with easing.
- * @typedef {object} ValueRange
+ * @typedef {object} RangeVo
  * @property {number} min The minimum value.
  * @property {number} max The maximum value.
  * @property {EaseType} ease The interpolation from min to max.
@@ -82,7 +102,7 @@ import {easing} from './easing';
 
 /**
  * Generates a random number within the given range, interpolated by its easing.
- * @param {ValueRange} range
+ * @param {RangeVo} range
  * @param {numberGen} rng
  * @return {number}
  */
