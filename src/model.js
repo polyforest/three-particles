@@ -10,8 +10,9 @@ import {easing} from './easing';
  * @typedef {object} ParticleEffectVo
  *
  * @property {string} [version] A version string, potentially used for backwards
- * compatibility.
- * @property {ParticleEmitterVo[]} emitters
+ * compatibility. This should be the version of three-particles the effect was
+ * built for. If null, no migration checks will be done.
+ * @property {ParticleEmitterVo[]} emitters A list of emitter models.
  */
 
 /**
@@ -19,21 +20,23 @@ import {easing} from './easing';
  *
  * @typedef {object} ParticleEmitterVo
  *
- * @property {string} [id] The id of the emitter.
+ * @property {string} [id] The id of the emitter. Default is a unique
+ * identifier.
  *
- * @property {boolean} [enabled] True if the emitter is enabled. (default is
- * true)
+ * @property {boolean} [enabled] True if the emitter is enabled. Default is
+ * true.
  *
  * @property {boolean} [loops] If true, this emitter will loop after the total
  * duration. (default is true)
  *
  * @property {EmitterDurationVo} [duration] Represents when and how long this
- * emitter will be active.
+ * emitter will be active (in seconds). Default is 10.0.
  *
  * @property {number} [count] The maximum number of particles to create.
+ * Default is 100.
  *
  * @property {PropertyTimelineVo} [emissionRate] The rate of emissions, in
- * particles per second.
+ * particles per second. Default is `{}`
  *
  * @property {PropertyTimelineVo} [particleLifeExpectancy] Calculates the
  * life of a newly created particle.
@@ -44,7 +47,7 @@ import {easing} from './easing';
  * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
  * to the particle life.
  *
- * @property {THREE.PointsMaterialParameters} [material]
+ * @property {THREE.Material} [material]
  */
 
 /**
@@ -90,8 +93,9 @@ import {easing} from './easing';
  * A number range with easing.
  * @typedef {object} RangeVo
  * @property {number} min The minimum value.
- * @property {number} max The maximum value.
- * @property {EaseType} ease The interpolation from min to max.
+ * @property {number} [max] The maximum value. Defaults to `min`.
+ * @property {EaseType} [ease] The interpolation from min to max. Defaults to
+ * `linear`.
  */
 
 /**

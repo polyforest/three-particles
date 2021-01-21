@@ -2,7 +2,6 @@ import {
   FloatType,
   Geometry,
   Points,
-  PointsMaterial,
   Texture,
   Vector3,
 } from 'three';
@@ -10,21 +9,17 @@ import {
 /**
  * A ParticleEmitter contains one [Points] object and is responsible for
  * updating its particles.
- * @extends {Points<Geometry, PointsMaterial>}
+ * @extends {Points<Geometry, THREE.Material>}
  */
 export class ParticleEmitter extends Points {
 
   /**
-   * @param {ParticleEmitterVo} props
+   * @param {ParticleEmitterVo} data
    */
-  constructor(props) {
+  constructor(data) {
     super();
     const particleNum = 10000;
 
-    /**
-     *
-     * @type {Geometry}
-     */
     this.geometry = new Geometry();
     for (let i = 0; i < particleNum; i++) {
       const particle = new Vector3(
@@ -37,9 +32,17 @@ export class ParticleEmitter extends Points {
       // pointGeometry.colors.push(color);
     }
 
-    this.material = new PointsMaterial(props.material);
+    /**
+     * @type {THREE.Material}
+     * @override
+     */
+    this.material = data.material;
 
-    this.velocities = /** @type Vector3[] */ [];
+    /**
+     * @type Vector3[]
+     * @private
+     */
+    this.velocities = [];
     for (let i = 0; i < particleNum; i++) {
       const x = Math.floor(Math.random() * 6 - 3) * 0.1;
       const y = -0.05;
@@ -48,6 +51,11 @@ export class ParticleEmitter extends Points {
       this.velocities.push(particle);
     }
 
+    /**
+     * The current time, in seconds, this emitter has elapsed.
+     * @readonly
+     * @type {number}
+     */
     this.time = 0;
   }
 
