@@ -1,8 +1,8 @@
-import {Group} from 'three';
 import {ParticleEmitter} from './particle-emitter.js';
+import {Group} from 'three';
 
 /**
- * A Particle effect
+ * A Particle effect.
  */
 export class ParticleEffect extends Group {
 
@@ -19,6 +19,7 @@ export class ParticleEffect extends Group {
     for (let i = 0; i < data.emitters.length; i++) {
       const emitter = new ParticleEmitter(data.emitters[i]);
       this.add(emitter);
+      this.emitters.push(emitter);
     }
   }
 

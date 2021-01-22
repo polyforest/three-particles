@@ -39,8 +39,9 @@
         "timeline": [ 0, 0, 0.4804574251174927, 1, 1, 0 ]
       },
       "material": {
+        "map": "radial",
         "blending": 2,
-        "size": 0.02
+        "size": 64
       },
       "particleLifeExpectancy": {
         "low": {
@@ -178,8 +179,9 @@
         "timeline": [ 0, 0, 1, 0 ]
       },
       "material": {
+        "map": "radial",
         "blending": 2,
-        "size": 0.02
+        "size": 64
       },
       "particleLifeExpectancy": {
         "low": {

@@ -1,15 +1,15 @@
 import {
+  BufferGeometry,
+  Float32BufferAttribute,
   FloatType,
-  Geometry,
   Points,
   Texture,
-  Vector3,
 } from 'three';
 
 /**
  * A ParticleEmitter contains one [Points] object and is responsible for
  * updating its particles.
- * @extends {Points<Geometry, THREE.Material>}
+ * @extends {Points<THREE.BufferGeometry, THREE.Material>}
  */
 export class ParticleEmitter extends Points {
 
@@ -20,17 +20,21 @@ export class ParticleEmitter extends Points {
     super();
     const particleNum = 10000;
 
-    this.geometry = new Geometry();
+    this.geometry = new BufferGeometry();
+
+    /**
+     * @private
+     * @type {number[]}
+     */
+    this.vertices = [];
     for (let i = 0; i < particleNum; i++) {
-      const particle = new Vector3(
-        Math.random() * 30 - 15,
-        Math.random() * 30,
-        Math.random() * 30 - 15,
-      );
-      this.geometry.vertices.push(particle);
-      // const color = new THREE.Color(0xffffff);
-      // pointGeometry.colors.push(color);
+      const x = Math.random() * 30 - 15;
+      const y = Math.random() * 30;
+      const z = Math.random() * 30 - 15;
+      this.vertices.push(x, y, z);
     }
+    this.geometry.setAttribute('position',
+        new Float32BufferAttribute(this.vertices, 3));
 
     /**
      * @type {THREE.Material}
@@ -39,7 +43,7 @@ export class ParticleEmitter extends Points {
     this.material = data.material;
 
     /**
-     * @type Vector3[]
+     * @type number[]
      * @private
      */
     this.velocities = [];
@@ -47,8 +51,7 @@ export class ParticleEmitter extends Points {
       const x = Math.floor(Math.random() * 6 - 3) * 0.1;
       const y = -0.05;
       const z = Math.floor(Math.random() * 6 - 3) * 0.1;
-      const particle = new Vector3(x, y, z);
-      this.velocities.push(particle);
+      this.velocities.push(x, y, z);
     }
 
     /**
@@ -65,25 +68,26 @@ export class ParticleEmitter extends Points {
    */
   update(dT) {
     this.time += dT;
-    const posArr = this.geometry.vertices;
+    const posArr = this.vertices;
     const velArr = this.velocities;
 
-    posArr.forEach((vertex, i) => {
-      const velocity = velArr[i];
+    let i = 0;
+    while (i < posArr.length) {
+      const vX = velArr[i];
+      const vY = velArr[i + 1];
+      const vZ = velArr[i + 2];
 
-      const velX = Math.sin(this.time * velocity.x) * 0.1;
-      const velZ = Math.cos(this.time * 1.5 * velocity.z) * 0.1;
-
-      vertex.x += velX;
-      vertex.y += velocity.y;
-      vertex.z += velZ;
-
-      if (vertex.y < 0) {
-        vertex.y = 10;
+      const vX2 = Math.sin(this.time * vX) * 0.1;
+      const vZ2 = Math.cos(this.time * 1.5 * vZ) * 0.1;
+      posArr[i] += vX2;
+      posArr[i + 1] += vY;
+      posArr[i + 2] += vZ2;
+      if (posArr[i + 1] < 0) {
+        posArr[i + 1] = 10;
       }
-    });
-
-    this.geometry.verticesNeedUpdate = true;
+      i += 3;
+    }
+    this.geometry.attributes.position.needsUpdate = true;
   }
 
 }

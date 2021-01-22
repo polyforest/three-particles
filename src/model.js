@@ -47,7 +47,7 @@ import {easing} from './easing';
  * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
  * to the particle life.
  *
- * @property {THREE.Material} [material]
+ * @property {Material} [material]
  */
 
 /**

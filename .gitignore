@@ -71,3 +71,4 @@ node_modules/
 
 # Just a directory to put junk in.
 /scratchpad/
+/generatedSrc/
