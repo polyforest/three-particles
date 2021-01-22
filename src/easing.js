@@ -18,7 +18,7 @@ function linear(alpha) {
   return alpha;
 }
 
-export const easing = {
+export const easingsRegistry = {
   linear: linear,
 };
 
@@ -28,7 +28,7 @@ export const easing = {
  * @return {Easer}
  */
 export function getEase(type) {
-  return easing[type];
+  return easingsRegistry[type];
 }
 
 /**

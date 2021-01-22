@@ -3,7 +3,7 @@
  */
 
 import {RNG} from './random.js';
-import {easing} from './easing';
+import * as easing from './easing';
 
 /**
  * Parameters for creating a new particle effect.
@@ -47,7 +47,7 @@ import {easing} from './easing';
  * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
  * to the particle life.
  *
- * @property {Material} [material]
+ * @property {THREE.Material} [material]
  */
 
 /**
@@ -94,8 +94,8 @@ import {easing} from './easing';
  * @typedef {object} RangeVo
  * @property {number} min The minimum value.
  * @property {number} [max] The maximum value. Defaults to `min`.
- * @property {EaseType} [ease] The interpolation from min to max. Defaults to
- * `linear`.
+ * @property {easing.EaseType} [ease] The interpolation from min to max.
+ * Defaults to `linear`.
  */
 
 /**
@@ -111,7 +111,7 @@ import {easing} from './easing';
  * @return {number}
  */
 export function randomFromRange(range, rng = RNG.nextFloat) {
-  const ease = easing[range.ease];
+  const ease = easing.getEase(range.ease);
   return ease(rng()) * (range.max - range.min) +
     range.min;
 }

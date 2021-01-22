@@ -4,6 +4,7 @@ import {
     MaterialLoader,
 } from 'three';
 import {ParticleEffect} from './particle-effect.js';
+import {getDefaultRadial} from './textures/radial-texture.js';
 
 /**
  * Loads a json file describing a particle effect.
@@ -17,6 +18,14 @@ export class ParticleEffectLoader extends Loader {
     constructor(manager) {
         super(manager);
         this.materialLoader = new MaterialLoader(manager);
+        this.textures['radial'] = getDefaultRadial();
+    }
+
+    /**
+     * @default {}
+     */
+    get textures() {
+        return this.materialLoader.textures;
     }
 
     /**
@@ -49,12 +58,13 @@ export class ParticleEffectLoader extends Loader {
      * @override
      */
     parse(json) {
-        if (json.material) {
-            if (typeof(json.material) != 'string') {
-                if (json.type === undefined) {
-                    json.type = 'PointsMaterial';
+        for (const emitterJson of json.emitters) {
+            if (emitterJson.material) {
+                if (emitterJson.material.type === undefined) {
+                    emitterJson.material.type = 'PointsMaterial';
                 }
-                json.material = this.materialLoader.parse(json.material);
+                emitterJson.material =
+                    this.materialLoader.parse(emitterJson.material);
             }
         }
         return new ParticleEffect(json);

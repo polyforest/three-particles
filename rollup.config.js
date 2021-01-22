@@ -21,7 +21,7 @@ export default [
         },
         plugins: [
             resolve(), // Resolve node_modules
-            eslint({throwOnError: true}),
+            eslint({throwOnError: production}),
             commonjs(),
             production && terser(), // minify, but only in production
         ],
