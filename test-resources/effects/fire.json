@@ -1,0 +1,300 @@
+{
+  "version": "0.1.10",
+  "emitters": [
+    {
+      "name": "flame",
+      "enabled": true,
+      "loops": true,
+      "duration": {
+        "duration": {
+          "min": 4,
+          "max": 6.5,
+          "easing": "linear"
+        },
+        "delayBefore": {
+          "min": 0,
+          "max": 0,
+          "easing": "linear"
+        },
+        "delayAfter": {
+          "min": 0,
+          "max": 0,
+          "easing": "linear"
+        }
+      },
+      "count": 200,
+      "emissionRate": {
+        "low": {
+          "min": 75,
+          "max": 75,
+          "easing": "linear"
+        },
+        "high": {
+          "min": -20,
+          "max": 15,
+          "easing": "linear"
+        },
+        "property": "emissionRate",
+        "relative": true,
+        "timeline": [ 0, 0, 0.4804574251174927, 1, 1, 0 ]
+      },
+      "material": {
+        "map": "radial",
+        "blending": 2,
+        "size": 64
+      },
+      "particleLifeExpectancy": {
+        "low": {
+          "min": 1.5999999046325684,
+          "max": 2,
+          "easing": "linear"
+        },
+        "high": {
+          "min": 0.7999999523162842,
+          "max": 1.5999999046325684,
+          "easing": "linear"
+        },
+        "property": "particleLifeExpectancy",
+        "relative": false,
+        "timeline": [ 0.699999988079071, 0.20000000298023224, 1, 1 ]
+      },
+      "orientToForwardDirection": false,
+      "propertyTimelines": [
+        {
+          "low": {
+            "min": 0,
+            "max": 0,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "scaleX",
+          "relative": false,
+          "timeline": [ 0.4880269765853882, 1, 1, 0.47185540199279785 ]
+        },
+        {
+          "low": {
+            "min": 0,
+            "max": 0,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "scaleY",
+          "relative": false,
+          "timeline": [ 0.507415235042572, 1, 1, 0.49997979402542114 ]
+        },
+        {
+          "low": {
+            "min": -2.3561947345733643,
+            "max": -0.7853981852531433,
+            "easing": "linear"
+          },
+          "high": {
+            "min": -1.5707963705062866,
+            "max": -1.5707963705062866,
+            "easing": "linear"
+          },
+          "property": "forwardDirectionZ",
+          "relative": false,
+          "timeline": [ 0, 0, 0.40866684913635254, 1 ]
+        },
+        {
+          "low": {
+            "min": 0,
+            "max": 0,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 2,
+            "max": 2,
+            "easing": "linear"
+          },
+          "property": "forwardVelocity",
+          "relative": false,
+          "timeline": [ 0, 1 ]
+        },
+        {
+          "low": {
+            "min": 0,
+            "max": 0,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "colorA",
+          "relative": false,
+          "timeline": [ 0, 0, 0.17129509150981903, 1, 0.8015885949134827, 1, 1, 0 ]
+        },
+        {
+          "property": "color",
+          "timeline": [ 0, 0.9399999976158142, 0.16497163474559784, 0.028199970722198486, 0.9600865840911865, 0.5099999904632568, 0.09180060774087906, 0 ]
+        }
+      ]
+    },
+    {
+      "name": "sparks",
+      "enabled": true,
+      "loops": true,
+      "duration": {
+        "duration": {
+          "min": 6,
+          "max": 6.5,
+          "easing": "linear"
+        },
+        "delayBefore": {
+          "min": 0,
+          "max": 0,
+          "easing": "linear"
+        },
+        "delayAfter": {
+          "min": 0,
+          "max": 0,
+          "easing": "linear"
+        }
+      },
+      "count": 100,
+      "emissionRate": {
+        "low": {
+          "min": 4,
+          "max": 4,
+          "easing": "linear"
+        },
+        "high": {
+          "min": -15,
+          "max": -15,
+          "easing": "linear"
+        },
+        "property": "emissionRate",
+        "relative": true,
+        "timeline": [ 0, 0, 1, 0 ]
+      },
+      "material": {
+        "map": "radial",
+        "blending": 2,
+        "size": 64
+      },
+      "particleLifeExpectancy": {
+        "low": {
+          "min": 1.5999999046325684,
+          "max": 2,
+          "easing": "linear"
+        },
+        "high": {
+          "min": 0.7999999523162842,
+          "max": 1.5999999046325684,
+          "easing": "linear"
+        },
+        "property": "particleLifeExpectancy",
+        "relative": false,
+        "timeline": [ 0, 1, 0.15100757777690887, 0 ]
+      },
+      "orientToForwardDirection": false,
+      "propertyTimelines": [
+        {
+          "low": {
+            "min": -0.5,
+            "max": 0.5,
+            "easing": "linear"
+          },
+          "high": {
+            "min": -2,
+            "max": 2,
+            "easing": "circleInverse"
+          },
+          "property": "velocityX",
+          "relative": true,
+          "timeline": [ 0, 0, 0.29845768213272095, 1 ]
+        },
+        {
+          "low": {
+            "min": 0,
+            "max": 0,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "colorA",
+          "relative": false,
+          "timeline": [ 0, 0, 0.17129509150981903, 1, 0.8015885949134827, 1, 1, 0 ]
+        },
+        {
+          "property": "color",
+          "timeline": [ 0, 0.8465550541877747, 0.15238086879253387, 0 ]
+        },
+        {
+          "low": {
+            "min": 0.14999999105930328,
+            "max": 0.14999999105930328,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "scaleX",
+          "relative": false,
+          "timeline": [ ]
+        },
+        {
+          "low": {
+            "min": 0.14999999105930328,
+            "max": 0.14999999105930328,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 1,
+            "max": 1,
+            "easing": "linear"
+          },
+          "property": "scaleY",
+          "relative": false,
+          "timeline": [ ]
+        },
+        {
+          "low": {
+            "min": -1.8325958251953125,
+            "max": -1.3089970350265503,
+            "easing": "linear"
+          },
+          "high": {
+            "min": -1.5707963705062866,
+            "max": -1.5707963705062866,
+            "easing": "linear"
+          },
+          "property": "forwardDirectionZ",
+          "relative": false,
+          "timeline": [ 0, 0, 0.15994033217430115, 0.7019978165626526, 0.46906620264053345, 0.21886450052261353, 0.7427477240562439, 1 ]
+        },
+        {
+          "low": {
+            "min": 0.5,
+            "max": 0.5,
+            "easing": "linear"
+          },
+          "high": {
+            "min": 0,
+            "max": 3.5,
+            "easing": "linear"
+          },
+          "property": "forwardVelocity",
+          "relative": true,
+          "timeline": [ 0, 0, 0.40158969163894653, 0.14028364419937134, 0.703630805015564, 0.4832562208175659, 1, 1 ]
+        }
+      ]
+    }
+  ]
+}

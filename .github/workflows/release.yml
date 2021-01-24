@@ -3,6 +3,8 @@ name: Publish release
 on:
   release:
     types: [published]
+    branches:
+      - 'main'
 
 jobs:
   publish:
