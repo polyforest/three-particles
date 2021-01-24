@@ -5,17 +5,24 @@ import {
   Points,
 } from 'three';
 
+/** @module particle */
+
 /** @typedef {import('./model').ParticleEmitterVo} ParticleEmitterVo */
+/** @typedef {import('three').Material} Material */
+
 
 /**
  * A ParticleEmitter contains one [Points] object and is responsible for
  * updating its particles.
- * @extends {Points<THREE.BufferGeometry, THREE.Material>}
+ *
+ * @augments {Points<BufferGeometry, Material>}
  */
 export class ParticleEmitter extends Points {
 
   /**
-   * @param {ParticleEmitterVo} data
+   * Constructor
+   *
+   * @param {ParticleEmitterVo} data The model used to construct this emitter.
    */
   constructor(data) {
     super();
@@ -24,7 +31,6 @@ export class ParticleEmitter extends Points {
     this.geometry = new BufferGeometry();
     this.geometry.computeBoundingSphere();
     this.geometry.boundingSphere.radius = 1;
-
 
     const vertices = [];
     for (let i = 0; i < particleNum; i++) {
@@ -40,7 +46,7 @@ export class ParticleEmitter extends Points {
     this._vertices = vertices;
 
     /**
-     * @type {THREE.Material}
+     * @type {Material}
      * @override
      */
     this.material = data.material;
@@ -53,7 +59,7 @@ export class ParticleEmitter extends Points {
     // pM.needsUpdate = true;
 
     /**
-     * @type number[]
+     * @type {number[]}
      * @private
      */
     this.velocities = [];
@@ -64,6 +70,7 @@ export class ParticleEmitter extends Points {
 
   /**
    * The current time, in seconds, this emitter has elapsed.
+   *
    * @type {number}
    * @readonly
    */
@@ -72,13 +79,15 @@ export class ParticleEmitter extends Points {
   }
 
   /**
+   * Updates this emitter forward in time. Typically this is only invoked by the
+   * particle effect.
    *
    * @param {number} dT The number of seconds to elapse.
    */
   update(dT) {
     this._time += dT;
     // const t = this._time;
-    const posArr = /** @type Array<number> */
+    const posArr = /** @type {number[]} */
       (this.geometry.attributes.position.array);
     // const velArr = this.velocities;
 

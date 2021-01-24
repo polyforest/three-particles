@@ -3,18 +3,21 @@ import {
   Texture,
 } from 'three';
 
+/** @module */
+
 /**
  * Draws a radial gradient.
- * @param {CanvasRenderingContext2D} ctx
- * @param {number} canvasRadius
- * @param {number} canvasW
- * @param {number} canvasH
+ *
+ * @param {CanvasRenderingContext2D} ctx The rendering context.
+ * @param {number} canvasRadius The radius of the circle.
+ * @param {number} [canvasW] The width of the canvas.
+ * @param {number} [canvasH] The height of the canvas.
  * @private
  */
 function drawRadialGradient(ctx,
   canvasRadius,
-  canvasW,
-  canvasH) {
+  canvasW = canvasRadius * 2,
+  canvasH = canvasRadius * 2) {
   ctx.save();
   const gradient = ctx.createRadialGradient(canvasRadius, canvasRadius, 0,
     canvasRadius, canvasRadius, canvasRadius);
@@ -28,12 +31,13 @@ function drawRadialGradient(ctx,
 
 /**
  * Creates a circle gradient texture.
+ *
  * @param {number} textureSize The diameter of the circle gradient.
- * @return {THREE.Texture}
+ * @returns {Texture} The newly created texture.
  * @private
  */
 export function createCircleGradientTexture(textureSize = 64.0) {
-  if (typeof(document) === 'undefined') return new Texture(); // NodeJS
+  if (typeof (document) === 'undefined') return new Texture(); // NodeJS
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
 
@@ -42,7 +46,7 @@ export function createCircleGradientTexture(textureSize = 64.0) {
   canvas.height = diameter;
   const canvasRadius = diameter / 2;
 
-  drawRadialGradient(ctx, canvasRadius, canvas.width, canvas.height);
+  drawRadialGradient(ctx, canvasRadius);
 
   const texture = new Texture(canvas);
   texture.type = FloatType;
@@ -52,12 +56,14 @@ export function createCircleGradientTexture(textureSize = 64.0) {
 
 /**
  * @type {?Texture}
+ * @private
  */
 let _defaultRadial = null;
 
 /**
  * Returns the default radial gradient.
- * @return {Texture}
+ *
+ * @returns {Texture} The cached or newly created circle gradient texture.
  */
 export function getDefaultRadial() {
   if (_defaultRadial === null) _defaultRadial = createCircleGradientTexture();

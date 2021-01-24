@@ -3,8 +3,6 @@ import {execSync} from 'child_process';
 import * as fs from 'fs';
 import semver from 'semver';
 
-'use strict';
-
 /**
  * Sets the git user.name to GITHUB_ACTOR.
  */
@@ -17,7 +15,7 @@ function setGitUser() {
 /**
  * Gets a path to an executable in node_modules/.bin
  * @param {string} command The executable name.
- * @return {string} The executable path.
+ * @returns {string} The executable path.
  */
 function getBinFile(command) {
   return path.join('node_modules', '.bin', command);
@@ -28,7 +26,9 @@ const targets = {};
 const version = process.env.npm_package_version;
 
 targets.doc = () => {
-  execSync(`${getBinFile('jsdoc')} -c jsdoc.conf.json -d jsdocs/v${version}`);
+  const o = execSync(`${getBinFile('jsdoc')} -c build-src/jsdoc.conf.json -d ` +
+  `jsdocs/v${version}`);
+  console.log(o.toString());
   const data = `<script>window.location.replace("./v${version}/");</script>`;
   fs.writeFileSync('jsdocs/index.html', data);
 };
@@ -63,6 +63,7 @@ targets.bumpVersion = () => {
   execSync(`git fetch --shallow-since="${tagDate}"`);
 
   const log = execSync(`git log ${lastTag}..HEAD`).toString();
+  /** @type {semver.ReleaseType} */
   let type;
   if (/#major\b/.test(log)) type = 'major';
   else if (/#minor\b/.test(log)) type = 'minor';

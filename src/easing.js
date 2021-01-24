@@ -1,18 +1,20 @@
 /**
- * @fileoverview A collection of easing functions and their registry.
+ * @file A collection of easing functions and their registry.
  */
+
+ /** @module */
 
 /**
  * Function representing an interpolation.
  *
- * @typedef {function} Easer
+ * @typedef {Function} Easer
  * @param {number} alpha A number with range 0-1.
- * @return {number} The alpha after easing.
+ * @returns {number} The alpha after easing.
  */
 
 /**
- * @param {number} alpha
- * @return {number}
+ * @param {number} alpha A number with range 0-1.
+ * @returns {number} Returns alpha.
  */
 function linear(alpha) {
   return alpha;
@@ -23,9 +25,10 @@ export const easingsRegistry = {
 };
 
 /**
- * Returns the Easer for the given string identifier.
- * @param {EaseType} type
- * @return {Easer}
+ * Returns the `Easer` for the given string identifier.
+ *
+ * @param {EaseType} type The name of the easing function to return.
+ * @returns {Easer} Returns the `Easer` function.
  */
 export function getEase(type) {
   return easingsRegistry[type];

@@ -1,13 +1,16 @@
 /**
- * @fileoverview Array utility methods.
+ * @file Array utility methods.
  */
+
+ /** @module */
 
 /**
  * Removes an element from this array.
+ *
  * @template T
  * @param {T[]} arr The Array to search for element.
  * @param {T} element The element to remove.
- * @return {boolean} Returns true if the element was found.
+ * @returns {boolean} Returns true if the element was found.
  */
 export function removeElement(arr, element) {
   const index = arr.indexOf(element);

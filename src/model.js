@@ -1,12 +1,15 @@
 /**
- * @fileoverview Data descriptors for a particle effect.
+ * @file Data descriptors for a particle effect.
  */
 
+ /** @module */
+
+import * as easing from './easing.js';
 import {RNG} from './random.js';
-import * as easing from './easing';
 
 /**
  * Parameters for creating a new particle effect.
+ *
  * @typedef {object} ParticleEffectVo
  *
  * @property {string} [version] A version string, potentially used for backwards
@@ -47,11 +50,12 @@ import * as easing from './easing';
  * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
  * to the particle life.
  *
- * @property {THREE.Material} [material]
+ * @property {import('three').Material} [material] The THREE Material to render.
  */
 
 /**
  * A model describing the duration and delay padding for an emitter.
+ *
  * @typedef {object} EmitterDurationVo
  *
  * @property {RangeVo} duration The number of seconds this emitter will create
@@ -91,6 +95,7 @@ import * as easing from './easing';
 
 /**
  * A number range with easing.
+ *
  * @typedef {object} RangeVo
  * @property {number} min The minimum value.
  * @property {number} [max] The maximum value. Defaults to `min`.
@@ -100,15 +105,18 @@ import * as easing from './easing';
 
 /**
  * Generates a number between 0 and 1 (exclusive).
+ *
  * @callback numberGen
- * @return {number}
+ * @returns {number}
  */
 
 /**
  * Generates a random number within the given range, interpolated by its easing.
- * @param {RangeVo} range
- * @param {numberGen} rng
- * @return {number}
+ *
+ * @param {RangeVo} range The minimum, maximum, and interpolation.
+ * @param {numberGen} rng A number generator that provides a float between 0
+ * and 1.
+ * @returns {number} Returns the new random number.
  */
 export function randomFromRange(range, rng = RNG.nextFloat) {
   const ease = easing.getEase(range.ease);

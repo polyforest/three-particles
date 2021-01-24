@@ -2,7 +2,7 @@ import assert from 'assert';
 import * as fs from 'fs';
 import {PointsMaterial} from 'three';
 import {ParticleEffectLoader} from '../src/particle-effect-loader.js';
-import {getDefaultRadial} from '../src/textures/radial-texture.js';
+import {getDefaultRadial} from '../src/textures.js';
 
 PointsMaterial;
 

@@ -1,6 +1,11 @@
 {
   "editor.minimap.maxColumn": 80,
-  "editor.wordWrap": "wordWrapColumn",
   "editor.tabSize": 2,
-  "editor.rulers": [80]
+  "editor.rulers": [
+    80
+  ],
+  "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
+  "javascript.format.semicolons": "insert",
+  "javascript.preferences.quoteStyle": "single",
+  "npm.enableRunFromFolder": true
 }
