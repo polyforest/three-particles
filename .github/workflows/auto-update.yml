@@ -1,0 +1,21 @@
+# Keeps dev branch up to date with main.
+name: Update dev branch on push to main
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Update dev
+        run: |
+          git config pull.rebase false
+          git config user.name "GitHub Actions Bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git pull --unshallow
+          git checkout dev
+          git pull origin main
+          git push
