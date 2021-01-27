@@ -31,7 +31,6 @@ export class ParticleEffect extends Group {
 
     /**
      * @type {ParticleEmitter[]}
-     * @private
      */
     this._emitters = [];
     for (let i = 0; i < data.emitters.length; i++) {
