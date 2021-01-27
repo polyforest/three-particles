@@ -114,8 +114,8 @@ import {RNG} from './random.js';
  * Generates a random number within the given range, interpolated by its easing.
  *
  * @param {RangeVo} range The minimum, maximum, and interpolation.
- * @param {numberGen} rng A number generator that provides a float between 0
- * and 1.
+ * @param {numberGen} rng A number generator that provides a float between
+ * 0 (inclusive) and 1 (exclusive).
  * @returns {number} Returns the new random number.
  */
 export function randomFromRange(range, rng = RNG.nextFloat) {
