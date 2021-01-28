@@ -99,8 +99,8 @@ import {RNG} from './random.js';
  * @typedef {object} RangeVo
  * @property {number} min The minimum value.
  * @property {number} [max] The maximum value. Defaults to `min`.
- * @property {easing.EaseType} [ease] The interpolation from min to max.
- * Defaults to `linear`.
+ * @property {?easing.EaseType} [ease] The interpolation from min to max.
+ * Undefined will be considered `linear`.
  */
 
 /**
@@ -119,7 +119,7 @@ import {RNG} from './random.js';
  * @returns {number} Returns the new random number.
  */
 export function randomFromRange(range, rng = RNG.nextFloat) {
-  const ease = easing.getEase(range.ease);
+  const ease = easing.getEase(range.ease || 'linear');
   return ease(rng()) * (range.max - range.min) +
     range.min;
 }
