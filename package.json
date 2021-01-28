@@ -8,7 +8,7 @@
   "scripts": {
     "build": "rollup -c --environment BUILD:production",
     "dev": "rollup -c -w",
-    "test": "mocha",
+    "test": "mocha --recursive",
     "pretest": "npm run build",
     "doc": "node makefile.js doc",
     "bump-version": "node makefile.js bumpVersion",
