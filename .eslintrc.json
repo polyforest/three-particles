@@ -3,6 +3,7 @@
 		"browser": true,
 		"es2020": true
 	},
+	"parser": "@typescript-eslint/parser",
 	"extends": [
 		"google",
 		"plugin:jsdoc/recommended"
@@ -10,7 +11,7 @@
 	"parserOptions": {
 		"sourceType": "module"
 	},
-	"plugins": ["jsdoc"],
+	"plugins": ["@typescript-eslint"],
 	"rules": {
 		"linebreak-style": "off",
 		"indent": "off",

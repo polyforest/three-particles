@@ -1,10 +1,14 @@
-import resolve from '@rollup/plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
 import commonjs from '@rollup/plugin-commonjs';
-import pkg from './package.json';
+import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import {eslint} from 'rollup-plugin-eslint';
+import {terser} from 'rollup-plugin-terser';
+import pkg from './package.json';
 
 const production = process.env.BUILD === 'production';
+const replacements = {
+    '__buildVersion__': process.env.npm_package_version,
+};
 
 export default [
     {
@@ -20,6 +24,7 @@ export default [
             sourcemap: true,
         },
         plugins: [
+            replace(replacements),
             resolve(), // Resolve node_modules
             eslint({throwOnError: production}),
             commonjs(),
@@ -46,6 +51,7 @@ export default [
             },
         ],
         plugins: [
+            replace(replacements),
             resolve(), // Resolve node_modules
         ],
     },

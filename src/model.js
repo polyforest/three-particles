@@ -13,7 +13,7 @@ import {createShortUid} from './util/uid.js';
  *
  * @typedef {object} ParticleEffectVo
  *
- * @property {?string} [version] A version string, potentially used for
+ * @property {string} version A version string, potentially used for
  * backwards compatibility. This should be the version of three-particles the
  * effect was built for. If null, no migration checks will be done.
  * @property {ParticleEmitterVo[]} emitters A list of emitter models.
@@ -28,6 +28,9 @@ import {createShortUid} from './util/uid.js';
  */
 export function sanitizeParticleEffect(effect) {
   if (effect.emitters === undefined) effect.emitters = [];
+  if (effect.version === undefined) {
+    effect.version = '__buildVersion__';
+  }
   effect.emitters.forEach((emitter) => {
     sanitizeEmitter(emitter);
   });

@@ -1,7 +1,7 @@
 import assert from 'assert';
 import {ParticleEffect} from '../src/particle-effect.js';
 import {AdditiveBlending} from 'three';
-import {sanitizeParticleEffect} from '../src/model.js';
+import {sanitizeEmitter, sanitizeParticleEffect} from '../src/model.js';
 
 describe('ParticleEffect', () => {
   describe('constructor', () => {
@@ -9,9 +9,9 @@ describe('ParticleEffect', () => {
       console.log(AdditiveBlending);
       const pE = new ParticleEffect(sanitizeParticleEffect({
         emitters: [
-          {},
-          {},
-          {},
+          sanitizeEmitter({}),
+          sanitizeEmitter({}),
+          sanitizeEmitter({}),
         ],
       }));
       assert.strictEqual(pE.children.length, 3);
