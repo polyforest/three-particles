@@ -22,7 +22,7 @@ import {createShortUid} from './util/uid.js';
 /**
  * Sets defaults on the particle effect data object.
  *
- * @param {any} effect The particle effect to sanitize.
+ * @param {Partial<ParticleEffectVo>} effect The particle effect to sanitize.
  * @returns {ParticleEffectVo} The input, now safely type cast to a
  * `ParticleEffectVo`
  */
@@ -31,7 +31,7 @@ export function sanitizeParticleEffect(effect) {
   effect.emitters.forEach((emitter) => {
     sanitizeEmitter(emitter);
   });
-  return effect;
+  return /** @type {ParticleEffectVo} */ (effect);
 }
 
 /**
@@ -72,14 +72,14 @@ export function sanitizeParticleEffect(effect) {
 /**
  * Sets any defaults for unset properties on an emitter.
  *
- * @param {any} emitter The emitter to sanitize.
+ * @param {Partial<ParticleEmitterVo>} emitter The emitter to sanitize.
  * @returns {ParticleEmitterVo} The input, now safely type cast to a
  * `ParticleEmitterVo`
  */
 export function sanitizeEmitter(emitter) {
   if (emitter.id === undefined) emitter.id = createShortUid();
   if (emitter.count === undefined) emitter.count = 100;
-  return emitter;
+  return /** @type {ParticleEmitterVo} */ (emitter);
 }
 
 /**
