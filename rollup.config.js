@@ -52,7 +52,10 @@ export default [
         plugins: [
             eslint({throwOnError: production}),
             replace(replacements),
-            babel.babel(babelConfig),
+            babel.babel({
+                babelHelpers: 'bundled',
+                babelrc: true,
+            }),
             resolve(),
             commonjs(),
             production && terser(), // minify, but only in production
@@ -73,7 +76,10 @@ export default [
         ],
         plugins: [
             replace(replacements),
-            babel.babel(babelConfig),
+            babel.babel({
+                babelHelpers: 'bundled',
+                babelrc: true,
+            }),
             resolve(),
         ],
     },
