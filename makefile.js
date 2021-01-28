@@ -26,7 +26,7 @@ const targets = {};
 const version = process.env.npm_package_version;
 
 targets.doc = () => {
-  const o = execSync(`${getBinFile('jsdoc')} -c build-src/jsdoc.conf.json -d ` +
+  const o = execSync(`${getBinFile('jsdoc')} -c jsdoc.conf.json -d ` +
   `jsdocs/v${version}`);
   console.log(o.toString());
   const data = `<script>window.location.replace("./v${version}/");</script>`;

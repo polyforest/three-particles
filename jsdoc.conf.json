@@ -14,7 +14,8 @@
     "excludePattern": "(^|\\/|\\\\)_"
   },
   "plugins": [
-    "build-src/cjs/jsdoc-plugin"
+    "node_modules/jsdoc-tsimport-plugin/index.js",
+    "plugins/underscore.js"
   ],
   "templates": {
     "cleverLinks": true,

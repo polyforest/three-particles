@@ -58,6 +58,7 @@ node_modules/
 /dist/
 /jsdocs/
 /act/
+/.idea/
 
 # Just a directory to put junk in.
 /scratchpad/
