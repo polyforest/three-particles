@@ -7,3 +7,5 @@ export * from './particle-emitter.js';
 export * from './util/random.js';
 export * from './util/array-utils.js';
 export * from './util/uid.js';
+
+console.debug('three-particles version __buildVersion__');
