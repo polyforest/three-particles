@@ -54,7 +54,6 @@ import {RNG} from './util/random.js';
  * @property {import('three').Material} material The THREE Material to render.
  */
 
- 
 /**
  * A model describing the duration and delay padding for an emitter.
  *
