@@ -6,7 +6,7 @@
 
 import {MathUtils} from 'three';
 import * as easing from './easing.js';
-import {getDefaultMaterial} from './textures.js';
+import {getDefaultMaterial} from './material-defaults.js';
 import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
 

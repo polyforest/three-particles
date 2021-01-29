@@ -5,7 +5,7 @@ import {
 } from 'three';
 import {sanitizeParticleEffect, scaleEmitter} from './model.js';
 import {ParticleEffect} from './particle-effect.js';
-import {getDefaultRadial} from './textures.js';
+import {getDefaultRadial} from './material-defaults.js';
 
 /** @module particle */
 
