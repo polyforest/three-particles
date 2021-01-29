@@ -3,6 +3,7 @@ import {
     Loader,
     MaterialLoader,
 } from 'three';
+import {sanitizeParticleEffect, scaleEmitter} from './model.js';
 import {ParticleEffect} from './particle-effect.js';
 import {getDefaultRadial} from './textures.js';
 
@@ -24,10 +25,22 @@ export class ParticleEffectLoader extends Loader {
         super(manager);
         this.materialLoader = new MaterialLoader(manager);
         this.textures['radial'] = getDefaultRadial();
+
+        /**
+         * Max particle counts and emission rates can be scaled by setting
+         * a scaling factor per emitter here.
+         * The key is the emitter id, the value is a numeric multiplier.
+         * To scale all emitters, use the key '*'.
+         * This can be used, for example, to reduce particle emissions on
+         * slower devices, or increase emissions for stress tests.
+         */
+        this.emissionScaling = {'*': 1};
     }
 
     /**
      * A map of textures the material loader should use.
+     * The keys will be the name of the texture, the values the `Texture`
+     * object.
      *
      * @default {}
      * @returns {{}} Returns the currently set texture map.
@@ -70,6 +83,8 @@ export class ParticleEffectLoader extends Loader {
      * @override
      */
     parse(json) {
+        const globalScale = this.emissionScaling['*'];
+        sanitizeParticleEffect(json);
         for (const emitterJson of json.emitters) {
             if (emitterJson.material) {
                 if (emitterJson.material.type === undefined) {
@@ -78,6 +93,8 @@ export class ParticleEffectLoader extends Loader {
                 emitterJson.material =
                     this.materialLoader.parse(emitterJson.material);
             }
+            scaleEmitter(emitterJson,
+                this.emissionScaling[emitterJson.id] || globalScale);
         }
         return new ParticleEffect(json);
     }

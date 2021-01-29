@@ -15,6 +15,7 @@ export class Random {
      */
     constructor(seed = 16270110) {
         this._seed = Math.floor(seed) % 2147483647;
+        if (this._seed == 0) this._seed = 1;
     }
 
     /**

@@ -16,7 +16,7 @@ import './util/array-utils.js';
 export class ParticleEffect extends Group {
 
   /**
-   * @param {import('./model.js').ParticleEffectVo} data The model used to
+   * @param {ParticleEffectVo} data The model used to
    * construct this particle effect.
    */
   constructor(data) {
@@ -31,7 +31,6 @@ export class ParticleEffect extends Group {
 
     /**
      * @type {ParticleEmitter[]}
-     * @private
      */
     this._emitters = [];
     for (let i = 0; i < data.emitters.length; i++) {

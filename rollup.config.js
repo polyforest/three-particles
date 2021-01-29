@@ -1,14 +1,20 @@
-import resolve from '@rollup/plugin-node-resolve';
-import {terser} from 'rollup-plugin-terser';
+import * as babel from '@rollup/plugin-babel';
 import commonjs from '@rollup/plugin-commonjs';
-import pkg from './package.json';
+import resolve from '@rollup/plugin-node-resolve';
+import replace from '@rollup/plugin-replace';
 import {eslint} from 'rollup-plugin-eslint';
+import {terser} from 'rollup-plugin-terser';
+import multi from '@rollup/plugin-multi-entry';
+import pkg from './package.json';
 
 const production = process.env.BUILD === 'production';
+const replacements = {
+    '__buildVersion__': process.env.npm_package_version,
+};
 
 export default [
     {
-        input: 'src/three-particles.js',
+        input: 'src/**/*.js',
         external: ['three'],
         output: {
             name: 'three-particles',
@@ -20,20 +26,20 @@ export default [
             sourcemap: true,
         },
         plugins: [
-            resolve(), // Resolve node_modules
             eslint({throwOnError: production}),
+            replace(replacements),
+            babel.babel({
+                babelHelpers: 'bundled',
+                babelrc: true,
+            }),
+            resolve(),
+            multi(),
             commonjs(),
             production && terser(), // minify, but only in production
         ],
     },
-    // CommonJS (for Node) and ES module (for bundlers) build.
-    // (We could have three entries in the configuration array
-    // instead of two, but it's quicker to generate multiple
-    // builds from a single configuration where possible, using
-    // an array for the `output` option, where we can specify
-    // `file` and `format` for each target)
     {
-        input: 'src/three-particles.js',
+        input: 'src/**/*.js',
         external: ['three'],
         output: [
             {
@@ -46,7 +52,9 @@ export default [
             },
         ],
         plugins: [
-            resolve(), // Resolve node_modules
+            replace(replacements),
+            multi(),
+            resolve(),
         ],
     },
 

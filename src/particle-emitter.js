@@ -30,7 +30,7 @@ export class ParticleEmitter extends Points {
 
     this.geometry = new BufferGeometry();
     this.geometry.computeBoundingSphere();
-    this.geometry.boundingSphere.radius = 1;
+    this.geometry.boundingSphere.radius = 1; // TODO
 
     const vertices = [];
     for (let i = 0; i < particleNum; i++) {
@@ -50,13 +50,6 @@ export class ParticleEmitter extends Points {
      * @override
      */
     this.material = data.material;
-
-    // const pM = /** @type THREE.PointsMaterial */ (this.material);
-    // pM.size = 0.2;
-    // pM.depthWrite = true;
-    // pM.depthTest = false;
-    // pM.transparent = true;
-    // pM.needsUpdate = true;
 
     /**
      * @type {number[]}

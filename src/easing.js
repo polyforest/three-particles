@@ -20,8 +20,26 @@ function linear(alpha) {
   return alpha;
 }
 
+/**
+ * @param {number} alpha A number with range 0-1.
+ * @returns {number} Returns alpha.
+ */
+function pow2In(alpha) {
+  return alpha * alpha;
+}
+
+/**
+ * @param {number} alpha A number with range 0-1.
+ * @returns {number} Returns alpha.
+ */
+function pow2Out(alpha) {
+  return 1 - (1 - alpha) * (1 - alpha);
+}
+
 export const easingsRegistry = {
-  linear: linear,
+  linear,
+  pow2In,
+  pow2Out,
 };
 
 /**
