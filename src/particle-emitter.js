@@ -3,6 +3,7 @@ import {
   DynamicDrawUsage,
   Float32BufferAttribute,
   Points,
+  Vector3,
 } from 'three';
 
 /** @module particle */
@@ -29,8 +30,6 @@ export class ParticleEmitter extends Points {
     const particleNum = 10;
 
     this.geometry = new BufferGeometry();
-    this.geometry.computeBoundingSphere();
-    this.geometry.boundingSphere.radius = 1; // TODO
 
     const vertices = [];
     for (let i = 0; i < particleNum; i++) {
@@ -59,10 +58,16 @@ export class ParticleEmitter extends Points {
     // this.geometry.setDrawRange(0, particleNum);
 
     this._time = 0;
+
+    /**
+     * The current spawn position.
+     */
+    this.spawnPosition = new Vector3();
   }
 
   /**
    * The current time, in seconds, this emitter has elapsed.
+   * This cannot be set directly; use `update`.
    *
    * @type {number}
    * @readonly
@@ -93,6 +98,7 @@ export class ParticleEmitter extends Points {
       i += 3;
     }
     this.geometry.attributes.position.needsUpdate = true;
+    this.geometry.computeBoundingBox();
   }
 
 }

@@ -1,5 +1,7 @@
 import {
+  AdditiveBlending,
   FloatType,
+  PointsMaterial,
   Texture,
 } from 'three';
 
@@ -68,4 +70,24 @@ let _defaultRadial = null;
 export function getDefaultRadial() {
   if (_defaultRadial === null) _defaultRadial = createCircleGradientTexture();
   return _defaultRadial;
+}
+
+/**
+ * @type {?PointsMaterial}
+ * @private
+ */
+let _defaultMaterial = null;
+
+/**
+ * @returns {import('three').Material} Returns the default material for a
+ * particle effect.
+ */
+export function getDefaultMaterial() {
+  if (_defaultMaterial === null) {
+    _defaultMaterial = new PointsMaterial();
+    _defaultMaterial.map = getDefaultRadial();
+    _defaultMaterial.blending = AdditiveBlending;
+    _defaultMaterial.size = 0.2;
+  }
+  return _defaultMaterial;
 }

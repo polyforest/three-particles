@@ -12,6 +12,8 @@ const replacements = {
     '__buildVersion__': process.env.npm_package_version,
 };
 
+console.log('production build:', production);
+
 export default [
     {
         input: 'src/**/*.js',
@@ -40,7 +42,7 @@ export default [
     },
     {
         input: 'src/**/*.js',
-        external: ['three'],
+        external: ['three', 'lodash'],
         output: [
             {
                 file: pkg.main,
