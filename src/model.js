@@ -4,11 +4,11 @@
 
 /** @module */
 
+import {MathUtils} from 'three';
 import * as easing from './easing.js';
 import {getDefaultMaterial} from './textures.js';
 import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
-import {createShortUid} from './util/uid.js';
 
 /**
  * Parameters for creating a new particle effect.
@@ -151,7 +151,7 @@ export function sanitizeTimeline(timeline) {
  * Note: This method mutates emitter.
  */
 export function sanitizeEmitter(emitter) {
-  defaults(emitter, {id: createShortUid()}, emitterDefaults);
+  defaults(emitter, {id: MathUtils.generateUUID()}, emitterDefaults);
   return /** @type {ParticleEmitterVo} */ (emitter);
 }
 
