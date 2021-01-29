@@ -78,25 +78,27 @@ export class ParticleEffectLoader extends Loader {
     /**
      * Parses the data object, returning a new ParticleEffect instance.
      *
-     * @param {any} json A parsed JSON object.
+     * @param {Partial<import('./model').ParticleEffectVo>} json A parsed JSON
+     * object.
      * @returns {ParticleEffect} The newly created effect.
      * @override
      */
     parse(json) {
         const globalScale = this.emissionScaling['*'];
-        sanitizeParticleEffect(json);
-        for (const emitterJson of json.emitters) {
-            if (emitterJson.material) {
-                if (emitterJson.material.type === undefined) {
-                    emitterJson.material.type = 'PointsMaterial';
+        if (json.emitters !== undefined) {
+            for (const emitterJson of json.emitters) {
+                if (emitterJson.material) {
+                    if (emitterJson.material.type === undefined) {
+                        emitterJson.material.type = 'PointsMaterial';
+                    }
+                    emitterJson.material =
+                        this.materialLoader.parse(emitterJson.material);
                 }
-                emitterJson.material =
-                    this.materialLoader.parse(emitterJson.material);
+                scaleEmitter(emitterJson,
+                    this.emissionScaling[emitterJson.id] || globalScale);
             }
-            scaleEmitter(emitterJson,
-                this.emissionScaling[emitterJson.id] || globalScale);
         }
-        return new ParticleEffect(json);
+        return new ParticleEffect(sanitizeParticleEffect(json));
     }
 
 }

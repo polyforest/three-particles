@@ -1,7 +1,8 @@
 import {
   AdditiveBlending,
+  Color,
   FloatType,
-  PointsMaterial,
+  ShaderMaterial,
   Texture,
 } from 'three';
 
@@ -73,10 +74,40 @@ export function getDefaultRadial() {
 }
 
 /**
- * @type {?PointsMaterial}
+ * @type {?import('three').Material}
  * @private
  */
 let _defaultMaterial = null;
+
+const defaultVertexShader = `
+attribute float size;
+attribute vec3 color;
+
+varying vec3 vColor;
+
+void main() {
+  vColor = color;
+  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+  gl_PointSize = size * (300.0 / -mvPosition.z);
+  gl_Position = projectionMatrix * mvPosition;
+}
+`;
+
+const defaultFragmentShader = `
+uniform vec3 tint;
+uniform sampler2D pointTexture;
+
+varying vec3 vColor;
+
+void main() {
+
+  gl_FragColor = vec4(tint * vColor, 1.0);
+  gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
+
+}
+
+`;
+
 
 /**
  * @returns {import('three').Material} Returns the default material for a
@@ -84,10 +115,22 @@ let _defaultMaterial = null;
  */
 export function getDefaultMaterial() {
   if (_defaultMaterial === null) {
-    _defaultMaterial = new PointsMaterial();
-    _defaultMaterial.map = getDefaultRadial();
-    _defaultMaterial.blending = AdditiveBlending;
-    _defaultMaterial.size = 0.2;
+    const m = new ShaderMaterial({
+      uniforms: {
+        tint: {value: new Color(0xffffff)},
+        pointTexture: {value: getDefaultRadial()},
+      },
+      vertexShader: defaultVertexShader,
+      fragmentShader: defaultFragmentShader,
+      blending: AdditiveBlending,
+      depthTest: false,
+      transparent: true,
+    });
+    m.defaultAttributeValues = {
+      'color': [1, 1, 1],
+      'size': [13],
+    };
+    _defaultMaterial = m;
   }
   return _defaultMaterial;
 }

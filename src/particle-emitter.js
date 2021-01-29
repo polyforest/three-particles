@@ -3,6 +3,7 @@ import {
   DynamicDrawUsage,
   Float32BufferAttribute,
   Points,
+  Sphere,
   Vector3,
 } from 'three';
 
@@ -43,6 +44,8 @@ export class ParticleEmitter extends Points {
     this.geometry.setAttribute('position',
         this._position);
     this._vertices = vertices;
+
+    this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 1);
 
     /**
      * @type {Material}
@@ -98,7 +101,6 @@ export class ParticleEmitter extends Points {
       i += 3;
     }
     this.geometry.attributes.position.needsUpdate = true;
-    this.geometry.computeBoundingBox();
   }
 
 }

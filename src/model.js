@@ -7,6 +7,7 @@
 import {MathUtils} from 'three';
 import * as easing from './easing.js';
 import {getDefaultMaterial} from './material-defaults.js';
+import {VERSION} from './build.js';
 import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
 
@@ -20,24 +21,6 @@ import {RNG} from './util/random.js';
  * effect was built for. If null, no migration checks will be done.
  * @property {ParticleEmitterVo[]} emitters A list of emitter models.
  */
-
-/**
- * Sets defaults on the particle effect data object.
- *
- * @param {Partial<ParticleEffectVo>} effect The particle effect to sanitize.
- * @returns {ParticleEffectVo} The input, now safely type cast to a
- * `ParticleEffectVo`
- */
-export function sanitizeParticleEffect(effect) {
-  if (effect.emitters === undefined) effect.emitters = [];
-  if (effect.version === undefined) {
-    effect.version = '__buildVersion__';
-  }
-  effect.emitters.forEach((emitter) => {
-    sanitizeEmitter(emitter);
-  });
-  return /** @type {ParticleEffectVo} */ (effect);
-}
 
 /**
  * Data for a particle emitter.
@@ -69,6 +52,57 @@ export function sanitizeParticleEffect(effect) {
  * to the particle life.
  *
  * @property {import('three').Material} material The THREE Material to render.
+ */
+
+ 
+/**
+ * A model describing the duration and delay padding for an emitter.
+ *
+ * @typedef {object} EmitterDurationVo
+ *
+ * @property {RangeVo} duration The number of seconds this emitter will create
+ * particles.
+ *
+ * @property {RangeVo} delayBefore The time, in seconds, before the emitter
+ * begins.
+ *
+ * @property {RangeVo} delayAfter The time, in seconds, after completion
+ * before restarting.
+ */
+
+/**
+ * @typedef {object} PropertyTimelineVo
+ *
+ * @property {string} property The name of the property this timeline controls.
+ *
+ * @property {number[]} timeline A list of [time, value0, value1, valueN, ... ]
+ * Where each set starts with a time (in percent) followed by [numComponent]
+ * values.
+ *
+ * @property {number} numComponents The number of values for each set in the
+ * timeline.
+ *
+ * @property {boolean} useEmitterDuration If true, time percent is
+ * relative to the emitter's duration, if false, relative to the particle's
+ * lifespan.
+ *
+ * @property {boolean} relative If true, the final value will not be the high
+ * value, but the high + low.
+ *
+ * @property {RangeVo} low When the values are initialized / reset for a new
+ * particle, this will be the low range.
+ *
+ * @property {RangeVo} high When the values are initialized / reset for a new
+ * particle, this will be the high range.
+ */
+
+/**
+ * A number range with easing.
+ *
+ * @typedef {object} RangeVo
+ * @property {number} min The minimum value.
+ * @property {number} max The maximum value. Defaults to `min`.
+ * @property {easing.EaseType} ease The interpolation from min to max.
  */
 
 /**
@@ -129,6 +163,26 @@ const emitterDefaults = {
   material: getDefaultMaterial(),
 };
 
+/**
+ * @type {ParticleEffectVo}
+ */
+const defaultParticleEffect = {
+  version: VERSION,
+  emitters: [sanitizeEmitter({})],
+};
+
+/**
+ * Sets defaults on the particle effect data object.
+ *
+ * @param {Partial<ParticleEffectVo>} effect The particle effect to sanitize.
+ * @returns {ParticleEffectVo} The input, now safely type cast to a
+ * `ParticleEffectVo`
+ */
+export function sanitizeParticleEffect(effect) {
+  defaults(effect, defaultParticleEffect);
+  return /** @type {ParticleEffectVo} */ (effect);
+}
+
 
 /**
  * Sets any defaults for unset properties on a timeline.
@@ -164,56 +218,6 @@ export function sanitizeEmitter(emitter) {
 export function scaleEmitter(emitter, factor) {
   emitter.count *= factor;
 }
-
-/**
- * A model describing the duration and delay padding for an emitter.
- *
- * @typedef {object} EmitterDurationVo
- *
- * @property {RangeVo} duration The number of seconds this emitter will create
- * particles.
- *
- * @property {RangeVo} delayBefore The time, in seconds, before the emitter
- * begins.
- *
- * @property {RangeVo} delayAfter The time, in seconds, after completion
- * before restarting.
- */
-
-/**
- * @typedef {object} PropertyTimelineVo
- *
- * @property {string} property The name of the property this timeline controls.
- *
- * @property {number[]} timeline A list of [time, value0, value1, valueN, ... ]
- * Where each set starts with a time (in percent) followed by [numComponent]
- * values.
- *
- * @property {number} numComponents The number of values for each set in the
- * timeline.
- *
- * @property {boolean} useEmitterDuration If true, time percent is
- * relative to the emitter's duration, if false, relative to the particle's
- * lifespan.
- *
- * @property {boolean} relative If true, the final value will not be the high
- * value, but the high + low.
- *
- * @property {RangeVo} low When the values are initialized / reset for a new
- * particle, this will be the low range.
- *
- * @property {RangeVo} high When the values are initialized / reset for a new
- * particle, this will be the high range.
- */
-
-/**
- * A number range with easing.
- *
- * @typedef {object} RangeVo
- * @property {number} min The minimum value.
- * @property {number} max The maximum value. Defaults to `min`.
- * @property {easing.EaseType} ease The interpolation from min to max.
- */
 
 /**
  * Populates a `RangeVo` with defaults.
