@@ -1,5 +1,6 @@
 import * as model from '../src/model.js';
 import assert from 'assert';
+import {range} from '../dist/three-particles.esm.js';
 
 describe('model', () => {
   describe('sanitizeParticleEffect', () => {
@@ -10,32 +11,28 @@ describe('model', () => {
   });
 
   describe('randomFromRange-linear', () => {
-    const range = /** @type {model.RangeVo} */ {min: 23, max: 43};
+    const r = /** @type {model.RangeVo} */ range(23, 43);
     it('Should return min when rng() provides 0.0', () => {
-      assert.strictEqual(model.randomFromRange(range, () => 0), 23);
+      assert.strictEqual(model.randomFromRange(r, () => 0), 23);
     });
     it('Should return max when rng() provides 1.0', () => {
-      assert.strictEqual(model.randomFromRange(range, () => 1), 43);
+      assert.strictEqual(model.randomFromRange(r, () => 1), 43);
     });
     it('Should return mid when rng() provides 0.5', () => {
-      assert.strictEqual(model.randomFromRange(range, () => 0.5), 33);
+      assert.strictEqual(model.randomFromRange(r, () => 0.5), 33);
     });
   });
   describe('randomFromRange-pow2In', () => {
-    const range = /** @type {model.RangeVo} */ ({
-      min: 23,
-      max: 63,
-      ease: 'pow2In',
-    });
+    const r = range(23, 63, 'pow2In');
     it('Should return min when rng() provides 0.0', () => {
-      assert.strictEqual(model.randomFromRange(range, () => 0), 23);
+      assert.strictEqual(model.randomFromRange(r, () => 0), 23);
     });
     it('Should return max when rng() provides 1.0', () => {
-      assert.strictEqual(model.randomFromRange(range, () => 1), 63);
+      assert.strictEqual(model.randomFromRange(r, () => 1), 63);
     });
     it('Should return mid when rng() provides 0.5', () => {
       // 23 + (63 - 23) * (0.5 * 0.5)
-      assert.strictEqual(model.randomFromRange(range, () => 0.5), 33);
+      assert.strictEqual(model.randomFromRange(r, () => 0.5), 33);
     });
   });
 });
