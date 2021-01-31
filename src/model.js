@@ -2,7 +2,7 @@
  * @file Data descriptors for a particle effect.
  */
 
-/** @module */
+/** @module threeParticles */
 
 import {MathUtils} from 'three';
 import * as easing from './easing.js';

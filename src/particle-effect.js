@@ -1,14 +1,14 @@
 import {ParticleEmitter} from './particle-emitter.js';
 import {Group, Vector3} from 'three';
 import {removeElement} from './util/array-utils.js';
-import './model.js';
 
 import './util/array-utils.js';
 
+/** @module threeParticles */
 
-/** @module particle */
-
-/** @typedef {import('./model').ParticleEffectVo} ParticleEffectVo */
+/**
+ * @typedef {import('./model').ParticleEffectVo} ParticleEffectVo
+ */
 
 /**
  * A Particle effect. This is a group of particle emitters with properties and
@@ -54,7 +54,7 @@ export class ParticleEffect extends Group {
    * @type {ReadonlyArray<ParticleEmitter>}
    */
   get emitters() {
-    return this._emitters;
+    return /** @type {ReadonlyArray<ParticleEmitter>} */ (this._emitters);
   }
 
   /**

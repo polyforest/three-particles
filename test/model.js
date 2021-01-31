@@ -1,6 +1,5 @@
 import * as model from '../src/model.js';
 import assert from 'assert';
-import {range} from '../dist/three-particles.esm.js';
 
 describe('model', () => {
   describe('sanitizeParticleEffect', () => {
@@ -11,7 +10,7 @@ describe('model', () => {
   });
 
   describe('randomFromRange-linear', () => {
-    const r = /** @type {model.RangeVo} */ range(23, 43);
+    const r = /** @type {model.RangeVo} */ model.range(23, 43);
     it('Should return min when rng() provides 0.0', () => {
       assert.strictEqual(model.randomFromRange(r, () => 0), 23);
     });
@@ -23,7 +22,7 @@ describe('model', () => {
     });
   });
   describe('randomFromRange-pow2In', () => {
-    const r = range(23, 63, 'pow2In');
+    const r = model.range(23, 63, 'pow2In');
     it('Should return min when rng() provides 0.0', () => {
       assert.strictEqual(model.randomFromRange(r, () => 0), 23);
     });

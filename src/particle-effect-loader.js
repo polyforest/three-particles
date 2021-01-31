@@ -7,7 +7,7 @@ import {sanitizeParticleEffect, scaleEmitter} from './model.js';
 import {ParticleEffect} from './particle-effect.js';
 import {getDefaultRadial} from './material-defaults.js';
 
-/** @module particle */
+/** @module threeParticles */
 
 /**
  * Loads a json file describing a particle effect.
@@ -53,7 +53,7 @@ export class ParticleEffectLoader extends Loader {
      * Loads a particle effect JSON.
      *
      * @param {string} url The url of the json file.
-     * @param {?OnLoadHandler.<ParticleEffect>} [onLoad] Invoked when the
+     * @param {?function(ParticleEffect):any} [onLoad] Invoked when the
      * particle effect has finished loading.
      * @param {?function(ProgressEvent):any} [onProgress] If set, will be
      * invoked by the file loader with progress information.
@@ -102,10 +102,3 @@ export class ParticleEffectLoader extends Loader {
     }
 
 }
-
-/**
- * @template T
- * @callback OnLoadHandler
- * @param {T} result The loaded result.
- */
-

@@ -2,7 +2,7 @@
  * @file A collection of easing functions and their registry.
  */
 
- /** @module */
+/** @module threeParticles */
 
 /**
  * Function representing an interpolation.

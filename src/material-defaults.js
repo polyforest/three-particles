@@ -6,7 +6,7 @@ import {
   Texture,
 } from 'three';
 
-/** @module */
+/** @module threeParticles */
 
 /**
  * Draws a radial gradient.

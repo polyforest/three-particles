@@ -14,6 +14,7 @@ function setGitUser() {
 
 /**
  * Gets a path to an executable in node_modules/.bin
+ *
  * @param {string} command The executable name.
  * @returns {string} The executable path.
  */

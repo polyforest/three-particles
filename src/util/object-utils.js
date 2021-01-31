@@ -2,6 +2,8 @@
  * @file Object utility methods.
  */
 
+ /** @module threeParticles */
+
 /**
  * Performs a
  * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
@@ -12,15 +14,24 @@
  * @param {*} other The other value to compare.
  * @returns {boolean}  Returns `true` if the values are equivalent, else
  * `false`.
+ * @private
  */
 export function eq(value, other) {
   return value === other || (value !== value && other !== other);
 }
 
-/** Used for built-in method references. */
+/**
+ * Used for built-in method references.
+ *
+ * @private
+ */
 const objectProto = Object.prototype;
 
-/** Used to check objects for own properties. */
+/**
+ * Used to check objects for own properties.
+ *
+ * @private
+ */
 const hasOwnProperty = objectProto.hasOwnProperty;
 
 /**
@@ -36,11 +47,10 @@ const hasOwnProperty = objectProto.hasOwnProperty;
  * @param {Object} object The destination object.
  * @param {...Object} [sources] The source objects.
  * @returns {Object} Returns `object`.
- * @see defaultsDeep
- * @example
  *
  * defaults({ 'a': 1 }, { 'b': 2 }, { 'a': 3 })
  * // => { 'a': 1, 'b': 2 }
+ * @private
  */
 export function defaults(object, ...sources) {
   object = Object(object);

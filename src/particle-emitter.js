@@ -7,7 +7,7 @@ import {
   Vector3,
 } from 'three';
 
-/** @module particle */
+/** @module threeParticles */
 
 /** @typedef {import('./model').ParticleEmitterVo} ParticleEmitterVo */
 /** @typedef {import('three').Material} Material */
@@ -73,7 +73,6 @@ export class ParticleEmitter extends Points {
    * This cannot be set directly; use `update`.
    *
    * @type {number}
-   * @readonly
    */
   get time() {
     return this._time;
