@@ -1,6 +1,8 @@
-import assert from 'assert';
-import {ParticleEffect} from '../src/particle-effect.js';
+import chai from 'chai';
 import {sanitizeEmitter, sanitizeParticleEffect} from '../src/model.js';
+import {ParticleEffect} from '../src/particle-effect.js';
+
+const assert = chai.assert;
 
 describe('ParticleEffect', () => {
   describe('constructor', () => {

@@ -1,11 +1,23 @@
 import * as model from '../src/model.js';
-import assert from 'assert';
+import chai from 'chai';
+
+const assert = chai.assert;
 
 describe('model', () => {
   describe('sanitizeParticleEffect', () => {
-    const sanitized = model.sanitizeParticleEffect({});
-    it('Should set version', () => {
-      assert.notStrictEqual(sanitized.version, null);
+    const effect = model.sanitizeParticleEffect({});
+    it('Should set version if not set', () => {
+      assert.notStrictEqual(effect.version, null);
+    });
+    it('Should not set version if set', () => {
+      const s2 = model.sanitizeParticleEffect({version: 'v1'});
+      assert.strictEqual(s2.version, 'v1');
+    });
+  });
+  describe('sanitizeEmitter', () => {
+    const emitter = model.sanitizeEmitter({});
+    it('Should set count', () => {
+      assert.isNotNull(emitter.count);
     });
   });
 

@@ -107,7 +107,7 @@ import {RNG} from './util/random.js';
 /**
  * @type {RangeVo}
  */
-const rangeDefaults = {
+export const rangeDefaults = {
   min: 0,
   max: 0,
   ease: 'linear',
@@ -116,7 +116,7 @@ const rangeDefaults = {
 /**
  * @type {PropertyTimelineVo}
  */
-const timelineDefaults = {
+export const timelineDefaults = {
   property: '',
   timeline: [],
   numComponents: 0,
@@ -137,7 +137,7 @@ const timelineDefaults = {
 /**
  * @type {ParticleEmitterVo}
  */
-const emitterDefaults = {
+export const emitterDefaults = {
   id: '',
   enabled: true,
   count: 100,
@@ -165,7 +165,7 @@ const emitterDefaults = {
 /**
  * @type {ParticleEffectVo}
  */
-const defaultParticleEffect = {
+export const particleEffectDefaults = {
   version: VERSION,
   emitters: [sanitizeEmitter({})],
 };
@@ -178,7 +178,7 @@ const defaultParticleEffect = {
  * `ParticleEffectVo`
  */
 export function sanitizeParticleEffect(effect) {
-  defaults(effect, defaultParticleEffect);
+  defaults(effect, particleEffectDefaults);
   return /** @type {ParticleEffectVo} */ (effect);
 }
 
