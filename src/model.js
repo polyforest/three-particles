@@ -12,6 +12,11 @@ import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
 
 /**
+ * @typedef {import('type-fest').PartialDeep<T>} PartialDeep
+ * @template T
+ */
+
+/**
  * Parameters for creating a new particle effect.
  *
  * @typedef {object} ParticleEffectVo
@@ -173,12 +178,16 @@ export const particleEffectDefaults = {
 /**
  * Sets defaults on the particle effect data object.
  *
- * @param {Partial<ParticleEffectVo>} effect The particle effect to sanitize.
+ * @param {PartialDeep<ParticleEffectVo>} effect The
+ * particle effect to sanitize.
  * @returns {ParticleEffectVo} The input, now safely type cast to a
  * `ParticleEffectVo`
  */
 export function sanitizeParticleEffect(effect) {
   defaults(effect, particleEffectDefaults);
+  effect.emitters.forEach((emitter) => {
+    sanitizeEmitter(emitter);
+  });
   return /** @type {ParticleEffectVo} */ (effect);
 }
 
@@ -186,7 +195,8 @@ export function sanitizeParticleEffect(effect) {
 /**
  * Sets any defaults for unset properties on a timeline.
  *
- * @param {Partial<PropertyTimelineVo>} timeline The emitter to sanitize.
+ * @param {PartialDeep<PropertyTimelineVo>} timeline The
+ * emitter to sanitize.
  * @returns {PropertyTimelineVo} The input, now safely type cast.
  * Note: This method mutates emitter.
  */
@@ -199,7 +209,8 @@ export function sanitizeTimeline(timeline) {
 /**
  * Sets any defaults for unset properties on an emitter.
  *
- * @param {Partial<ParticleEmitterVo>} emitter The emitter to sanitize.
+ * @param {PartialDeep<ParticleEmitterVo>} emitter The
+ * emitter to sanitize.
  * @returns {ParticleEmitterVo} The input, now safely type cast.
  * Note: This method mutates emitter.
  */
