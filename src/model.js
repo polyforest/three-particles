@@ -178,8 +178,8 @@ export const particleEffectDefaults = {
 /**
  * Sets defaults on the particle effect data object.
  *
- * @param {PartialDeep<ParticleEffectVo>} effect The
- * particle effect to sanitize.
+ * @param {PartialDeep<ParticleEffectVo>} effect The particle effect to
+ * sanitize.
  * @returns {ParticleEffectVo} The input, now safely type cast to a
  * `ParticleEffectVo`
  */
@@ -195,8 +195,7 @@ export function sanitizeParticleEffect(effect) {
 /**
  * Sets any defaults for unset properties on a timeline.
  *
- * @param {PartialDeep<PropertyTimelineVo>} timeline The
- * emitter to sanitize.
+ * @param {PartialDeep<PropertyTimelineVo>} timeline The timeline to sanitize.
  * @returns {PropertyTimelineVo} The input, now safely type cast.
  * Note: This method mutates emitter.
  */
@@ -209,8 +208,7 @@ export function sanitizeTimeline(timeline) {
 /**
  * Sets any defaults for unset properties on an emitter.
  *
- * @param {PartialDeep<ParticleEmitterVo>} emitter The
- * emitter to sanitize.
+ * @param {PartialDeep<ParticleEmitterVo>} emitter The emitter to sanitize.
  * @returns {ParticleEmitterVo} The input, now safely type cast.
  * Note: This method mutates emitter.
  */
