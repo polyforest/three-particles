@@ -19,6 +19,7 @@ describe('model', () => {
       const emitter = model.sanitizeEmitter({});
       assert.isNotNull(emitter.count);
     });
+    
     it('Should sanitize child objects', () => {
       const emitter = model.sanitizeEmitter(
         {count: 12, emissionRate: {}, propertyTimelines: [{}]});
@@ -44,6 +45,7 @@ describe('model', () => {
       assert.strictEqual(model.randomFromRange(r, () => 0.5), 33);
     });
   });
+  
   describe('randomFromRange-pow2In', () => {
     const r = model.range(23, 63, 'pow2In');
     it('Should return min when rng() provides 0.0', () => {
