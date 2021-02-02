@@ -15,9 +15,20 @@ describe('model', () => {
     });
   });
   describe('sanitizeEmitter', () => {
-    const emitter = model.sanitizeEmitter({});
     it('Should set count', () => {
+      const emitter = model.sanitizeEmitter({});
       assert.isNotNull(emitter.count);
+    });
+    it('Should sanitize child objects', () => {
+      const emitter = model.sanitizeEmitter(
+        {count: 12, emissionRate: {}, propertyTimelines: [{}]});
+      assert.isNotNull(emitter.emissionRate.high);
+      assert.isNotNull(emitter.emissionRate.low);
+      console.log(emitter.emissionRate.high);
+      assert.isNotNull(emitter.emissionRate.high.ease);
+      assert.isNotNull(emitter.emissionRate.high.min);
+      assert.isNotNull(emitter.emissionRate.high.max);
+      assert.isNotNull(emitter.propertyTimelines[0].timeline);
     });
   });
 

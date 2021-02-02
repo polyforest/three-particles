@@ -202,6 +202,8 @@ export function sanitizeParticleEffect(effect) {
 export function sanitizeTimeline(timeline) {
   defaults(timeline, {high: timeline.low || timelineDefaults.high},
     timelineDefaults);
+  sanitizeRange(timeline.low);
+  sanitizeRange(timeline.high);
   return /** @type {PropertyTimelineVo} */ (timeline);
 }
 
@@ -214,6 +216,16 @@ export function sanitizeTimeline(timeline) {
  */
 export function sanitizeEmitter(emitter) {
   defaults(emitter, {id: MathUtils.generateUUID()}, emitterDefaults);
+
+  sanitizeRange(emitter.duration.duration);
+  sanitizeRange(emitter.duration.delayBefore);
+  sanitizeRange(emitter.duration.delayAfter);
+  sanitizeTimeline(emitter.emissionRate);
+  sanitizeTimeline(emitter.particleLifeExpectancy);
+
+  emitter.propertyTimelines.forEach((timeline) => {
+    sanitizeTimeline(timeline);
+  });
   return /** @type {ParticleEmitterVo} */ (emitter);
 }
 
