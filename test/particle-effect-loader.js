@@ -1,8 +1,10 @@
-import assert from 'assert';
+import chai from 'chai';
 import * as fs from 'fs';
 import {PointsMaterial} from 'three';
+import {getDefaultRadial} from '../src/material-defaults.js';
 import {ParticleEffectLoader} from '../src/particle-effect-loader.js';
-import {getDefaultRadial} from '../src/textures.js';
+
+const assert = chai.assert;
 
 PointsMaterial;
 

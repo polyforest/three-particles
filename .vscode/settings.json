@@ -7,5 +7,9 @@
   "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "javascript.format.semicolons": "insert",
   "javascript.preferences.quoteStyle": "single",
-  "npm.enableRunFromFolder": true
+  "npm.enableRunFromFolder": true,
+  "liveServer.settings.port": 5501,
+  "eslint.options": {
+    "configFile": "./.eslintrc.json"
+  },
 }

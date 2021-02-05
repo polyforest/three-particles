@@ -5,9 +5,9 @@ import {
 } from 'three';
 import {sanitizeParticleEffect, scaleEmitter} from './model.js';
 import {ParticleEffect} from './particle-effect.js';
-import {getDefaultRadial} from './textures.js';
+import {getDefaultRadial} from './material-defaults.js';
 
-/** @module particle */
+/** @module threeParticles */
 
 /**
  * Loads a json file describing a particle effect.
@@ -53,7 +53,7 @@ export class ParticleEffectLoader extends Loader {
      * Loads a particle effect JSON.
      *
      * @param {string} url The url of the json file.
-     * @param {?OnLoadHandler.<ParticleEffect>} [onLoad] Invoked when the
+     * @param {?function(ParticleEffect):any} [onLoad] Invoked when the
      * particle effect has finished loading.
      * @param {?function(ProgressEvent):any} [onProgress] If set, will be
      * invoked by the file loader with progress information.
@@ -78,32 +78,27 @@ export class ParticleEffectLoader extends Loader {
     /**
      * Parses the data object, returning a new ParticleEffect instance.
      *
-     * @param {any} json A parsed JSON object.
+     * @param {Partial<import('./model').ParticleEffectVo>} json A parsed JSON
+     * object.
      * @returns {ParticleEffect} The newly created effect.
      * @override
      */
     parse(json) {
         const globalScale = this.emissionScaling['*'];
-        sanitizeParticleEffect(json);
-        for (const emitterJson of json.emitters) {
-            if (emitterJson.material) {
-                if (emitterJson.material.type === undefined) {
-                    emitterJson.material.type = 'PointsMaterial';
+        if (json.emitters !== undefined) {
+            for (const emitterJson of json.emitters) {
+                if (emitterJson.material) {
+                    if (emitterJson.material.type === undefined) {
+                        emitterJson.material.type = 'PointsMaterial';
+                    }
+                    emitterJson.material =
+                        this.materialLoader.parse(emitterJson.material);
                 }
-                emitterJson.material =
-                    this.materialLoader.parse(emitterJson.material);
+                scaleEmitter(emitterJson,
+                    this.emissionScaling[emitterJson.id] || globalScale);
             }
-            scaleEmitter(emitterJson,
-                this.emissionScaling[emitterJson.id] || globalScale);
         }
-        return new ParticleEffect(json);
+        return new ParticleEffect(sanitizeParticleEffect(json));
     }
 
 }
-
-/**
- * @template T
- * @callback OnLoadHandler
- * @param {T} result The loaded result.
- */
-

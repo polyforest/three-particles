@@ -2,7 +2,7 @@
  * @file Array utility methods.
  */
 
- /** @module */
+/** @module threeParticles */
 
 /**
  * Removes an element from this array.

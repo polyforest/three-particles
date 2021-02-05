@@ -1,5 +1,7 @@
 import * as arrayUtils from '../../src/util/array-utils.js';
-import assert from 'assert';
+import chai from 'chai';
+
+const assert = chai.assert;
 
 describe('array-utils', () => {
   describe('removeElement', () => {

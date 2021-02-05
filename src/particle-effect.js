@@ -1,17 +1,18 @@
 import {ParticleEmitter} from './particle-emitter.js';
-import {Group} from 'three';
+import {Group, Vector3} from 'three';
 import {removeElement} from './util/array-utils.js';
-import './model.js';
 
 import './util/array-utils.js';
 
-
-/** @module particle */
-
-/** @typedef {import('./model').ParticleEffectVo} ParticleEffectVo */
+/** @module threeParticles */
 
 /**
- * A Particle effect
+ * @typedef {import('./model').ParticleEffectVo} ParticleEffectVo
+ */
+
+/**
+ * A Particle effect. This is a group of particle emitters with properties and
+ * methods to update all emitters.
  */
 export class ParticleEffect extends Group {
 
@@ -30,13 +31,16 @@ export class ParticleEffect extends Group {
     this.data = data;
 
     /**
+     * A translation vector that affects all child particle emitters.
+     */
+    this.spawnPosition = new Vector3();
+
+    /**
      * @type {ParticleEmitter[]}
      */
     this._emitters = [];
     for (let i = 0; i < data.emitters.length; i++) {
-      const emitter = new ParticleEmitter(data.emitters[i]);
-      this.add(emitter);
-      this._emitters.push(emitter);
+      this.addEmitter(new ParticleEmitter(data.emitters[i]));
     }
   }
 
@@ -47,10 +51,10 @@ export class ParticleEffect extends Group {
    * @see addEmitter
    * @see removeEmitter
    * @readonly
-   * @type {ParticleEmitter[]}
+   * @type {ReadonlyArray<ParticleEmitter>}
    */
   get emitters() {
-    return this._emitters;
+    return /** @type {ReadonlyArray<ParticleEmitter>} */ (this._emitters);
   }
 
   /**

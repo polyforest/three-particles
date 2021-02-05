@@ -1,3 +1,5 @@
+/** @module threeParticles */
+
 /**
  * A Pseudo-random number generator.
  * Only meant to satisfy the requirements of particles without

@@ -11,10 +11,12 @@
 	"parserOptions": {
 		"sourceType": "module"
 	},
-	"plugins": ["@typescript-eslint"],
+	"plugins": [
+		"@typescript-eslint"
+	],
 	"rules": {
-		"linebreak-style": "off",
 		"indent": "off",
+		"linebreak-style": "off",
 		"padded-blocks": [
 			"error",
 			{
@@ -24,6 +26,13 @@
 			},
 			{
 				"allowSingleLineBlocks": true
+			}
+		],
+		"no-trailing-spaces": [
+			"error",
+			{
+				"ignoreComments": true,
+				"skipBlankLines": true
 			}
 		],
 		"valid-jsdoc": "off"

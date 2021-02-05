@@ -3,9 +3,11 @@ import {
   DynamicDrawUsage,
   Float32BufferAttribute,
   Points,
+  Sphere,
+  Vector3,
 } from 'three';
 
-/** @module particle */
+/** @module threeParticles */
 
 /** @typedef {import('./model').ParticleEmitterVo} ParticleEmitterVo */
 /** @typedef {import('three').Material} Material */
@@ -29,8 +31,6 @@ export class ParticleEmitter extends Points {
     const particleNum = 10;
 
     this.geometry = new BufferGeometry();
-    this.geometry.computeBoundingSphere();
-    this.geometry.boundingSphere.radius = 1; // TODO
 
     const vertices = [];
     for (let i = 0; i < particleNum; i++) {
@@ -44,6 +44,8 @@ export class ParticleEmitter extends Points {
     this.geometry.setAttribute('position',
         this._position);
     this._vertices = vertices;
+
+    this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 1);
 
     /**
      * @type {Material}
@@ -59,13 +61,18 @@ export class ParticleEmitter extends Points {
     // this.geometry.setDrawRange(0, particleNum);
 
     this._time = 0;
+
+    /**
+     * The current spawn position.
+     */
+    this.spawnPosition = new Vector3();
   }
 
   /**
    * The current time, in seconds, this emitter has elapsed.
+   * This cannot be set directly; use `update`.
    *
    * @type {number}
-   * @readonly
    */
   get time() {
     return this._time;
