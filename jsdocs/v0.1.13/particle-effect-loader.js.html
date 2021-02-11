@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: particle-effect-loader.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: particle-effect-loader.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import {
+    FileLoader,
+    Loader,
+    MaterialLoader,
+} from 'three';
+import {sanitizeParticleEffect, scaleEmitter} from './model.js';
+import {ParticleEffect} from './particle-effect.js';
+import {getDefaultRadial} from './material-defaults.js';
+
+/** @module threeParticles */
+
+/**
+ * Loads a json file describing a particle effect.
+ */
+export class ParticleEffectLoader extends Loader {
+
+    /**
+     * constructor
+     *
+     * @param {?import('three').LoadingManager} [manager] The loading manager to
+     * use.
+     * Defaults to `THREE.DefaultLoadingManager`.
+     */
+    constructor(manager) {
+        super(manager);
+        this.materialLoader = new MaterialLoader(manager);
+        this.textures['radial'] = getDefaultRadial();
+
+        /**
+         * Max particle counts and emission rates can be scaled by setting
+         * a scaling factor per emitter here.
+         * The key is the emitter id, the value is a numeric multiplier.
+         * To scale all emitters, use the key '*'.
+         * This can be used, for example, to reduce particle emissions on
+         * slower devices, or increase emissions for stress tests.
+         */
+        this.emissionScaling = {'*': 1};
+    }
+
+    /**
+     * A map of textures the material loader should use.
+     * The keys will be the name of the texture, the values the `Texture`
+     * object.
+     *
+     * @default {}
+     * @returns {{}} Returns the currently set texture map.
+     */
+    get textures() {
+        return this.materialLoader.textures;
+    }
+
+    /**
+     * Loads a particle effect JSON.
+     *
+     * @param {string} url The url of the json file.
+     * @param {?function(ParticleEffect):any} [onLoad] Invoked when the
+     * particle effect has finished loading.
+     * @param {?function(ProgressEvent):any} [onProgress] If set, will be
+     * invoked by the file loader with progress information.
+     * @param {?function(ErrorEvent):any} [onError] If set, will be invoked if
+     * there is an error.
+     * @override
+     */
+    load(url, onLoad, onProgress, onError) {
+        const scope = this;
+        const loader = new FileLoader(this.manager);
+        loader.setPath(this.path);
+        loader.setRequestHeader(this.requestHeader);
+        loader.setWithCredentials(scope.withCredentials);
+
+        loader.load(url, (text) => {
+            const json = JSON.parse(/** @type {string} */(text));
+            const particleEffect = scope.parse(json);
+            if (onLoad) onLoad(particleEffect);
+        }, onProgress, onError);
+    }
+
+    /**
+     * Parses the data object, returning a new ParticleEffect instance.
+     *
+     * @param {Partial&lt;import('./model').ParticleEffectVo>} json A parsed JSON
+     * object.
+     * @returns {ParticleEffect} The newly created effect.
+     * @override
+     */
+    parse(json) {
+        const globalScale = this.emissionScaling['*'];
+        if (json.emitters !== undefined) {
+            for (const emitterJson of json.emitters) {
+                if (emitterJson.material) {
+                    if (emitterJson.material.type === undefined) {
+                        emitterJson.material.type = 'PointsMaterial';
+                    }
+                    emitterJson.material =
+                        this.materialLoader.parse(emitterJson.material);
+                }
+                scaleEmitter(emitterJson,
+                    this.emissionScaling[emitterJson.id] || globalScale);
+            }
+        }
+        return new ParticleEffect(sanitizeParticleEffect(json));
+    }
+
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-threeParticles.html">threeParticles</a></li></ul><h3>Classes</h3><ul><li><a href="module-threeParticles.ParticleEffect.html">ParticleEffect</a></li><li><a href="module-threeParticles.ParticleEffectLoader.html">ParticleEffectLoader</a></li><li><a href="module-threeParticles.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="module-threeParticles.Random.html">Random</a></li></ul><h3>Global</h3><ul><li><a href="global.html#removeAllChildren">removeAllChildren</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Thu Feb 11 2021 14:15:40 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

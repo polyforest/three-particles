@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: model.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: model.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>/**
+ * @file Data descriptors for a particle effect.
+ */
+
+ /** @module */
+
+import * as easing from './easing.js';
+import {RNG} from './random.js';
+
+/**
+ * Parameters for creating a new particle effect.
+ *
+ * @typedef {object} ParticleEffectVo
+ *
+ * @property {string} [version] A version string, potentially used for backwards
+ * compatibility. This should be the version of three-particles the effect was
+ * built for. If null, no migration checks will be done.
+ * @property {ParticleEmitterVo[]} emitters A list of emitter models.
+ */
+
+/**
+ * Data for a particle emitter.
+ *
+ * @typedef {object} ParticleEmitterVo
+ *
+ * @property {string} [id] The id of the emitter. Default is a unique
+ * identifier.
+ *
+ * @property {boolean} [enabled] True if the emitter is enabled. Default is
+ * true.
+ *
+ * @property {boolean} [loops] If true, this emitter will loop after the total
+ * duration. (default is true)
+ *
+ * @property {EmitterDurationVo} [duration] Represents when and how long this
+ * emitter will be active (in seconds). Default is 10.0.
+ *
+ * @property {number} [count] The maximum number of particles to create.
+ * Default is 100.
+ *
+ * @property {PropertyTimelineVo} [emissionRate] The rate of emissions, in
+ * particles per second. Default is `{}`
+ *
+ * @property {PropertyTimelineVo} [particleLifeExpectancy] Calculates the
+ * life of a newly created particle.
+ *
+ * @property {boolean} [orientToForwardDirection] (Default false) If true, the
+ * forward direction affects the rotation.
+ *
+ * @property {PropertyTimelineVo[]} [propertyTimelines] Timelines relative
+ * to the particle life.
+ *
+ * @property {import('three').Material} [material] The THREE Material to render.
+ */
+
+/**
+ * A model describing the duration and delay padding for an emitter.
+ *
+ * @typedef {object} EmitterDurationVo
+ *
+ * @property {RangeVo} duration The number of seconds this emitter will create
+ * particles.
+ *
+ * @property {RangeVo} delayBefore The time, in seconds, before the emitter
+ * begins.
+ *
+ * @property {RangeVo} delayAfter The time, in seconds, after completion before
+ * restarting.
+ */
+
+/**
+ * @typedef {object} PropertyTimelineVo
+ *
+ * @property {string} property The name of the property this timeline controls.
+ *
+ * @property {number[]} timeline A list of [time, value0, value1, valueN, ... ]
+ *     Where each set starts with a time (in seconds) followed by [numComponent]
+ *     values.
+ *
+ * @property {number} numComponents The number of values for each set in the
+ *     timeline.
+ *
+ * @property {boolean} useEmitterDuration If true, relative to the particle's
+ *     lifespan, if false, relative to the emitter duration.
+ *
+ * @property {boolean} relative If true, the final value will not be the high
+ *     value, but the high + low.
+ *
+ * @property {RangeVo} low When the values are initialized / reset for a new
+ *     particle, this will be the low range.
+ *
+ * @property {RangeVo} high When the values are initialized / reset for a new
+ *     particle, this will be the high range.
+ */
+
+/**
+ * A number range with easing.
+ *
+ * @typedef {object} RangeVo
+ * @property {number} min The minimum value.
+ * @property {number} [max] The maximum value. Defaults to `min`.
+ * @property {easing.EaseType} [ease] The interpolation from min to max.
+ * Defaults to `linear`.
+ */
+
+/**
+ * Generates a number between 0 and 1 (exclusive).
+ *
+ * @callback numberGen
+ * @returns {number}
+ */
+
+/**
+ * Generates a random number within the given range, interpolated by its easing.
+ *
+ * @param {RangeVo} range The minimum, maximum, and interpolation.
+ * @param {numberGen} rng A number generator that provides a float between 0
+ * and 1.
+ * @returns {number} Returns the new random number.
+ */
+export function randomFromRange(range, rng = RNG.nextFloat) {
+  const ease = easing.getEase(range.ease);
+  return ease(rng()) * (range.max - range.min) +
+    range.min;
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-easing.html">easing</a></li><li><a href="module-model.html">model</a></li><li><a href="module-particle.html">particle</a></li><li><a href="module-textures.html">textures</a></li><li><a href="module-util_array-utils.html">util/array-utils</a></li></ul><h3>Classes</h3><ul><li><a href="module-particle.ParticleEffect.html">ParticleEffect</a></li><li><a href="module-particle.ParticleEffectLoader.html">ParticleEffectLoader</a></li><li><a href="module-particle.ParticleEmitter.html">ParticleEmitter</a></li><li><a href="Random.html">Random</a></li></ul><h3><a href="global.html">Global</a></h3>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.6</a> on Sun Jan 24 2021 02:18:43 GMT+0000 (Coordinated Universal Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
