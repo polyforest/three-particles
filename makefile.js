@@ -74,10 +74,7 @@ function bumpVersion() {
   console.log(`Incrementing last tagged version by '${type}'. New minimum ` +
     `version is ${newVersion}.`);
   if (semver.gt(newVersion, version)) {
-    const msg = `Bumping ${type} version. New version: ${newVersion}`;
-    execSync(`npm version ${type} --git-tag-version=false`);
-    execSync(`git add package.json package-lock.json`);
-    execSync(`git commit -m "${msg}"`);
+    execSync(`npm version ${type}`);
   } else {
     console.log(`Current version ${version} is greater or equal.`);
   }
@@ -95,8 +92,7 @@ targets.tag = () => {
   } catch (e) {
     console.log('Tagging new version.');
   }
-  const newVersion = bumpVersion();
-  execSync(`git tag v${newVersion}`);
+  bumpVersion();
   execSync(`git push`);
   execSync(`git push --tags`);
 };
