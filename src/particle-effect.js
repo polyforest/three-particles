@@ -71,7 +71,7 @@ export class ParticleEffect extends Group {
   }
 
   /**
-   * Updates all emitter geometries.
+   * Updates all emitter geometries. This should be executed every frame.
    *
    * @param {number} dT The number of seconds to progress.
    */
