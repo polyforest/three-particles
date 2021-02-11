@@ -41,9 +41,8 @@ const hasOwnProperty = objectProto.hasOwnProperty;
  * Once a property is set, additional values of the same property are ignored.
  * Taken from lodash: https://github.com/lodash/lodash/blob/master/defaults.js
  *
- * **Note:** This method mutates `object`.
+ * Note: This method mutates `object`.
  *
- * @since 0.1.0
  * @param {Object} object The destination object.
  * @param {...Object} [sources] The source objects.
  * @returns {Object} Returns `object`.
@@ -69,4 +68,17 @@ export function defaults(object, ...sources) {
     }
   });
   return object;
+}
+
+/**
+ * Performs a deep copy on the given object.
+ * Only works with primitive data, does not work with instances such as Date,
+ * function, Map, Set, Blob, etc.
+ * 
+ * @template T
+ * @param {T} obj The object to clone.
+ * @returns {T} A deep cloned copy of obj.
+ */
+export function clone(obj) {
+  return JSON.parse(JSON.stringify(obj));
 }

@@ -14,6 +14,7 @@ describe('ParticleEffectLoader', () => {
       fs.readFileSync('./test-resources/effects/fire.json').toString());
     const loader = new ParticleEffectLoader();
     const effect = loader.parse(json);
+    effect.updateEmitters();
 
     it('Adds emitters.', () => {
       assert.strictEqual(effect.emitters.length, 2);

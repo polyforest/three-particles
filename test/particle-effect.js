@@ -14,6 +14,7 @@ describe('ParticleEffect', () => {
           {},
         ],
       }));
+      pE.updateEmitters();
       assert.strictEqual(pE.children.length, 3);
     });
   });

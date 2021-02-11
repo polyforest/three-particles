@@ -1,6 +1,6 @@
 {
   "name": "three-particles",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "WIP - A particle engine for THREE JS.",
   "main": "dist/three-particles.cjs.js",
   "module": "dist/three-particles.es6.js",
@@ -13,8 +13,7 @@
     "test": "mocha --recursive",
     "pretest": "npm run build",
     "doc": "node makefile.js doc",
-    "bump-version": "node makefile.js bumpVersion",
-    "push-version-tag": "node makefile.js pushVersionTag"
+    "tag": "node makefile.js tag"
   },
   "files": [
     "dist",
@@ -56,7 +55,7 @@
     "eslint-config-google": "^0.14.0",
     "eslint-plugin-jsdoc": "^31.2.2",
     "jsdoc": "^3.6.6",
-    "jsdoc-tsimport-plugin": "^1.0.3",
+    "jsdoc-tsimport-plugin": "^1.0.4",
     "mocha": "^8.2.1",
     "rollup": "^2.36.1",
     "rollup-plugin-eslint": "^7.0.0",

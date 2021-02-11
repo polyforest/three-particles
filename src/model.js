@@ -172,7 +172,7 @@ export const emitterDefaults = {
  */
 export const particleEffectDefaults = {
   version: VERSION,
-  emitters: [sanitizeEmitter({})],
+  emitters: [],
 };
 
 /**
