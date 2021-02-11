@@ -84,6 +84,16 @@ function bumpVersion() {
 };
 
 targets.tag = () => {
+  try {
+    const headVersion = execSync(`git describe HEAD --exact-match --tags`)
+    .toString();
+    if (headVersion.startsWith('v')) {
+      console.log('Already tagged.');
+      return;
+    }
+  } catch (e) {
+    console.log('Tagging new version.');
+  }
   bumpVersion();
   execSync(`git tag v${version}`);
   execSync(`git push`);
