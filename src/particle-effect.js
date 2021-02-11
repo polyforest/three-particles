@@ -1,8 +1,8 @@
 import {ParticleEmitter} from './particle-emitter.js';
 import {Group, Vector3} from 'three';
-import {removeElement} from './util/array-utils.js';
 
 import './util/array-utils.js';
+import {removeAllChildren} from './util/three-utils.js';
 
 /** @module threeParticles */
 
@@ -24,11 +24,22 @@ export class ParticleEffect extends Group {
     super();
 
     /**
-     * The data passed to the constructor.
+     * The model data for the particle effect.
+     * This may be mutated, but if the emitters list changes, 
+     * then `emittersNeedUpdate` will need to be set to true.
+     * 
+     * Certain properties on the emitter models will require `needsUpdate` set
+     * to true on the respective emitter.
      *
      * @type {ParticleEffectVo}
      */
     this.data = data;
+
+    /**
+     * Set to true if the emitter list changes. Next update or next
+     * `updateEmitters` the emitter list will be synchronized to the data model.
+     */
+    this.emittersNeedUpdate = true;
 
     /**
      * A translation vector that affects all child particle emitters.
@@ -38,45 +49,25 @@ export class ParticleEffect extends Group {
     /**
      * @type {ParticleEmitter[]}
      */
-    this._emitters = [];
-    for (let i = 0; i < data.emitters.length; i++) {
-      this.addEmitter(new ParticleEmitter(data.emitters[i]));
-    }
+    this.emitters = [];
   }
 
   /**
-   * The emitters this particle effect controls.
-   * This should not be edited.
+   * Updates the emitter objects.
    *
-   * @see addEmitter
-   * @see removeEmitter
-   * @readonly
-   * @type {ReadonlyArray<ParticleEmitter>}
+   * @param {boolean} force If true, the emitters will be updated even if 
+   * `emittersNeedUpdate` is false.
    */
-  get emitters() {
-    return /** @type {ReadonlyArray<ParticleEmitter>} */ (this._emitters);
-  }
-
-  /**
-   * Adds an emitter.
-   *
-   * @param {ParticleEmitter} emitter The emitter to add to this group and
-   * emitters array.
-   */
-  addEmitter(emitter) {
-    this.add(emitter);
-    this._emitters.push(emitter);
-  }
-
-  /**
-   * Removes an emitter.
-   *
-   * @param {ParticleEmitter} emitter The emitter to add to this group and
-   * emitters array.
-   */
-  removeEmitter(emitter) {
-    this.remove(emitter);
-    removeElement(this._emitters, emitter);
+  updateEmitters(force = false) {
+    if (!force && !this.emittersNeedUpdate) return;
+    this.emittersNeedUpdate = false;
+    removeAllChildren(this);
+    this.emitters = [];
+    this.data.emitters.forEach((emitterVo) => {
+      const emitter = new ParticleEmitter(emitterVo);
+      this.emitters.push(emitter);
+      this.add(emitter);
+    });
   }
 
   /**
@@ -85,7 +76,8 @@ export class ParticleEffect extends Group {
    * @param {number} dT The number of seconds to progress.
    */
   update(dT) {
-    for (const emitter of this._emitters) {
+    if (this.emittersNeedUpdate) this.updateEmitters();
+    for (const emitter of this.emitters) {
       emitter.update(dT);
     }
   }
