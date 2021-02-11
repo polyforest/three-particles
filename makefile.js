@@ -35,7 +35,7 @@ targets.doc = () => {
  *  Else, the patch version will be incremented.
  *
  * @returns {string} The new version.
- * @private 
+ * @private
  */
 function bumpVersion() {
   execSync(`git fetch -t`);
