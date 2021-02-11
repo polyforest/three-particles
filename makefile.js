@@ -34,6 +34,7 @@ targets.doc = () => {
  *  Else if a commit contains #minor, the minor version will be incremented.
  *  Else, the patch version will be incremented.
  *
+ * @returns {string} The new version.
  * @private 
  */
 function bumpVersion() {
@@ -51,12 +52,11 @@ function bumpVersion() {
   }
   if (lastVersion == null) {
     console.log('No tags found, no need to bump version.');
-    return;
+    return version;
   }
   if (semver.gt(lastVersion, version)) {
-    console.error(`Current version '${version}' should not be less than last ` +
-      `version '${lastVersion}'`);
-    process.exit(-1);
+    throw new Error(`Current version '${version}' should not be less than ` +
+    `last version '${lastVersion}'`);
   }
 
   // Fetch commits since last tag
@@ -81,6 +81,7 @@ function bumpVersion() {
   } else {
     console.log(`Current version ${version} is greater or equal.`);
   }
+  return newVersion;
 };
 
 targets.tag = () => {
@@ -94,8 +95,8 @@ targets.tag = () => {
   } catch (e) {
     console.log('Tagging new version.');
   }
-  bumpVersion();
-  execSync(`git tag v${version}`);
+  const newVersion = bumpVersion();
+  execSync(`git tag v${newVersion}`);
   execSync(`git push`);
   execSync(`git push --tags`);
 };
