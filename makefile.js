@@ -4,15 +4,6 @@ import * as fs from 'fs';
 import semver from 'semver';
 
 /**
- * Sets the git user.name to GITHUB_ACTOR.
- */
-function setGitUser() {
-  execSync(`git config user.name "GitHub Actions Bot"`);
-  execSync(`git config user.email ` +
-    `"41898282+github-actions[bot]@users.noreply.github.com"`);
-}
-
-/**
  * Gets a path to an executable in node_modules/.bin
  *
  * @param {string} command The executable name.
@@ -34,8 +25,18 @@ targets.doc = () => {
   fs.writeFileSync('jsdocs/index.html', data);
 };
 
-targets.bumpVersion = () => {
-  setGitUser();
+/**
+ * Increments the npm version based on the history of commits since the last
+ * version tag.
+ * This is run before tagging a new release.
+ * The rules are as follows:
+ *  If a commit in range contains #major, the major version will be incremented.
+ *  Else if a commit contains #minor, the minor version will be incremented.
+ *  Else, the patch version will be incremented.
+ *
+ * @private 
+ */
+function bumpVersion() {
   execSync(`git fetch -t`);
   const tagsStr = execSync(`git tag -l`).toString();
   const tags = tagsStr.trim().split('\n');
@@ -76,21 +77,16 @@ targets.bumpVersion = () => {
     const msg = `Bumping ${type} version. New version: ${newVersion}`;
     execSync(`npm version ${type} --git-tag-version=false`);
     execSync(`git add package.json package-lock.json`);
-    if (process.env.CI) {
-      console.log('Committing');
-      execSync(`git commit -m "ci: ${msg}"`);
-      execSync(`git push`);
-    } else {
-      console.log('Not a CI environment, not committing.');
-    }
+    execSync(`git commit -m "${msg}"`);
   } else {
     console.log(`Current version ${version} is greater or equal.`);
   }
 };
 
-targets.pushVersionTag = () => {
-  setGitUser();
+targets.tag = () => {
+  bumpVersion();
   execSync(`git tag v${version}`);
+  execSync(`git push`);
   execSync(`git push --tags`);
 };
 

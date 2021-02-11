@@ -13,8 +13,7 @@
     "test": "mocha --recursive",
     "pretest": "npm run build",
     "doc": "node makefile.js doc",
-    "bump-version": "node makefile.js bumpVersion",
-    "push-version-tag": "node makefile.js pushVersionTag"
+    "tag": "node makefile.js tag"
   },
   "files": [
     "dist",
