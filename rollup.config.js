@@ -17,7 +17,6 @@ console.log('production build:', production);
 
 export default [
     {
-        watch: false,
         input: 'src/**/*.js',
         external: ['three'],
         output: {
