@@ -237,6 +237,29 @@ export function sanitizeEmitter(emitter) {
  */
 export function scaleEmitter(emitter, factor) {
   emitter.count *= factor;
+  scaleTimeline(emitter.emissionRate, factor);
+}
+
+/**
+ * Multiplies the timeline's min and max range by the scaling factor.
+ *
+ * @param {PropertyTimelineVo} timeline The property timeline to adjust.
+ * @param {number} factor The scale factor.
+ */
+export function scaleTimeline(timeline, factor) {
+  scaleRange(timeline.low, factor);
+  scaleRange(timeline.high, factor);
+}
+
+/**
+ * Multiplies the range min and max values by the scaling factor.
+ *
+ * @param {RangeVo} range The range to adjust.
+ * @param {number} factor The scale factor.
+ */
+export function scaleRange(range, factor) {
+  range.min *= factor;
+  range.max *= factor;
 }
 
 /**
