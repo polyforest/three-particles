@@ -4,9 +4,9 @@ import {
   Texture,
   UniformsLib,
 } from 'three';
-import pointsFrag from './shaders/points_frag.glsl';
-import pointsVert from './shaders/points_vert.glsl';
-import {defaults} from './util/object-utils';
+import pointsFrag from './shaders/points_frag.glsl.js';
+import pointsVert from './shaders/points_vert.glsl.js';
+import {defaults} from './util/object-utils.js';
 
 /** @module threeParticles */
 
@@ -121,10 +121,10 @@ export function sanitizeShaderMaterialParams(shaderMaterialParams) {
 }
 
 /**
- * @returns {import('three').Material} Returns the default material for a
+ * @returns {import('three').Material} Returns a radial material for a
  * particle effect.
  */
-export function getDefaultMaterial() {
+export function getRadialMaterial() {
   if (_defaultMaterial === null) {
     const m = new ShaderMaterial(sanitizeShaderMaterialParams({}));
     const tex = createCircleGradientTexture();

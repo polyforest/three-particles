@@ -6,7 +6,7 @@
 
 import {MathUtils} from 'three';
 import * as easing from './easing.js';
-import {getDefaultMaterial} from './material-defaults.js';
+import {getRadialMaterial} from './material-defaults.js';
 import {VERSION} from './build.js';
 import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
@@ -164,7 +164,7 @@ export const emitterDefaults = {
   }),
   orientToForwardDirection: false,
   propertyTimelines: [],
-  material: getDefaultMaterial(),
+  material: getRadialMaterial(),
 };
 
 /**
