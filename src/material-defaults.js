@@ -1,10 +1,12 @@
 import {
-  AdditiveBlending,
-  Color,
   FloatType,
   ShaderMaterial,
   Texture,
+  UniformsLib,
 } from 'three';
+import pointsFrag from './shaders/points_frag.glsl';
+import pointsVert from './shaders/points_vert.glsl';
+import {defaults} from './util/object-utils';
 
 /** @module threeParticles */
 
@@ -79,35 +81,44 @@ export function getDefaultRadial() {
  */
 let _defaultMaterial = null;
 
-const defaultVertexShader = `
-attribute float size;
-attribute vec3 color;
+export const shaderMaterialParamDefaults = {
+  type: 'ShaderMaterial',
+  uniforms: {
+    ...UniformsLib.points,
+    ...UniformsLib.fog,
+  },
+  vertexShader: pointsVert,
+  fragmentShader: pointsFrag,
+  depthTest: true,
+  depthWrite: false,
+  alphaTest: 0,
+  transparent: true,
+  fog: true,
+  map: 'radial',
+};
 
-varying vec3 vColor;
+/**
+ * @typedef {import('type-fest').PartialDeep<T>} PartialDeep
+ * @template T
+ */
 
-void main() {
-  vColor = color;
-  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-  gl_PointSize = size * (300.0 / -mvPosition.z);
-  gl_Position = projectionMatrix * mvPosition;
+/**
+ * @typedef {import('three').ShaderMaterialParameters} ShaderMaterialParameters
+ */
+
+/**
+ * Sets any defaults for unset properties on a shader material.
+ *
+ * @param {PartialDeep<ShaderMaterialParameters>} shaderMaterialParams The 
+ * material parameters to sanitize.
+ * @returns {ShaderMaterialParameters} The input, now safely 
+ * type cast.
+ * Note: This method mutates material.
+ */
+export function sanitizeShaderMaterialParams(shaderMaterialParams) {
+  defaults(shaderMaterialParams, shaderMaterialParamDefaults);
+  return /** @type {ShaderMaterialParameters} */ (shaderMaterialParams);
 }
-`;
-
-const defaultFragmentShader = `
-uniform vec3 tint;
-uniform sampler2D pointTexture;
-
-varying vec3 vColor;
-
-void main() {
-
-  gl_FragColor = vec4(tint * vColor, 1.0);
-  gl_FragColor = gl_FragColor * texture2D(pointTexture, gl_PointCoord);
-
-}
-
-`;
-
 
 /**
  * @returns {import('three').Material} Returns the default material for a
@@ -115,21 +126,10 @@ void main() {
  */
 export function getDefaultMaterial() {
   if (_defaultMaterial === null) {
-    const m = new ShaderMaterial({
-      uniforms: {
-        tint: {value: new Color(0xffffff)},
-        pointTexture: {value: getDefaultRadial()},
-      },
-      vertexShader: defaultVertexShader,
-      fragmentShader: defaultFragmentShader,
-      blending: AdditiveBlending,
-      depthTest: false,
-      transparent: true,
-    });
-    m.defaultAttributeValues = {
-      'color': [1, 1, 1],
-      'size': [13],
-    };
+    const m = new ShaderMaterial(sanitizeShaderMaterialParams({}));
+    const tex = createCircleGradientTexture();
+    m.uniforms.map.value = tex;
+    m['map'] = tex;
     _defaultMaterial = m;
   }
   return _defaultMaterial;

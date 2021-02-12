@@ -5,7 +5,11 @@ import {
 } from 'three';
 import {sanitizeParticleEffect, scaleEmitter} from './model.js';
 import {ParticleEffect} from './particle-effect.js';
-import {getDefaultRadial} from './material-defaults.js';
+import {
+    getDefaultRadial,
+    shaderMaterialParamDefaults,
+} from './material-defaults.js';
+import {defaults} from './util/object-utils.js';
 
 /** @module threeParticles */
 
@@ -88,11 +92,15 @@ export class ParticleEffectLoader extends Loader {
         if (json.emitters !== undefined) {
             for (const emitterJson of json.emitters) {
                 if (emitterJson.material) {
+                    let materialParams;
                     if (emitterJson.material.type === undefined) {
-                        emitterJson.material.type = 'PointsMaterial';
+                        materialParams = defaults({},
+                            emitterJson.material, shaderMaterialParamDefaults);
+                    } else {
+                        materialParams = emitterJson.material;
                     }
                     emitterJson.material =
-                        this.materialLoader.parse(emitterJson.material);
+                        this.materialLoader.parse(materialParams);
                 }
                 scaleEmitter(emitterJson,
                     this.emissionScaling[emitterJson.id] || globalScale);
