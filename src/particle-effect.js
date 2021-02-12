@@ -53,13 +53,19 @@ export class ParticleEffect extends Group {
   }
 
   /**
-   * Updates the emitter objects.
+   * Updates the emitter objects if either `force` or `emittersNeedUpdate` is
+   * true. `emittersNeedUpdate` should be set if the emitters array changes.
+   * Note that this is an expensive operation. Prefer setting 
+   * `ParticleEmitter.enabled`.
+   * 
    *
    * @param {boolean} force If true, the emitters will be updated even if 
    * `emittersNeedUpdate` is false.
    */
   updateEmitters(force = false) {
     if (!force && !this.emittersNeedUpdate) return;
+    // This could use recycling, but changing the emitter array *should* be
+    // a rare case.
     this.emittersNeedUpdate = false;
     removeAllChildren(this);
     this.emitters = [];
