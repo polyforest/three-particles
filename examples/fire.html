@@ -99,7 +99,7 @@
     // Load the particle effect.
     let particleEffect = null;
     const particleEffectLoader = new threeParticles.ParticleEffectLoader();
-    particleEffectLoader.load('./fire.json', (effect) => {
+    particleEffectLoader.load('../test-resources/effects/fire.json', (effect) => {
       scene.add(effect);
       particleEffect = effect;
     });

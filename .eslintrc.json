@@ -15,8 +15,22 @@
 		"@typescript-eslint"
 	],
 	"rules": {
+		"guard-for-in": "off",
 		"indent": "off",
 		"linebreak-style": "off",
+		"max-len": [2, {
+      "code": 120,
+      "tabWidth": 2,
+      "ignoreUrls": true,
+      "ignorePattern": "goog.(module|require|import)"
+    }],
+		"no-trailing-spaces": [
+			"error",
+			{
+				"ignoreComments": true,
+				"skipBlankLines": true
+			}
+		],
 		"padded-blocks": [
 			"error",
 			{
@@ -26,13 +40,6 @@
 			},
 			{
 				"allowSingleLineBlocks": true
-			}
-		],
-		"no-trailing-spaces": [
-			"error",
-			{
-				"ignoreComments": true,
-				"skipBlankLines": true
 			}
 		],
 		"valid-jsdoc": "off"

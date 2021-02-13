@@ -25,7 +25,6 @@ describe('model', () => {
         {count: 12, emissionRate: {}, propertyTimelines: [{}]});
       assert.isNotNull(emitter.emissionRate.high);
       assert.isNotNull(emitter.emissionRate.low);
-      console.log(emitter.emissionRate.high);
       assert.isNotNull(emitter.emissionRate.high.ease);
       assert.isNotNull(emitter.emissionRate.high.min);
       assert.isNotNull(emitter.emissionRate.high.max);

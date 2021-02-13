@@ -22,9 +22,9 @@ void main() {
 
   #ifdef USE_SIZEATTENUATION
 
-    bool isPerspective = isPerspectiveMatrix( projectionMatrix );
+    bool isPerspective = isPerspectiveMatrix(projectionMatrix);
 
-    if ( isPerspective ) gl_PointSize *= ( scale / - mvPosition.z );
+    if (isPerspective) gl_PointSize *= (scale / -mvPosition.z);
 
   #endif
 

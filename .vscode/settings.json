@@ -1,8 +1,8 @@
 {
-  "editor.minimap.maxColumn": 80,
+  "editor.minimap.maxColumn": 120,
   "editor.tabSize": 2,
   "editor.rulers": [
-    80
+    120
   ],
   "javascript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "javascript.format.semicolons": "insert",
