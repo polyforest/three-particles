@@ -2,7 +2,7 @@ import {
   ParticlesMaterial,
   particlesMaterialParamDefaults,
 } from './particles-material.js';
-import {createCircleGradientTexture} from './textures.js';
+import {getDefaultRadial} from './textures.js';
 import {defaults} from './util/object-utils.js';
 
 /** @module threeParticles */
@@ -43,7 +43,7 @@ export function sanitizeShaderMaterialParams(shaderMaterialParams) {
 export function getRadialMaterial() {
   if (_defaultMaterial === null) {
     const m = new ParticlesMaterial(sanitizeShaderMaterialParams({}));
-    const tex = createCircleGradientTexture();
+    const tex = getDefaultRadial();
     m.uniforms.map.value = tex;
     m['map'] = tex;
     _defaultMaterial = m;

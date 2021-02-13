@@ -50,6 +50,9 @@ export class ParticleEffect extends Group {
      * @type {ParticleEmitter[]}
      */
     this.emitters = [];
+
+    // A little less confusing if 
+    this.updateEmitters();
   }
 
   /**

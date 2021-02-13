@@ -28,6 +28,14 @@ export class ParticleEmitter extends Points {
    */
   constructor(data) {
     super();
+
+    /**
+     * The model this particle emitter represents.
+     *
+     * @type {ParticleEmitterVo}
+     */
+    this.data = data;
+
     const particleNum = 10;
 
     this.geometry = new BufferGeometry();

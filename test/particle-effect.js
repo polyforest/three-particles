@@ -6,7 +6,7 @@ const assert = chai.assert;
 
 describe('ParticleEffect', () => {
   describe('constructor', () => {
-    it('Constructor should accept an emitters list.', () => {
+    it('Constructor should accept an emitters list', () => {
       const pE = new ParticleEffect(sanitizeParticleEffect({
         emitters: [
           {},

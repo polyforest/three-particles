@@ -12,4 +12,7 @@
   "eslint.options": {
     "configFile": "./.eslintrc.json"
   },
+  "eslint.format.enable": true,
+  "eslint.lintTask.enable": true,
+  "eslint.alwaysShowStatus": true,
 }

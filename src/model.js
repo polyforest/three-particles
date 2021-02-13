@@ -7,7 +7,6 @@
 import {MathUtils} from 'three';
 import * as easing from './easing.js';
 import {getRadialMaterial} from './material-defaults.js';
-import {VERSION} from './build.js';
 import {defaults} from './util/object-utils.js';
 import {RNG} from './util/random.js';
 
@@ -21,9 +20,6 @@ import {RNG} from './util/random.js';
  *
  * @typedef {object} ParticleEffectVo
  *
- * @property {string} version A version string, potentially used for
- * backwards compatibility. This should be the version of three-particles the
- * effect was built for. If null, no migration checks will be done.
  * @property {ParticleEmitterVo[]} emitters A list of emitter models.
  */
 
@@ -171,7 +167,6 @@ export const emitterDefaults = {
  * @type {ParticleEffectVo}
  */
 export const particleEffectDefaults = {
-  version: VERSION,
   emitters: [],
 };
 
@@ -236,6 +231,7 @@ export function sanitizeEmitter(emitter) {
  * @param {number} factor The scale factor.
  */
 export function scaleEmitter(emitter, factor) {
+  if (factor == 1) return;
   emitter.count *= factor;
   scaleTimeline(emitter.emissionRate, factor);
 }

@@ -1,5 +1,11 @@
 {
-  "version": "0.1.10",
+  "version": "0.1.15",
+  "materials": {
+    "particleMat": {
+      "blending": 2,
+      "size": 1
+    }
+  },
   "emitters": [
     {
       "name": "flame",
@@ -38,10 +44,7 @@
         "relative": true,
         "timeline": [ 0, 0, 0.4804574251174927, 1, 1, 0 ]
       },
-      "material": {
-        "blending": 2,
-        "size": 1
-      },
+      "material": "particleMat",
       "particleLifeExpectancy": {
         "low": {
           "min": 1.5999999046325684,
@@ -177,10 +180,7 @@
         "relative": true,
         "timeline": [ 0, 0, 1, 0 ]
       },
-      "material": {
-        "blending": 2,
-        "size": 1
-      },
+      "material": "particleMat",
       "particleLifeExpectancy": {
         "low": {
           "min": 1.5999999046325684,

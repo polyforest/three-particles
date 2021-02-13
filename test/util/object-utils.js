@@ -11,7 +11,7 @@ describe('object-utils', () => {
       assert.equal(o.id, 1);
       assert.equal(o.arr.length, 1);
     });
-    it(`Empty arrays on object should not be overridden.`, () => {
+    it(`Empty arrays on object should not be overridden`, () => {
       const o = objectUtils.defaults({arr: []}, {arr: [0]});
       assert.equal(o.arr.length, 0);
     });
