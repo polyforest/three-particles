@@ -35,8 +35,8 @@ export class ParticleEffect extends Group {
     this.data = data;
 
     /**
-     * Set to true if the emitter list changes. Next update or next
-     * `updateEmitters` the emitter list will be synchronized to the data model.
+     * Set to true if the emitter list changes. Next update or next call to
+     * `updateEmitters` will synchronize the emitter views.
      */
     this.emittersNeedUpdate = true;
 
@@ -45,13 +45,22 @@ export class ParticleEffect extends Group {
      */
     this.spawnPosition = new Vector3();
 
-    /**
-     * @type {ParticleEmitter[]}
-     */
-    this.emitters = [];
+    this._emitters = [];
 
-    // A little less confusing if 
     this.updateEmitters();
+  }
+
+  /**
+   * The emitter view objects.
+   * This will be parallel to `data.emitters`. If data.emitters changes, 
+   * `emittersNeedUpdate` will need to be set to true.
+   *
+   * @see ParticleEffectVo.emitters
+   * @type {ReadonlyArray<ParticleEmitter>}
+   * @readonly
+   */
+  get emitters() {
+    return this._emitters;
   }
 
   /**
@@ -70,10 +79,10 @@ export class ParticleEffect extends Group {
     // a rare case.
     this.emittersNeedUpdate = false;
     this.clear();
-    this.emitters = [];
+    this._emitters = [];
     this.data.emitters.forEach((emitterVo) => {
       const emitter = new ParticleEmitter(emitterVo);
-      this.emitters.push(emitter);
+      this._emitters.push(emitter);
       this.add(emitter);
     });
   }
@@ -85,7 +94,7 @@ export class ParticleEffect extends Group {
    */
   update(dT) {
     if (this.emittersNeedUpdate) this.updateEmitters();
-    for (const emitter of this.emitters) {
+    for (const emitter of this._emitters) {
       emitter.update(dT);
     }
   }
