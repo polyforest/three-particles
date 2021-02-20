@@ -2,7 +2,6 @@ import {ParticleEmitter} from './particle-emitter.js';
 import {Group, Vector3} from 'three';
 
 import './util/array-utils.js';
-import {removeAllChildren} from './util/three-utils.js';
 
 /** @module threeParticles */
 
@@ -70,7 +69,7 @@ export class ParticleEffect extends Group {
     // This could use recycling, but changing the emitter array *should* be
     // a rare case.
     this.emittersNeedUpdate = false;
-    removeAllChildren(this);
+    this.clear();
     this.emitters = [];
     this.data.emitters.forEach((emitterVo) => {
       const emitter = new ParticleEmitter(emitterVo);
