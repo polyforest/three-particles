@@ -32,8 +32,10 @@ import {defaults} from './util/object-utils.js';
  * Expected JSON data for a particle effect.
  *
  * @typedef {object} ParticleEffectJson
- * @property {?string} [version] The version of three-particles for which this effect was built.
- * @property {?Object<string, any>} [materials] The materials map of material id to object.
+ * @property {?string} [version] The version of three-particles for which this 
+ * effect was built.
+ * @property {?Object<string, any>} [materials] The materials map of material 
+ * id to object.
  * 
  * @property {ParticleEmitterJson[]} emitters A list of emitter models.
  * 
@@ -47,8 +49,8 @@ import {defaults} from './util/object-utils.js';
  /**
   * Expected JSON data for an emitter.
   *
-  * @typedef {Omit<PartialDeep<import('./model').ParticleEmitterVo>, 'material'> & 
-  * ParticleEmitterJsonExtra} ParticleEmitterJson
+  * @typedef {Omit<PartialDeep<import('./model').ParticleEmitterVo>, 'material'>
+  *  & ParticleEmitterJsonExtra} ParticleEmitterJson
   */
 
 /**
@@ -79,8 +81,8 @@ export class ParticleEffectLoader extends Loader {
   /**
    * Constructor
    *
-   * @param {?import('three').LoadingManager} [manager] The loading manager to use.
-   * Defaults to `THREE.DefaultLoadingManager`.
+   * @param {?import('three').LoadingManager} [manager] The loading manager to 
+   * use. Defaults to `THREE.DefaultLoadingManager`.
    */
   constructor(manager) {
     super(manager);
@@ -112,7 +114,8 @@ export class ParticleEffectLoader extends Loader {
    * The keys will be the name of the texture, the values the `Texture` object.
    *
    * @default {}
-   * @returns {Object<string, import('three').Texture>} Returns the currently set texture map.
+   * @returns {Object<string, import('three').Texture>} Returns the currently 
+   * set texture map.
    */
   get textures() {
     return this._materialLoader.textures;
@@ -121,7 +124,8 @@ export class ParticleEffectLoader extends Loader {
   /**
    * Replaces the textures object.
    *
-   * @param {Object<string, import('three').Texture>} value The new textures map.
+   * @param {Object<string, import('three').Texture>} value The new textures 
+   * map.
    */
   set textures(value) {
     this._materialLoader.setTextures(value);
@@ -131,10 +135,13 @@ export class ParticleEffectLoader extends Loader {
    * Loads a particle effect JSON.
    *
    * @param {string} url The url of the json file.
-   * @param {?function(ParticleEffect):any} [onLoad] Invoked when the particle effect has finished loading.
-   * @param {?function(ProgressEvent):any} [onProgress] If set, will be  invoked by the file loader with progress
+   * @param {?function(ParticleEffect):any} [onLoad] Invoked when the particle 
+   * effect has finished loading.
+   * @param {?function(ProgressEvent):any} [onProgress] If set, will be  invoked
+   * by the file loader with progress
    * information.
-   * @param {?function(ErrorEvent):any} [onError] If set, will be invoked if there is an error.
+   * @param {?function(ErrorEvent):any} [onError] If set, will be invoked if 
+   * there is an error.
    * @override
    */
   load(url, onLoad, onProgress, onError) {
@@ -160,16 +167,21 @@ export class ParticleEffectLoader extends Loader {
    */
   parse(json) {
     const effectVo = /** @type {PartialDeep<ParticleEffectVo>} */ ({});
-    const definedMaterials = /** @type {Object<string, import('three').Material>} */ ({});
+    /** @type {Object<string, import('three').Material>} */
+    const definedMaterials = {};
     if (json.materials !== undefined) {
       for (const materialName in json.materials) {
         const materialJson = json.materials[materialName];
-        if (materialJson.type === undefined || materialJson.type === 'ParticlesMaterial') {
-          const materialParams = parseParticlesMaterialParams(materialJson, this.textures);
+        if (materialJson.type === undefined ||
+          materialJson.type === 'ParticlesMaterial') {
+          const materialParams = parseParticlesMaterialParams(
+            materialJson, this.textures);
           definedMaterials[materialName] =
-            new ParticlesMaterial(defaults(materialParams, particlesMaterialParamDefaults));
+            new ParticlesMaterial(defaults(
+              materialParams, particlesMaterialParamDefaults));
         } else {
-          definedMaterials[materialName] = this._materialLoader.parse(materialJson);
+          definedMaterials[materialName] = this._materialLoader.parse(
+            materialJson);
         }
       }
     }
@@ -179,14 +191,16 @@ export class ParticleEffectLoader extends Loader {
         const emitterVo = /** @type {PartialDeep<ParticleEmitterVo>} */ ({});
         defaults(emitterVo, emitterJson);
         if (emitterJson.material !== undefined) {
-          emitterVo.material = definedMaterials[emitterJson.material] || this.materials[emitterJson.material];
+          emitterVo.material = definedMaterials[emitterJson.material] ||
+            this.materials[emitterJson.material];
         }
         effectVo.emitters.push(emitterVo);
       }
     }
     const sanitizedEffectVo = sanitizeParticleEffect(effectVo);
 
-    // Scale the emitter counts and emission rates based on the emitterScaling settings.
+    // Scale the emitter counts and emission rates based on the emitterScaling
+    // settings.
     for (const emitterVo of sanitizedEffectVo.emitters) {
       scaleEmitter(emitterVo,
         this.emissionScaling[emitterVo.id] || this.emissionScaling['*']);

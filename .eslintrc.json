@@ -19,7 +19,7 @@
 		"indent": "off",
 		"linebreak-style": "off",
 		"max-len": [2, {
-      "code": 120,
+      "code": 80,
       "tabWidth": 2,
       "ignoreUrls": true,
       "ignorePattern": "goog.(module|require|import)"

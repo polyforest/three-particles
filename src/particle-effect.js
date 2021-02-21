@@ -52,7 +52,7 @@ export class ParticleEffect extends Group {
 
   /**
    * The emitter view objects.
-   * This will be parallel to `data.emitters`. If data.emitters changes, 
+   * This will be parallel to `data.emitters`. If `data.emitters` changes, 
    * `emittersNeedUpdate` will need to be set to true.
    *
    * @see ParticleEffectVo.emitters
@@ -69,7 +69,6 @@ export class ParticleEffect extends Group {
    * Note that this is an expensive operation. Prefer setting 
    * `ParticleEmitter.enabled`.
    * 
-   *
    * @param {boolean} force If true, the emitters will be updated even if 
    * `emittersNeedUpdate` is false.
    */

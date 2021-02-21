@@ -2,6 +2,7 @@ import chai from 'chai';
 import * as fs from 'fs';
 import {PointsMaterial} from 'three';
 import {ParticleEffectLoader} from '../src/particle-effect-loader.js';
+import {ParticlesMaterial} from '../src/particles-material.js';
 import {getDefaultRadial} from '../src/textures.js';
 
 const assert = chai.assert;
@@ -33,7 +34,7 @@ describe('ParticleEffectLoader', () => {
 
     it('Sets a default radial texture', () => {
       const effect = loader.parse({emitters: [{}]});
-      const pointsMaterial = /** @type {PointsMaterial} */
+      const pointsMaterial = /** @type {ParticlesMaterial} */
         (effect.emitters[0].material);
       assert.strictEqual(pointsMaterial.map, getDefaultRadial());
     });
