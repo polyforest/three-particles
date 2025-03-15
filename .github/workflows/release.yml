@@ -4,31 +4,44 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish:
     name: "Publish"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 12
-      - name: Build dist and docs
+          node-version: 20
+          cache: npm
+          registry-url: 'https://registry.npmjs.org/'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
         run: |
-          npm ci
           npm run build
-          npm run doc
+          npm run www
+
       - name: Deploy to NPMJS
-        uses: JS-DevTools/npm-publish@v1
+        uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
-      - name: Deploy JS Docs to Github Pages
-        uses: JamesIves/github-pages-deploy-action@3.7.1
+
+      - name: Deploy JS to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          BRANCH: gh-pages
-          FOLDER: jsdocs
-          CLEAN: false
-          SINGLE_COMMIT: true
-          TARGET_FOLDER: jsdocs
-          COMMIT_MESSAGE: 'ci: Update docs'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          folder: www/dist
+          clean: false
+          single-commit: true
+          commit-message: 'ci: Update www'

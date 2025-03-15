@@ -55,11 +55,8 @@ node_modules/
 # dotenv environment variables file
 .env
 
-/dist/
+dist/
 /generated-types/
 /jsdocs/
 /act/
 /.idea/
-
-# Just a directory to put junk in.
-/scratchpad/
