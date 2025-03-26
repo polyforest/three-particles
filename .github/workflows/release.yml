@@ -33,7 +33,7 @@ jobs:
       - name: Create versions & changelogs
         run: npx lerna version --yes
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         run: npm run www
