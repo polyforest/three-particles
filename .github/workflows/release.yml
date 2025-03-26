@@ -17,6 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_PAT }}
           fetch-depth: 0 # important for lerna to detect tags
 
       - name: Setup Node.js
@@ -29,12 +30,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://x-access-token:${{ secrets.GH_PAT }}@github.com/polyforest/three-particles.git
 
       - name: Create versions & changelogs
         run: npx lerna version --yes
