@@ -47,6 +47,7 @@ jobs:
         uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}
+          package: ./packages/three-particles
 
       - name: Deploy JS to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@v4
