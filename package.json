@@ -7,6 +7,7 @@
         "esbuild": "^0.25.1",
         "eslint": "^9.22.0",
         "globals": "^16.0.0",
+        "http-server": "^14.1.1",
         "jest": "^29.7.0",
         "lerna": "^8.2.1",
         "prettier": "^3.5.3",
@@ -21,8 +22,10 @@
         "lint:write": "lerna run lint:write",
         "build": "lerna run build",
         "watch": "lerna run watch --parallel",
+        "prewww": "lerna run build",
+        "www": "tsx ./buildSrc/build.ts",
         "test": "lerna run test",
-        "serve": "npm run build && serve -s www"
+        "serve": "npm run www && http-server www"
     },
     "repository": {
         "type": "git",

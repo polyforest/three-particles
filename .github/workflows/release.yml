@@ -1,12 +1,12 @@
 name: Publish release
 
 on:
-  release:
-    types: [published]
+  push:
+    branches:
+      - main
 
 jobs:
-  publish:
-    name: "Publish"
+  release:
     runs-on: ubuntu-latest
 
     permissions:
@@ -34,12 +34,11 @@ jobs:
         run: npx lerna version --yes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build
-        run: |
-          npm run build
-          npm run www
 
-      - name: Deploy to NPMJS
+      - name: Build
+        run: npm run www
+
+      - name: Publish to NPMJS
         uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{ secrets.NPM_TOKEN }}

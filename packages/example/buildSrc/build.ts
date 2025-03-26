@@ -1,5 +1,5 @@
-import fs from 'fs-extra'
 import { build, BuildOptions, context } from 'esbuild'
+import { copyFiles } from '../../../buildSrc/util/copyFiles'
 
 const watch = process.argv.includes('-w')
 const release = !watch
@@ -27,16 +27,9 @@ runBuild().catch((error) => {
     process.exit(1) // Ensure the script signals a failed build in CI
 })
 
-function copyResources() {
-    ;(async () => {
-        await fs.copy('resources', buildOptions.outdir, { overwrite: true })
-        console.log('resources copied to dist')
-    })().catch((_error) => {
-        //console.warn('copy resources erred:', error)
-    })
-}
-
-copyResources()
-if (watch) {
-    fs.watch('resources', { recursive: true }, copyResources)
-}
+copyFiles('resources', buildOptions.outdir, {
+    watch,
+    copyOptions: {
+        overwrite: true,
+    },
+})

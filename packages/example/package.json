@@ -10,7 +10,7 @@
         "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
         "build": "tsx buildSrc/build.ts && tsc --noEmit",
         "watch": "tsx buildSrc/build.ts -w",
-        "serve": "serve -s dist"
+        "serve": "http-server dist"
     },
     "author": "Nicholas Bilyk",
     "license": "ISC",
