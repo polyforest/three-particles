@@ -1,0 +1,57 @@
+{
+    "name": "three-particles",
+    "version": "0.2.0",
+    "description": "WIP - A particle engine for THREE JS.",
+    "main": "dist/index.js",
+    "types": "dist/types/5.8",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "lint": "npm run prettier:check && eslint .",
+        "lint:write": "npm run prettier:write && eslint . --fix",
+        "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
+        "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
+        "test": "jest",
+        "build": "tsx buildSrc/build.ts && tsc",
+        "watch": "tsx buildSrc/build.ts -w"
+    },
+    "files": [
+        "dist",
+        "src",
+        "generatedSrc",
+        "LICENSE",
+        "README.md"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/polyforest/three-particles.git"
+    },
+    "keywords": [
+        "three.js",
+        "particle",
+        "particles",
+        "particle engine",
+        "poly forest"
+    ],
+    "author": "Nicholas Bilyk (https://www.polyforest.com)",
+    "license": "Apache-2.0",
+    "bugs": {
+        "url": "https://github.com/polyforest/three-particles/issues"
+    },
+    "homepage": "https://github.com/polyforest/three-particles#readme",
+    "type": "module",
+    "devDependencies": {
+        "@types/three": "^0.174.0"
+    },
+    "overrides": {
+        "globals": "^16.0.0"
+    },
+    "peerDependencies": {
+        "three": "^0.174.0"
+    },
+    "dependencies": {
+        "@types/lodash": "^4.17.16",
+        "lodash": "^4.17.21"
+    }
+}

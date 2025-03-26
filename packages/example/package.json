@@ -1,0 +1,26 @@
+{
+    "name": "@polyforest/three-particles-example",
+    "version": "1.0.0",
+    "main": "index.js",
+    "private": true,
+    "scripts": {
+        "lint": "npm run prettier:check && eslint .",
+        "lint:write": "npm run prettier:write && eslint . --fix",
+        "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
+        "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
+        "build": "tsx buildSrc/build.ts && tsc --noEmit",
+        "watch": "tsx buildSrc/build.ts -w",
+        "serve": "serve -s dist"
+    },
+    "author": "Nicholas Bilyk",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "three-particles": "*"
+    },
+    "devDependencies": {
+        "@types/fs-extra": "^11.0.4",
+        "fs-extra": "^11.3.0",
+        "serve": "^14.2.4"
+    }
+}

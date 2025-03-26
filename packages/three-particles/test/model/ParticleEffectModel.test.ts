@@ -1,5 +1,4 @@
 import { sanitizeParticleEffect } from '../../src/model/ParticleEffectModel'
-import type { PartialDeep } from 'type-fest'
 
 describe('ParticleEffectModel', () => {
     describe('sanitizeParticleEffect', () => {

@@ -1,5 +1,5 @@
 import { ParticleEmitter } from './ParticleEmitter'
-import { Group, Vector3 } from 'three'
+import { Group } from 'three'
 import type { ParticleEffectModel } from './model'
 import { ParticleEffectState } from './state'
 

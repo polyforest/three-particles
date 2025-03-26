@@ -45,7 +45,7 @@ grid.material.opacity = 0.2
 grid.material.transparent = true
 scene.add(grid)
 
-const canvas = document.querySelector('#c') as HTMLCanvasElement
+const canvas = document.querySelector('#mainCanvas') as HTMLCanvasElement
 
 const renderer = new THREE.WebGLRenderer({
     canvas,
@@ -77,7 +77,6 @@ particleEffectLoader.load('./fire.json', (model) => {
 
 function render() {
     const dT = clock.getDelta() // Must be called in order to get elapsed time.
-    const t = clock.elapsedTime
 
     controls.update()
 
