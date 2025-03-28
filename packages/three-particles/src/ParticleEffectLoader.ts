@@ -44,3 +44,20 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         )
     }
 }
+
+const loader = new ParticleEffectLoader()
+
+/**
+ * Uses a particle effect loader to load a particle effect from a given URL.
+ *
+ * @param url
+ * @param onProgress (optional) called to indicate load progress.
+ */
+export function loadParticleEffect(
+    url: string,
+    onProgress?: (event: ProgressEvent) => void,
+): Promise<ParticleEffectModel> {
+    return new Promise((resolve, reject) => {
+        loader.load(url, resolve, onProgress, reject)
+    })
+}

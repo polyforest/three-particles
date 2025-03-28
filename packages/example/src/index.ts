@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
+import { loadParticleEffect, ParticleEffect } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 console.log('Hello!')
 
@@ -69,19 +69,19 @@ function onResize() {
 
 // Load the particle effect.
 let particleEffect: ParticleEffect | null = null
-const particleEffectLoader = new ParticleEffectLoader()
-particleEffectLoader.load('./fire.json', (model) => {
-    particleEffect = new ParticleEffect(model)
-    scene.add(particleEffect)
-})
+loadParticleEffect('./fire.json')
+    .then((model) => {
+        particleEffect = new ParticleEffect(model)
+        scene.add(particleEffect)
+    })
+    .catch(console.error)
 
 function render() {
     const dT = clock.getDelta() // Must be called in order to get elapsed time.
 
     controls.update()
 
-    if (particleEffect) particleEffect.update(dT)
-
+    particleEffect?.update(dT)
     renderer.render(scene, camera)
 }
 
