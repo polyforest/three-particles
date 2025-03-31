@@ -1,7 +1,7 @@
-import type { PartialDeep } from 'type-fest'
 import { defaults } from 'lodash'
 import { EaseType, getEase } from '../util'
 import { Vector3 } from 'three'
+import { PartialDeep } from 'type-fest'
 
 const { random, cos, sin, PI, acos, cbrt } = Math
 

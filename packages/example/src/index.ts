@@ -1,15 +1,17 @@
 import * as THREE from 'three'
-import { loadParticleEffect, ParticleEffect } from 'three-particles'
+import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+
 console.log('Hello!')
 
 const camera = new THREE.PerspectiveCamera(
     45,
     window.innerWidth / window.innerHeight,
-    0.25,
-    100,
+    0.1,
+    1000,
 )
-camera.position.set(-5, 3, 10)
+camera.position.set(0, 10, 20)
+
 camera.lookAt(new THREE.Vector3(0, 2, 0))
 
 const scene = new THREE.Scene()
@@ -69,9 +71,11 @@ function onResize() {
 
 // Load the particle effect.
 let particleEffect: ParticleEffect | null = null
-loadParticleEffect('./fire.json')
-    .then((model) => {
-        particleEffect = new ParticleEffect(model)
+const loader = new ParticleEffectLoader()
+loader
+    .loadAsync('./fire.json')
+    .then((e) => {
+        particleEffect = e
         scene.add(particleEffect)
     })
     .catch(console.error)
@@ -80,7 +84,6 @@ function render() {
     const dT = clock.getDelta() // Must be called in order to get elapsed time.
 
     controls.update()
-
     particleEffect?.update(dT)
     renderer.render(scene, camera)
 }

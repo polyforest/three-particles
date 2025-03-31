@@ -1,11 +1,42 @@
-import { FileLoader, Loader } from 'three'
-import type { ParticleEffectModel } from './model'
-import { sanitizeParticleEffect } from './model'
+import { FileLoader, Loader, Material, MaterialLoader } from 'three'
+import { ParticleEffectModel, sanitizeParticleEffect } from './model'
+import { ParticleEffect } from './object/ParticleEffect'
+import { LoadingManager } from 'three/src/loaders/LoadingManager'
+import { getDefaultRadial } from './materialDefaults'
+import { Maybe } from './util/type'
+import { isNonNil } from './util'
+import { ParticleEmitterPoints } from './object'
+import { decodeText } from './util/text'
+import { PartialDeep } from 'type-fest'
 
 /**
  * Loads a JSON file describing a particle effect.
  */
-export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
+export class ParticleEffectLoader extends Loader<ParticleEffect> {
+    public readonly materialLoader: MaterialLoader
+
+    public materials: Record<string, Material> = {}
+
+    constructor(manager?: LoadingManager) {
+        super(manager)
+        this.materialLoader = new MaterialLoader(this.manager)
+
+        // TODO temp
+        this.materialLoader.setTextures({
+            radial: getDefaultRadial(),
+        })
+    }
+
+    setMaterials(materials: Record<string, Material>) {
+        this.materials = materials
+    }
+
+    setPath(path: string): this {
+        super.setPath(path)
+        this.materialLoader.setPath(path)
+        return this
+    }
+
     /**
      * Loads a particle effect JSON from a given URL.
      * @param url - The url of the json file.
@@ -15,7 +46,7 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
      */
     public load(
         url: string,
-        onLoad?: (effect: ParticleEffectModel) => void,
+        onLoad?: (effect: ParticleEffect) => void,
         onProgress?: (event: ProgressEvent) => void,
         onError?: (error: unknown) => void,
     ): void {
@@ -28,36 +59,41 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         loader.load(
             url,
             (text: string | ArrayBuffer) => {
-                // If text is ArrayBuffer, convert to string:
-                const jsonStr =
-                    typeof text === 'string'
-                        ? text
-                        : new TextDecoder().decode(text)
-                const jsonObj = JSON.parse(
-                    jsonStr,
-                ) as Partial<ParticleEffectModel>
-                sanitizeParticleEffect(jsonObj)
-                if (onLoad) onLoad(jsonObj)
+                this.parseAsync(JSON.parse(decodeText(text)))
+                    .then(onLoad)
+                    .catch((error) => onError?.(error))
             },
             onProgress,
             onError,
         )
     }
-}
 
-const loader = new ParticleEffectLoader()
+    /**
+     * Parses the given JSON. This is used internally by
+     * {@link ParticleEffectLoader#load}
+     * but can also be used directly to parse a previously loaded JSON structure.
+     *
+     * @param {Object} json - The serialized particle effect object.
+     * @return {ParticleEffect} The parsed ParticleEffect object.
+     */
+    async parseAsync(
+        json: PartialDeep<ParticleEffectModel> & { materials: any },
+    ): Promise<ParticleEffect> {
+        if (json.materials) {
+            const mLoader = this.materialLoader
+            for (const [key, material] of Object.entries(json.materials)) {
+                this.materials[key] =
+                    typeof material === 'string'
+                        ? await mLoader.loadAsync(material)
+                        : mLoader.parse(material)
+            }
+        }
+        sanitizeParticleEffect(json, this.materials)
 
-/**
- * Uses a particle effect loader to load a particle effect from a given URL.
- *
- * @param url
- * @param onProgress (optional) called to indicate load progress.
- */
-export function loadParticleEffect(
-    url: string,
-    onProgress?: (event: ProgressEvent) => void,
-): Promise<ParticleEffectModel> {
-    return new Promise((resolve, reject) => {
-        loader.load(url, resolve, onProgress, reject)
-    })
+        const effect = new ParticleEffect()
+        for (const emitterModel of json.emitters) {
+            effect.add(new ParticleEmitterPoints(emitterModel))
+        }
+        return effect
+    }
 }

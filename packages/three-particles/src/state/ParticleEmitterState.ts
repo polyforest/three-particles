@@ -5,11 +5,8 @@ import { arrayOf } from '../util'
 import { clamp } from 'lodash'
 
 export class ParticleEmitterState {
-    readonly maxParticlesScale: number
     readonly particles: readonly ParticleState[]
 
-    /** Maximum number of particles. */
-    readonly count: number
     /** Current number of active particles. */
     private _activeCount = 0
     private delayBefore: number = 0
@@ -48,13 +45,8 @@ export class ParticleEmitterState {
         return this._isComplete
     }
 
-    constructor(
-        readonly model: ParticleEmitterModel,
-        maxParticlesScale: number = 1,
-    ) {
-        this.maxParticlesScale = maxParticlesScale
-        this.count = Math.ceil(model.count * maxParticlesScale)
-        this.particles = arrayOf(this.count, () => new ParticleState(model))
+    constructor(readonly model: ParticleEmitterModel) {
+        this.particles = arrayOf(model.count, () => new ParticleState(model))
         this.emissionRateValue = new PropertyValue(model.emissionRate)
         this.particleLifeExpectancyValue = new PropertyValue(
             model.particleLifeExpectancy,
@@ -84,8 +76,7 @@ export class ParticleEmitterState {
         this.particleLifeExpectancyValue.setTime(emitterAlpha)
 
         if (this.time < this.duration && this.time > 0) {
-            const accumRate =
-                this.emissionRateValue.current * this.maxParticlesScale
+            const accumRate = this.emissionRateValue.current
             this.accumulator += accumRate * dT
             const accumRateInv = 1 / accumRate
 
@@ -102,7 +93,8 @@ export class ParticleEmitterState {
                         this._activeCount++
                         this.accumulator--
                     }
-                    if (this._activeCount >= this.count) this.accumulator = 0
+                    if (this._activeCount >= this.model.count)
+                        this.accumulator = 0
                     if (this.accumulator < 1) break
                 }
             }

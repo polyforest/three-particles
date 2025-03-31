@@ -1,21 +1,22 @@
 import { EmitterDurationModel } from './ParticleEffectModel'
-import { MathUtils } from 'three'
+import { Material, MathUtils } from 'three'
 import {
     sanitizeTimeline,
     timelineDefaults,
     TimelineModel,
 } from './TimelineModel'
 import { rangeDefaults, sanitizeRange } from './RangeModel'
-import type { PartialDeep } from 'type-fest'
+import { PartialDeep, WritableDeep } from 'type-fest'
 import { cloneDeep, defaults } from 'lodash'
 import { isNonNil } from '../util/object'
 import { sanitizeZone, Zone, zoneDefaults } from './Zone'
+import { Maybe } from '../util'
 
 /**
  * Data for a particle emitter.
  */
 export interface ParticleEmitterModel {
-    id: string
+    uuid: string
 
     /**
      * True if the emitter should be used.
@@ -63,16 +64,16 @@ export interface ParticleEmitterModel {
     propertyTimelines: TimelineModel[]
 
     /**
-     * The name of the material to use for this emitter.
+     * The material(s) to use for this emitter.
      */
-    material: string | null
+    material: Material | Material[] | null
 }
 
 /**
  * Default ParticleEmitterModel values.
  */
 export const particleEmitterDefaults = {
-    id: '',
+    uuid: '',
     enabled: true,
     count: 100,
     loops: true,
@@ -127,17 +128,22 @@ export const particleEmitterDefaults = {
  */
 export function sanitizeEmitter(
     emitter: PartialDeep<ParticleEmitterModel>,
+    materials: Record<string, Material>,
 ): asserts emitter is ParticleEmitterModel {
     defaults(
         emitter,
         { id: MathUtils.generateUUID() },
-        cloneDeep(particleEmitterDefaults),
+        cloneDeep(
+            particleEmitterDefaults,
+        ) as WritableDeep<ParticleEmitterModel>,
     )
     sanitizeZone(emitter.spawn)
     sanitizeEmitterDuration(emitter.duration)
     sanitizeTimeline(emitter.emissionRate)
     sanitizeTimeline(emitter.particleLifeExpectancy)
     emitter.propertyTimelines.filter(isNonNil).forEach(sanitizeTimeline)
+
+    emitter.material = toMaterials(emitter.material, materials)
 }
 
 export function sanitizeEmitterDuration(
@@ -147,4 +153,31 @@ export function sanitizeEmitterDuration(
     sanitizeRange(duration.duration)
     sanitizeRange(duration.delayBefore)
     sanitizeRange(duration.delayAfter)
+}
+
+export function toMaterials(
+    materialIds: Maybe<Material | Material[] | string | string[]>,
+    materials: Record<string, Material | undefined>,
+): Material[] | Material | null {
+    if (!materialIds) return null
+    if (Array.isArray(materialIds)) {
+        return materialIds.map((m) => toMaterial(m, materials)).filter(isNonNil)
+    } else {
+        return toMaterial(materialIds, materials)
+    }
+}
+
+export function toMaterial(
+    materialId: Maybe<Material | string>,
+    materials: Record<string, Material | undefined>,
+): Material | null {
+    if (typeof materialId === 'string') {
+        const material = materials[materialId]
+        if (!material) {
+            console.warn(`Missing material: ${materialId}`)
+            return null
+        }
+        return material
+    }
+    return materialId ?? null
 }

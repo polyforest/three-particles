@@ -1,26 +1,24 @@
-import {
-    AdditiveBlending,
-    BufferGeometry,
-    Float32BufferAttribute,
-    Material,
-    Points,
-    PointsMaterial,
-} from 'three'
-import { getDefaultRadial } from './materialDefaults'
-import { ParticleEmitterState } from './state'
+import { Float32BufferAttribute, Points } from 'three'
+import { ParticleEmitterState } from '../state'
+import { ParticleEmitterObject } from './ParticleEmitterObject'
+import { ParticleEmitterModel } from '../model'
 
 /**
- * A ParticleEmitter contains one [Points] object and is responsible for
- * updating its particles.
+ * ParticleEmitterPoints is a Points Object3D and renders ParticleEmitterState
+ * as gl.POINTS.
+ * This is the most basic Particle emitter object.
  */
-export class ParticleEmitter extends Points<BufferGeometry, Material> {
-    constructor(private readonly state: ParticleEmitterState) {
+export class ParticleEmitterPoints
+    extends Points
+    implements ParticleEmitterObject
+{
+    readonly isParticleEmitterObject = true
+    readonly state: ParticleEmitterState
+
+    constructor(model: ParticleEmitterModel) {
         super()
-
-        const n = state.count
-
-        // Create a new geometry and populate it with vertices:
-        this.geometry = new BufferGeometry()
+        this.state = new ParticleEmitterState(model)
+        const n = model.count
 
         // Create a Float32BufferAttribute for position data:
         this.geometry.setAttribute(
@@ -36,34 +34,18 @@ export class ParticleEmitter extends Points<BufferGeometry, Material> {
         // // Set a default bounding sphere (optional):
         // this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 10)
 
-        // Assign the material from your data model:
-        // this.material = data.material
-
-        // TEMP
-        this.scale.set(0.1, -0.1, 0.1)
-
-        this.material = new PointsMaterial({
-            size: 5,
-            sizeAttenuation: true,
-            transparent: true,
-            map: getDefaultRadial(),
-            blending: AdditiveBlending,
-            alphaTest: 0.01,
-            depthWrite: false,
-            vertexColors: true,
-        })
+        if (model.material) this.material = model.material
     }
 
     /**
-     * Updates this emitter forward in time by `dT` seconds.
+     * Updates this emitter's buffer geometry.
      * Typically invoked by the particle effect that owns this emitter.
      */
-    update(): void {
+    updateGeometry(): void {
+        if (!this.state.model.enabled) return
         // Access the typed array for position data:
         const posArr = this.geometry.attributes.position.array as Float32Array
         const colorArr = this.geometry.attributes.color.array as Float32Array
-
-        const n = this.state.activeCount
 
         let i = 0
         for (const particle of this.state.particles) {
@@ -83,13 +65,8 @@ export class ParticleEmitter extends Points<BufferGeometry, Material> {
             i++
         }
 
-        this.geometry.setDrawRange(0, n)
+        this.geometry.setDrawRange(0, this.state.activeCount)
         this.geometry.attributes.position.needsUpdate = true
         this.geometry.attributes.color.needsUpdate = true
-    }
-
-    dispose() {
-        this.geometry.dispose()
-        this.material.dispose()
     }
 }

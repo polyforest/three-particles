@@ -2,12 +2,12 @@
  * @file Data descriptors for a particle effect (TypeScript version).
  */
 
-import type { PartialDeep } from 'type-fest'
-
 import { cloneDeep, defaults } from 'lodash'
 import { isNonNil } from '../util/object'
 import { RangeModel } from './RangeModel'
 import { ParticleEmitterModel, sanitizeEmitter } from './ParticleEmitterModel'
+import { PartialDeep } from 'type-fest'
+import { Material } from 'three'
 
 /**
  * A model describing the duration and delay padding for an emitter.
@@ -51,17 +51,10 @@ export const particleEffectDefaults = {
  */
 export function sanitizeParticleEffect(
     effect: PartialDeep<ParticleEffectModel>,
+    materials: Record<string, Material>,
 ): asserts effect is ParticleEffectModel {
     defaults(effect, cloneDeep(particleEffectDefaults))
-    effect.emitters.filter(isNonNil).forEach(sanitizeEmitter)
-}
-
-/**
- * Multiplies the emitter's count and emission rates by a given factor.
- */
-export function scaleEmitter(
-    emitter: ParticleEmitterModel,
-    factor: number,
-): void {
-    emitter.count *= factor
+    effect.emitters
+        .filter(isNonNil)
+        .forEach((emitter) => sanitizeEmitter(emitter, materials))
 }

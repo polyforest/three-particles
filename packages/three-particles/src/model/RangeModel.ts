@@ -23,9 +23,7 @@ export const rangeDefaults = {
  * Populates a `RangeModel` with defaults.
  * Mutates the passed-in `range`.
  */
-export function sanitizeRange(
-    range: Partial<RangeModel>,
-): asserts range is RangeModel {
+export function sanitizeRange(range: any): asserts range is RangeModel {
     // If max is undefined, use range.min.
     defaults(range, { max: range.min ?? 0 }, rangeDefaults)
 }

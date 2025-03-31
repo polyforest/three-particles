@@ -1,4 +1,6 @@
 export * from './array'
 export * from './easing'
+export * from './interpolation'
 export * from './math'
 export * from './object'
+export * from './type'
