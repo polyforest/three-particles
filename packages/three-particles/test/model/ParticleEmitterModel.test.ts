@@ -4,7 +4,7 @@ describe('ParticleEmitterModel', () => {
     describe('sanitizeEmitter', () => {
         it('should set count', () => {
             const emitter = {}
-            sanitizeEmitter(emitter)
+            sanitizeEmitter(emitter, {})
             expect(emitter.count).toBeDefined()
         })
 
@@ -14,13 +14,14 @@ describe('ParticleEmitterModel', () => {
                 emissionRate: {},
                 propertyTimelines: [{}],
             }
-            sanitizeEmitter(emitter)
+            sanitizeEmitter(emitter, {})
             expect(emitter.emissionRate.high).toBeDefined()
             expect(emitter.emissionRate.low).toBeDefined()
             expect(emitter.emissionRate.high.ease).toBeDefined()
             expect(emitter.emissionRate.high.min).toBeDefined()
             expect(emitter.emissionRate.high.max).toBeDefined()
             expect(emitter.propertyTimelines[0].timeline).toBeDefined()
+            expect(emitter.propertyTimelines[0].low.min).toBeDefined()
         })
     })
 })

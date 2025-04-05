@@ -155,6 +155,10 @@ export function sanitizeEmitterDuration(
     sanitizeRange(duration.delayAfter)
 }
 
+/**
+ * Maps material id(s) to their respective materials.
+ * Keeps Material objects as is.
+ */
 export function toMaterials(
     materialIds: Maybe<Material | Material[] | string | string[]>,
     materials: Record<string, Material | undefined>,
@@ -167,6 +171,10 @@ export function toMaterials(
     }
 }
 
+/**
+ * Maps a material id to ots respective material.
+ * If the material id is a Material, returns as is.
+ */
 export function toMaterial(
     materialId: Maybe<Material | string>,
     materials: Record<string, Material | undefined>,
