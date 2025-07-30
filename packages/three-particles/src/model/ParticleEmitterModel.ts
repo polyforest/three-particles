@@ -8,9 +8,8 @@ import {
 import { rangeDefaults, sanitizeRange } from './RangeModel'
 import { PartialDeep, WritableDeep } from 'type-fest'
 import { cloneDeep, defaults } from 'lodash'
-import { isNonNil } from '../util/object'
+import { isNonNil, Maybe } from '../util'
 import { sanitizeZone, Zone, zoneDefaults } from './Zone'
-import { Maybe } from '../util'
 
 /**
  * Data for a particle emitter.
@@ -127,7 +126,12 @@ export const particleEmitterDefaults = {
  * Mutates the passed-in `emitter`.
  */
 export function sanitizeEmitter(
-    emitter: PartialDeep<ParticleEmitterModel>,
+    emitter: PartialDeep<
+        ParticleEmitterModel,
+        {
+            recurseIntoArrays: true
+        }
+    >,
     materials: Record<string, Material>,
 ): asserts emitter is ParticleEmitterModel {
     defaults(
