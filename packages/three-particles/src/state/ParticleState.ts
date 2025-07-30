@@ -1,10 +1,8 @@
 import { Vector3 } from 'three'
 import { clamp } from 'lodash'
-import { ParticleEmitterModel, TimelineModel } from '../model'
+import { ParticleEmitterModel, randomFromZone, TimelineModel } from '../model'
 import { PropertyValue } from './PropertyValue'
-import { getTimelineValues } from '../util/interpolation'
-import { HALF_PI } from '../util'
-import { randomFromZone } from '../model/Zone'
+import { getTimelineValues, HALF_PI } from '../util'
 
 /**
  * Updates the particle state.
@@ -100,7 +98,6 @@ export class ParticleState implements ParticleProperties {
         this.position.add(this.velocity)
         this.rotation.add(this.rotationalVelocity)
         this.forwardDirection.add(this.forwardDirectionVelocity)
-
         if (this.forwardVelocity !== 0) {
             if (
                 this.forwardDirection.y !== 0 ||
@@ -226,6 +223,8 @@ class ColorPropertyState implements ParticlePropertyState {
         this.previous.set(this.value)
     }
 }
+
+// noinspection JSUnusedGlobalSymbols
 
 /**
  * A registry of timeline property keys (`TimelineModel.property`) to their respective update

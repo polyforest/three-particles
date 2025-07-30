@@ -81,7 +81,7 @@ loader
     .catch(console.error)
 
 function render() {
-    const dT = clock.getDelta() // Must be called in order to get elapsed time.
+    const dT = clock.getDelta() // Must be called to get elapsed time.
 
     controls.update()
     particleEffect?.update(dT)

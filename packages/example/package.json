@@ -16,7 +16,7 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "three-particles": "^0.4.2"
+        "three-particles": "*"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",

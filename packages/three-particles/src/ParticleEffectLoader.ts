@@ -1,12 +1,9 @@
 import { FileLoader, Loader, Material, MaterialLoader } from 'three'
 import { ParticleEffectModel, sanitizeParticleEffect } from './model'
-import { ParticleEffect } from './object/ParticleEffect'
+import { ParticleEffect, ParticleEmitterPoints } from './object'
 import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { getDefaultRadial } from './materialDefaults'
-import { Maybe } from './util/type'
-import { isNonNil } from './util'
-import { ParticleEmitterPoints } from './object'
-import { decodeText } from './util/text'
+import { decodeText } from './util'
 import { PartialDeep } from 'type-fest'
 
 /**
@@ -39,7 +36,8 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
 
     /**
      * Loads a particle effect JSON from a given URL.
-     * @param url - The url of the json file.
+     *
+     * @param url - The url of the JSON file.
      * @param onLoad - Callback invoked when the ParticleEffect has finished loading.
      * @param onProgress - Callback invoked by the file loader with progress information.
      * @param onError - Callback invoked if there is an error while loading.
