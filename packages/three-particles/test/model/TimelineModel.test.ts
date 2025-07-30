@@ -1,5 +1,4 @@
-import type { PartialDeep } from 'type-fest'
-import { sanitizeTimeline, TimelineModel } from '../../src/model/TimelineModel'
+import { sanitizeTimeline } from '../../src'
 
 describe('TimelineModel', () => {
     describe('sanitizeTimeline', () => {
@@ -7,13 +6,13 @@ describe('TimelineModel', () => {
             const timeline = {
                 timeline: [1, 2, 3],
             }
-            sanitizeTimeline(timeline as any)
+            sanitizeTimeline(timeline)
             expect(timeline.timeline).toBeInstanceOf(Float32Array)
             expect(timeline.timeline).toEqual(new Float32Array([1, 2, 3]))
         })
 
         it('should sanitize ranges', () => {
-            const timeline: PartialDeep<TimelineModel> = {
+            const timeline = {
                 low: {
                     min: 3,
                 },

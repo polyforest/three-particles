@@ -1,7 +1,6 @@
 {
     "name": "@polyforest/three-particles-example",
     "version": "0.4.2",
-    "main": "index.js",
     "private": true,
     "scripts": {
         "lint": "npm run prettier:check && eslint .",

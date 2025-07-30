@@ -4,6 +4,7 @@ import {
     sanitizeTimeline,
     timelineDefaults,
     TimelineModel,
+    TimelineModelJson,
 } from './TimelineModel'
 import { rangeDefaults, sanitizeRange } from './RangeModel'
 import { PartialDeep, WritableDeep } from 'type-fest'
@@ -69,6 +70,20 @@ export interface ParticleEmitterModel {
 }
 
 /**
+ * A loose definition of ParticleEmitterModel that may be sanitized by
+ * sanitizeEmitter
+ */
+export type ParticleEmitterModelJson = Omit<
+    PartialDeep<ParticleEmitterModel, { recurseIntoArrays: true }>,
+    'material' | 'propertyTimelines' | 'emissionRate' | 'particleLifeExpectancy'
+> & {
+    emissionRate?: TimelineModelJson
+    particleLifeExpectancy?: TimelineModelJson
+    material?: string | string[] | Material | Material[] | null
+    propertyTimelines?: TimelineModelJson[]
+}
+
+/**
  * Default ParticleEmitterModel values.
  */
 export const particleEmitterDefaults = {
@@ -126,12 +141,7 @@ export const particleEmitterDefaults = {
  * Mutates the passed-in `emitter`.
  */
 export function sanitizeEmitter(
-    emitter: PartialDeep<
-        ParticleEmitterModel,
-        {
-            recurseIntoArrays: true
-        }
-    >,
+    emitter: ParticleEmitterModelJson,
     materials: Record<string, Material>,
 ): asserts emitter is ParticleEmitterModel {
     defaults(

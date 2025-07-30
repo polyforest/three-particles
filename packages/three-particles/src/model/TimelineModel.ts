@@ -57,12 +57,16 @@ export const timelineDefaults = {
     },
 } as const satisfies TimelineModel
 
+export type TimelineModelJson = Omit<PartialDeep<TimelineModel>, 'timeline'> & {
+    timeline?: Float32Array | readonly number[]
+}
+
 /**
  * Sets any defaults for unset properties on a timeline.
  * Mutates the passed-in `timeline`.
  */
 export function sanitizeTimeline(
-    timeline: PartialDeep<TimelineModel>,
+    timeline: TimelineModelJson,
 ): asserts timeline is TimelineModel {
     defaults(
         timeline,

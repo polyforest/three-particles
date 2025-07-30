@@ -1,10 +1,9 @@
 import { FileLoader, Loader, Material, MaterialLoader } from 'three'
-import { ParticleEffectModel, sanitizeParticleEffect } from './model'
+import { ParticleEffectModelJson, sanitizeParticleEffect } from './model'
 import { ParticleEffect, ParticleEmitterPoints } from './object'
 import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { getDefaultRadial } from './materialDefaults'
 import { decodeText } from './util'
-import { PartialDeep } from 'type-fest'
 
 /**
  * Loads a JSON file describing a particle effect.
@@ -75,7 +74,9 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
      * @return {ParticleEffect} The parsed ParticleEffect object.
      */
     async parseAsync(
-        json: PartialDeep<ParticleEffectModel> & { materials: any },
+        json: ParticleEffectModelJson & {
+            materials: any
+        },
     ): Promise<ParticleEffect> {
         if (json.materials) {
             const mLoader = this.materialLoader
