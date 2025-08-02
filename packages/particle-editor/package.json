@@ -9,9 +9,7 @@
         "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
         "typecheck": "tsc --noEmit",
         "build": "vite build",
-        "dev": "vite",
-        "watch": "vite build --watch",
-        "preview": "vite preview"
+        "dev": "vite"
     },
     "author": "Nicholas Bilyk",
     "license": "ISC",
