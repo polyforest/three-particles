@@ -13,13 +13,15 @@ copyFiles({
     },
 })
 
-copyFiles({
-    src: 'packages/example/dist',
-    dest: 'www/example',
-    options: {
-        watch,
-        copyOptions: {
-            overwrite: true,
+for (const pckg of ['example', 'particle-editor']) {
+    copyFiles({
+        src: `packages/${pckg}/dist`,
+        dest: `www/${pckg}`,
+        options: {
+            watch,
+            copyOptions: {
+                overwrite: true,
+            },
         },
-    },
-})
+    })
+}

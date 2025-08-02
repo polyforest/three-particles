@@ -4,6 +4,8 @@ import { resolve } from 'path'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+    // Base path for assets when deployed in a subdirectory
+    base: './',
     plugins: [react()],
     build: {
         outDir: 'dist',
