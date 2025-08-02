@@ -22,10 +22,6 @@
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
         "@types/react": "^19.1.9",
-        "@types/react-dom": "^19.1.7",
-        "@vitejs/plugin-react": "^4.7.0",
-        "fs-extra": "^11.3.0",
-        "serve": "^14.2.4",
-        "vite": "^7.0.6"
+        "@types/react-dom": "^19.1.7"
     }
 }
