@@ -1,19 +1,10 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
+import './index.scss'
 
 const App: React.FC = () => {
     return (
-        <div
-            style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                height: '100vh',
-                backgroundColor: '#191919',
-                color: 'white',
-                fontFamily: 'Arial, sans-serif',
-            }}
-        >
+        <div className="app-container">
             <h1>Hello World from Particle Editor!</h1>
         </div>
     )
