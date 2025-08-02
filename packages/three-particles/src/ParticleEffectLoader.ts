@@ -75,7 +75,7 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
      */
     async parseAsync(
         json: ParticleEffectModelJson & {
-            materials: any
+            materials?: Record<string, any>
         },
     ): Promise<ParticleEffect> {
         if (json.materials) {
