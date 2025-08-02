@@ -1,13 +1,14 @@
 import fs, { CopyOptions } from 'fs-extra'
 
-export function copyFiles(
-    src: string,
-    dest: string,
-    options: {
-        readonly watch: boolean
-        readonly copyOptions?: CopyOptions
-    },
-): void {
+export function copyFiles({
+    src,
+    dest,
+    options,
+}: {
+    src: string
+    dest: string
+    options: { readonly watch: boolean; readonly copyOptions?: CopyOptions }
+}): void {
     const copy = async () => {
         await fs.copy(src, dest, options.copyOptions).catch((error) => {
             console.error(`copy ${src} failed:`, error)
@@ -21,6 +22,6 @@ export function copyFiles(
         }
     })
     if (options.watch) {
-        fs.watch('resources', { recursive: true }, () => copy().catch(() => {}))
+        fs.watch(src, { recursive: true }, () => copy().catch(() => {}))
     }
 }

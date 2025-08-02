@@ -27,9 +27,13 @@ runBuild().catch((error) => {
     process.exit(1) // Ensure the script signals a failed build in CI
 })
 
-copyFiles('resources', buildOptions.outdir, {
-    watch,
-    copyOptions: {
-        overwrite: true,
+copyFiles({
+    src: 'resources',
+    dest: buildOptions.outdir,
+    options: {
+        watch,
+        copyOptions: {
+            overwrite: true,
+        },
     },
 })
