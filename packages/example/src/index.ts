@@ -20,24 +20,6 @@ scene.fog = new THREE.Fog(0x111111, 20, 100)
 
 const clock = new THREE.Clock()
 
-// Lights
-
-const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444)
-hemiLight.position.set(0, 20, 0)
-scene.add(hemiLight)
-
-// Ground
-
-const mesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(2000, 2000),
-    new THREE.MeshPhongMaterial({
-        color: 0x181818,
-        depthWrite: false,
-    }),
-)
-mesh.rotation.x = -Math.PI / 2
-scene.add(mesh)
-
 const grid = new THREE.GridHelper(200, 40, 0x000000, 0xffffff)
 grid.material.opacity = 0.2
 grid.material.transparent = true
