@@ -1,57 +1,72 @@
-import React, { useState } from 'react';
+import React, { useState } from 'react'
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Button,
-} from '@mui/material';
-import { ParticleEffectModelJson } from 'three-particles';
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    TextField,
+    Button,
+    Paper,
+} from '@mui/material'
+import { styled } from '@mui/material/styles'
+import { ParticleEffectModelJson } from 'three-particles'
 
 interface ParticleEffectCreationDialogProps {
-  open: boolean;
-  onClose: () => void;
-  onCreate: (name: string, effect: ParticleEffectModelJson) => void;
+    open: boolean
+    onClose: () => void
+    onCreate: (name: string, effect: ParticleEffectModelJson) => Promise<void>
 }
 
-export const ParticleEffectCreationDialog: React.FC<ParticleEffectCreationDialogProps> = ({
-  open,
-  onClose,
-  onCreate
-}) => {
-  const [name, setName] = useState('New Particle Effect');
+// Create a styled Paper component for dialog background
+const StyledPaper = styled(Paper)(({ theme }) => ({
+    backgroundColor: theme.palette.background.paper,
+    borderRadius: '8px',
+}))
 
-  const handleCreate = () => {
-    // Create a basic particle effect template
-    const newEffect: ParticleEffectModelJson = {
-      version: '1.0',
-      emitters: []
-    };
+export const ParticleEffectCreationDialog: React.FC<
+    ParticleEffectCreationDialogProps
+> = ({ open, onClose, onCreate }) => {
+    const [name, setName] = useState('New Particle Effect')
 
-    onCreate(name, newEffect);
-    onClose();
-  };
+    const handleCreate = () => {
+        // Create a basic particle effect template
+        const newEffect: ParticleEffectModelJson = {
+            version: '1.0',
+            emitters: [],
+        }
 
-  return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Create New Particle Effect</DialogTitle>
-      <DialogContent>
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Effect Name"
-          fullWidth
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleCreate} variant="contained" color="primary">
-          Create
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
+        onCreate(name, newEffect).then(onClose).catch(console.error)
+    }
+
+    return (
+        <Dialog
+            open={open}
+            onClose={onClose}
+            slotProps={{
+                paper: { component: StyledPaper },
+            }}
+        >
+            <DialogTitle>Create New Particle Effect</DialogTitle>
+            <DialogContent>
+                <TextField
+                    autoFocus
+                    margin="dense"
+                    label="Effect Name"
+                    fullWidth
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                />
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Cancel</Button>
+                <Button
+                    onClick={handleCreate}
+                    variant="contained"
+                    color="primary"
+                >
+                    Create
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}

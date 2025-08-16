@@ -9,10 +9,13 @@ import {
     CardContent,
     Typography,
 } from '@mui/material'
+import { ThemeProvider } from '@mui/material/styles'
 import { ParticleEffectModelJson } from 'three-particles'
 import { AppHeader } from './components/AppHeader'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { saveEffect, updateEffect } from './storage/indexedDBStorage'
+import { darkTheme } from './theme/darkTheme'
+import { GlobalStyles } from './theme/GlobalStyles'
 
 const App: React.FC = () => {
     const [currentEffect, setCurrentEffect] =
@@ -28,7 +31,7 @@ const App: React.FC = () => {
     const handleCreateEffect = async (
         name: string,
         effect: ParticleEffectModelJson,
-    ) => {
+    ): Promise<void> => {
         try {
             const id = await saveEffect(name, effect)
             setCurrentEffect(effect)
@@ -60,8 +63,9 @@ const App: React.FC = () => {
     }
 
     return (
-        <>
+        <ThemeProvider theme={darkTheme}>
             <CssBaseline />
+            <GlobalStyles />
             <AppHeader
                 onNewEffect={handleNewEffect}
                 onOpenEffect={handleOpenEffect}
@@ -70,7 +74,14 @@ const App: React.FC = () => {
                 title={currentEffectName || 'Particle Editor'}
             />
 
-            <Container maxWidth="lg" sx={{ mt: 4 }}>
+            <Container
+                maxWidth="lg"
+                sx={{
+                    mt: 4,
+                    backgroundColor: 'background.default',
+                    color: 'text.primary',
+                }}
+            >
                 {currentEffect ? (
                     <Box sx={{ p: 2 }}>
                         {/* Placeholder for actual particle editor UI */}
@@ -82,10 +93,11 @@ const App: React.FC = () => {
                         </Typography>
                         <pre
                             style={{
-                                background: '#f5f5f5',
+                                background: '#2a2a2a',
                                 padding: '1rem',
                                 borderRadius: '4px',
                                 overflow: 'auto',
+                                color: '#e0e0e0',
                             }}
                         >
                             {JSON.stringify(currentEffect, null, 2)}
@@ -100,7 +112,14 @@ const App: React.FC = () => {
                             height: '70vh',
                         }}
                     >
-                        <Card sx={{ maxWidth: 600, width: '100%' }}>
+                        <Card
+                            sx={{
+                                maxWidth: 600,
+                                width: '100%',
+                                borderRadius: '12px',
+                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                            }}
+                        >
                             <CardContent>
                                 <Typography
                                     variant="h5"
@@ -137,7 +156,7 @@ const App: React.FC = () => {
                 onClose={() => setIsNewEffectDialogOpen(false)}
                 onCreate={handleCreateEffect}
             />
-        </>
+        </ThemeProvider>
     )
 }
 
