@@ -1,6 +1,6 @@
 {
     "name": "@polyforest/three-particles-editor",
-    "version": "0.4.2",
+    "version": "0.5.0",
     "private": true,
     "scripts": {
         "lint": "npm run prettier:check && eslint .",
@@ -15,13 +15,13 @@
     "license": "ISC",
     "description": "React-based editor for three-particles",
     "dependencies": {
-        "@mui/icons-material": "^7.3.0",
-        "@mui/material": "^7.3.1",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
+        "@mui/icons-material": "^7.3.0",
+        "@mui/material": "^7.3.1",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
-        "three-particles": "*"
+        "three-particles": "^0.5.0"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",

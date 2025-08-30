@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.5.0](https://github.com/polyforest/three-particles/compare/v0.4.2...v0.5.0) (2025-08-30)
+
+### Bug Fixes
+
+- fix example base path ([2a86d41](https://github.com/polyforest/three-particles/commit/2a86d4119dd29a4eede939d9b074472e73f3fad5))
+
+### Features
+
+- \*Json types for sanitize model functions ([fc3521a](https://github.com/polyforest/three-particles/commit/fc3521aeb4d4da1da221870629764379ab83d4e2))
+
 ## [0.4.2](https://github.com/polyforest/three-particles/compare/v0.4.1...v0.4.2) (2025-07-30)
 
 **Note:** Version bump only for package @polyforest/three-particles-example
