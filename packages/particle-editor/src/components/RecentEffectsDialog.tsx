@@ -21,6 +21,7 @@ import {
     deleteEffect,
     getEffectById,
 } from '../storage/indexedDBStorage'
+import errorHandler from '../utils/errorHandler'
 
 interface RecentEffectsDialogProps {
     open: boolean
@@ -46,7 +47,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
         try {
             setLoading(true)
             const savedEffects = await getAllEffects()
-            // Sort by last modified date, newest first
+            // Sort by the last modified date, the newest first
             savedEffects.sort((a, b) => b.lastModified - a.lastModified)
             setEffects(savedEffects)
         } catch (error) {
@@ -58,7 +59,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
 
     useEffect(() => {
         if (open) {
-            loadEffects()
+            loadEffects().catch(errorHandler)
         }
     }, [open])
 
@@ -94,7 +95,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
             onClose={onClose}
             maxWidth="sm"
             fullWidth
-            PaperProps={{ component: StyledPaper }}
+            slotProps={{ paper: { component: StyledPaper } }}
         >
             <DialogTitle>Recent Effects</DialogTitle>
             <DialogContent>
@@ -107,10 +108,11 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                         {effects.map((effect, index) => (
                             <React.Fragment key={effect.id}>
                                 <ListItem
-                                    button
-                                    onClick={() =>
-                                        handleSelectEffect(effect.id)
-                                    }
+                                    onClick={() => {
+                                        handleSelectEffect(effect.id).catch(
+                                            errorHandler,
+                                        )
+                                    }}
                                 >
                                     <ListItemText
                                         primary={effect.name}
@@ -121,9 +123,12 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                                     <ListItemSecondaryAction>
                                         <IconButton
                                             edge="end"
-                                            onClick={(e) =>
-                                                handleDeleteEffect(e, effect.id)
-                                            }
+                                            onClick={(e) => {
+                                                handleDeleteEffect(
+                                                    e,
+                                                    effect.id,
+                                                ).catch(errorHandler)
+                                            }}
                                         >
                                             <DeleteIcon />
                                         </IconButton>

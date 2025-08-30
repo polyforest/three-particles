@@ -15,6 +15,10 @@ import { AppHeader } from './components/AppHeader'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { saveEffect, updateEffect } from './storage/indexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
+import errorHandler, {
+    handleError,
+    showSuccessToast,
+} from './utils/errorHandler'
 import { GlobalStyles } from './theme/GlobalStyles'
 
 const App: React.FC = () => {
@@ -46,20 +50,23 @@ const App: React.FC = () => {
         setCurrentEffect(effect)
     }
 
-    const handleSaveEffect = async (name: string) => {
-        if (!currentEffect) return
+    const handleSaveEffect = (name: string) => {
+        ;(async () => {
+            if (!currentEffect) return
 
-        try {
-            if (currentEffectId) {
-                await updateEffect(currentEffectId, name, currentEffect)
-            } else {
-                const id = await saveEffect(name, currentEffect)
-                setCurrentEffectId(id)
+            try {
+                if (currentEffectId) {
+                    await updateEffect(currentEffectId, name, currentEffect)
+                } else {
+                    const id = await saveEffect(name, currentEffect)
+                    setCurrentEffectId(id)
+                }
+                setCurrentEffectName(name)
+                showSuccessToast('Effect saved successfully')
+            } catch (error: any) {
+                handleError(error, 'saving effect')
             }
-            setCurrentEffectName(name)
-        } catch (error) {
-            console.error('Failed to save effect:', error)
-        }
+        })().catch(errorHandler)
     }
 
     return (
@@ -127,7 +134,7 @@ const App: React.FC = () => {
                                     gutterBottom
                                     align="center"
                                 >
-                                    Welcome to the Particle Editor
+                                    Welcome to the [WIP] Particle Editor
                                 </Typography>
                                 <Typography
                                     variant="body1"
