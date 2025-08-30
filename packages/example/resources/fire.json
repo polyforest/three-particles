@@ -29,17 +29,17 @@
                 "duration": {
                     "min": 4,
                     "max": 6.5,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "delayBefore": {
                     "min": 0,
                     "max": 0,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "delayAfter": {
                     "min": 0,
                     "max": 0,
-                    "easing": "linear"
+                    "ease": "linear"
                 }
             },
             "count": 200,
@@ -47,12 +47,12 @@
                 "low": {
                     "min": 75,
                     "max": 75,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "high": {
                     "min": -20,
                     "max": 15,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "property": "emissionRate",
                 "relative": true,
@@ -62,12 +62,12 @@
                 "low": {
                     "min": 1.5999999046325684,
                     "max": 2,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "high": {
                     "min": 0.7999999523162842,
                     "max": 1.5999999046325684,
-                    "easing": "linear"
+                    "ease": "linear"
                 },
                 "property": "particleLifeExpectancy",
                 "relative": false,
@@ -79,12 +79,12 @@
                     "low": {
                         "min": 0,
                         "max": 0,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "high": {
                         "min": 1,
                         "max": 1,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "property": "scaleX",
                     "relative": false,
@@ -94,12 +94,12 @@
                     "low": {
                         "min": 0,
                         "max": 0,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "high": {
                         "min": 1,
                         "max": 1,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "property": "scaleY",
                     "relative": false,
@@ -109,12 +109,12 @@
                     "low": {
                         "min": 2.3561947345733643,
                         "max": 0.7853981852531433,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "high": {
                         "min": 1.5707963705062866,
                         "max": 1.5707963705062866,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "property": "forwardDirectionZ",
                     "relative": false,
@@ -124,12 +124,12 @@
                     "low": {
                         "min": 0,
                         "max": 0,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "high": {
                         "min": 0.2,
                         "max": 0.2,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "property": "forwardVelocity",
                     "relative": false,
@@ -139,12 +139,12 @@
                     "low": {
                         "min": 0,
                         "max": 0,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "high": {
                         "min": 1,
                         "max": 1,
-                        "easing": "linear"
+                        "ease": "linear"
                     },
                     "property": "colorA",
                     "relative": false,

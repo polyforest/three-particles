@@ -3,9 +3,13 @@
  */
 
 import { cloneDeep, defaults } from 'lodash'
-import { isNonNil } from '../util/object'
+import { isNonNil } from '../util'
 import { RangeModel } from './RangeModel'
-import { ParticleEmitterModel, sanitizeEmitter } from './ParticleEmitterModel'
+import {
+    ParticleEmitterModel,
+    ParticleEmitterModelJson,
+    sanitizeEmitter,
+} from './ParticleEmitterModel'
 import { PartialDeep } from 'type-fest'
 import { Material } from 'three'
 
@@ -45,12 +49,19 @@ export const particleEffectDefaults = {
     emitters: [],
 } as const satisfies ParticleEffectModel
 
+export type ParticleEffectModelJson = Omit<
+    PartialDeep<ParticleEffectModel, { recurseIntoArrays: true }>,
+    'emitters'
+> & {
+    emitters?: ParticleEmitterModelJson[]
+}
+
 /**
  * Sets defaults on the particle effect data object.
  * Mutates the passed-in `effect`.
  */
 export function sanitizeParticleEffect(
-    effect: PartialDeep<ParticleEffectModel>,
+    effect: ParticleEffectModelJson,
     materials: Record<string, Material>,
 ): asserts effect is ParticleEffectModel {
     defaults(effect, cloneDeep(particleEffectDefaults))

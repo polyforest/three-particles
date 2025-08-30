@@ -2,16 +2,26 @@ import { copyFiles } from './util/copyFiles'
 
 const watch = process.argv.includes('-w')
 
-copyFiles('resources', 'www', {
-    watch,
-    copyOptions: {
-        overwrite: true,
+copyFiles({
+    src: 'resources',
+    dest: 'www',
+    options: {
+        watch,
+        copyOptions: {
+            overwrite: true,
+        },
     },
 })
 
-copyFiles('packages/example/dist', 'www/example', {
-    watch,
-    copyOptions: {
-        overwrite: true,
-    },
-})
+for (const pckg of ['example', 'particle-editor']) {
+    copyFiles({
+        src: `packages/${pckg}/dist`,
+        dest: `www/${pckg}`,
+        options: {
+            watch,
+            copyOptions: {
+                overwrite: true,
+            },
+        },
+    })
+}

@@ -1,5 +1,5 @@
 {
-    "name": "@polyforest/three-particles-example",
+    "name": "@polyforest/three-particles-editor",
     "version": "0.4.2",
     "private": true,
     "scripts": {
@@ -7,18 +7,25 @@
         "lint:write": "npm run prettier:write && eslint . --fix",
         "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
         "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
+        "typecheck": "tsc --noEmit",
         "build": "vite build",
         "dev": "vite"
     },
     "author": "Nicholas Bilyk",
     "license": "ISC",
-    "description": "",
+    "description": "React-based editor for three-particles",
     "dependencies": {
+        "@mui/icons-material": "^7.3.0",
+        "@mui/material": "^7.3.1",
+        "@emotion/react": "^11.14.0",
+        "@emotion/styled": "^11.14.1",
+        "react": "^19.1.1",
+        "react-dom": "^19.1.1",
         "three-particles": "*"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
-        "fs-extra": "^11.3.0",
-        "serve": "^14.2.4"
+        "@types/react": "^19.1.9",
+        "@types/react-dom": "^19.1.7"
     }
 }
