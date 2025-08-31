@@ -6,7 +6,7 @@ import { FileMenu } from './FileMenu'
 interface AppHeaderProps {
     onNewEffect: () => void
     onOpenEffect: (effect: ParticleEffectModelJson) => void
-    onSaveEffect: (name: string) => void
+    onSaveEffect: () => void
     currentEffect: ParticleEffectModelJson | null
     title: string
 }

@@ -2,29 +2,27 @@ import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './App.scss'
 import {
-    CssBaseline,
-    Container,
     Box,
     Card,
     CardContent,
+    Container,
+    CssBaseline,
     Typography,
 } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { ParticleEffectModelJson } from 'three-particles'
 import { AppHeader } from './components/AppHeader'
+import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
-import { saveEffect, updateEffect } from './storage/indexedDBStorage'
+import { saveEffect } from './storage/indexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
-import errorHandler, {
-    handleError,
-    showSuccessToast,
-} from './utils/errorHandler'
+import { handleError, showSuccessToast } from './utils/errorHandler'
+import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
 
 const App: React.FC = () => {
     const [currentEffect, setCurrentEffect] =
         useState<ParticleEffectModelJson | null>(null)
-    const [currentEffectId, setCurrentEffectId] = useState<string | null>(null)
     const [currentEffectName, setCurrentEffectName] = useState<string>('')
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
 
@@ -37,9 +35,8 @@ const App: React.FC = () => {
         effect: ParticleEffectModelJson,
     ): Promise<void> => {
         try {
-            const id = await saveEffect(name, effect)
+            await saveEffect(name, effect)
             setCurrentEffect(effect)
-            setCurrentEffectId(id)
             setCurrentEffectName(name)
         } catch (error) {
             console.error('Failed to save new effect:', error)
@@ -50,23 +47,15 @@ const App: React.FC = () => {
         setCurrentEffect(effect)
     }
 
-    const handleSaveEffect = (name: string) => {
-        ;(async () => {
-            if (!currentEffect) return
+    const handleSaveEffect = () => {
+        if (!currentEffect) return
 
-            try {
-                if (currentEffectId) {
-                    await updateEffect(currentEffectId, name, currentEffect)
-                } else {
-                    const id = await saveEffect(name, currentEffect)
-                    setCurrentEffectId(id)
-                }
-                setCurrentEffectName(name)
-                showSuccessToast('Effect saved successfully')
-            } catch (error: any) {
-                handleError(error, 'saving effect')
-            }
-        })().catch(errorHandler)
+        try {
+            downloadJson(currentEffect, currentEffectName || 'untitled-effect')
+            showSuccessToast('Effect downloaded successfully')
+        } catch (error: any) {
+            handleError(error, 'downloading effect')
+        }
     }
 
     return (
@@ -92,9 +81,10 @@ const App: React.FC = () => {
                 {currentEffect ? (
                     <Box sx={{ p: 2 }}>
                         {/* Placeholder for actual particle editor UI */}
-                        <Typography variant="h5" gutterBottom>
-                            Editing: {currentEffectName || 'Untitled Effect'}
-                        </Typography>
+                        <EditableTitle
+                            value={currentEffectName}
+                            onChange={setCurrentEffectName}
+                        />
                         <Typography variant="body1" gutterBottom>
                             Particle Editor UI will be implemented here
                         </Typography>
