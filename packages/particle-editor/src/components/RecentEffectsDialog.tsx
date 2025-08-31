@@ -35,6 +35,13 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
     borderRadius: '8px',
 }))
 
+const StyledListItem = styled(ListItem)(({ theme }) => ({
+    cursor: 'pointer',
+    '&:hover': {
+        backgroundColor: theme.palette.action.hover,
+    },
+}))
+
 export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     open,
     onClose,
@@ -107,7 +114,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                     <List>
                         {effects.map((effect, index) => (
                             <React.Fragment key={effect.id}>
-                                <ListItem
+                                <StyledListItem
                                     onClick={() => {
                                         handleSelectEffect(effect.id).catch(
                                             errorHandler,
@@ -133,7 +140,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                                             <DeleteIcon />
                                         </IconButton>
                                     </ListItemSecondaryAction>
-                                </ListItem>
+                                </StyledListItem>
                                 {index < effects.length - 1 && <Divider />}
                             </React.Fragment>
                         ))}
