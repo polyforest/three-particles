@@ -16,7 +16,7 @@ import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { saveEffect } from './storage/indexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
-import { handleError, showSuccessToast } from './utils/errorHandler'
+import { handleError } from './utils/errorHandler'
 import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
 
@@ -52,7 +52,6 @@ const App: React.FC = () => {
 
         try {
             downloadJson(currentEffect, currentEffectName || 'untitled-effect')
-            showSuccessToast('Effect downloaded successfully')
         } catch (error: any) {
             handleError(error, 'downloading effect')
         }
