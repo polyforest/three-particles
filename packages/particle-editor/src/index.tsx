@@ -1,19 +1,13 @@
 import React, { useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import './App.scss'
-import {
-    Box,
-    Card,
-    CardContent,
-    Container,
-    CssBaseline,
-    Typography,
-} from '@mui/material'
+import { Box, Card, CardContent, CssBaseline, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { ParticleEffectModelJson } from 'three-particles'
 import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
+import { PreviewPanel } from './components/PreviewPanel'
 import { saveEffect } from './storage/indexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
 import { handleError } from './utils/errorHandler'
@@ -22,8 +16,21 @@ import { GlobalStyles } from './theme/GlobalStyles'
 
 const App: React.FC = () => {
     const [currentEffect, setCurrentEffect] =
-        useState<ParticleEffectModelJson | null>(null)
-    const [currentEffectName, setCurrentEffectName] = useState<string>('')
+        useState<ParticleEffectModelJson | null>(() => {
+            // Restore effect from localStorage on hot reload
+            if (typeof window !== 'undefined') {
+                const saved = localStorage.getItem('current-effect')
+                return saved ? JSON.parse(saved) : null
+            }
+            return null
+        })
+    const [currentEffectName, setCurrentEffectName] = useState<string>(() => {
+        // Restore effect name from localStorage on hot reload
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('current-effect-name') || ''
+        }
+        return ''
+    })
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
 
     const handleNewEffect = () => {
@@ -38,6 +45,9 @@ const App: React.FC = () => {
             await saveEffect(name, effect)
             setCurrentEffect(effect)
             setCurrentEffectName(name)
+            // Save to localStorage for hot reload persistence
+            localStorage.setItem('current-effect', JSON.stringify(effect))
+            localStorage.setItem('current-effect-name', name)
         } catch (error) {
             console.error('Failed to save new effect:', error)
         }
@@ -45,6 +55,8 @@ const App: React.FC = () => {
 
     const handleOpenEffect = (effect: ParticleEffectModelJson) => {
         setCurrentEffect(effect)
+        // Save to localStorage for hot reload persistence
+        localStorage.setItem('current-effect', JSON.stringify(effect))
     }
 
     const handleSaveEffect = () => {
@@ -61,43 +73,69 @@ const App: React.FC = () => {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <GlobalStyles />
-            <AppHeader
-                onNewEffect={handleNewEffect}
-                onOpenEffect={handleOpenEffect}
-                onSaveEffect={handleSaveEffect}
-                currentEffect={currentEffect}
-                title={currentEffectName || 'Particle Editor'}
-            />
-
-            <Container
-                maxWidth="lg"
+            <Box
                 sx={{
-                    mt: 4,
                     backgroundColor: 'background.default',
                     color: 'text.primary',
+                    height: '100%',
+                    width: '100%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    p: 0,
                 }}
             >
+                <AppHeader
+                    onNewEffect={handleNewEffect}
+                    onOpenEffect={handleOpenEffect}
+                    onSaveEffect={handleSaveEffect}
+                    currentEffect={currentEffect}
+                    title={currentEffectName || 'Particle Editor'}
+                />
+
                 {currentEffect ? (
-                    <Box sx={{ p: 2 }}>
-                        {/* Placeholder for actual particle editor UI */}
-                        <EditableTitle
-                            value={currentEffectName}
-                            onChange={setCurrentEffectName}
-                        />
-                        <Typography variant="body1" gutterBottom>
-                            Particle Editor UI will be implemented here
-                        </Typography>
-                        <pre
-                            style={{
-                                background: '#2a2a2a',
-                                padding: '1rem',
-                                borderRadius: '4px',
-                                overflow: 'auto',
-                                color: '#e0e0e0',
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            height: '100%',
+                            p: 0,
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                flex: 1,
+                                width: '100%',
+                                height: '100%',
+                                overflowY: 'auto',
+                                p: 4,
                             }}
                         >
-                            {JSON.stringify(currentEffect, null, 2)}
-                        </pre>
+                            <EditableTitle
+                                value={currentEffectName}
+                                onChange={(name) => {
+                                    setCurrentEffectName(name)
+                                    localStorage.setItem(
+                                        'current-effect-name',
+                                        name,
+                                    )
+                                }}
+                            />
+                            <Typography variant="body1" gutterBottom>
+                                Effect Editor
+                            </Typography>
+                            <pre
+                                style={{
+                                    background: '#2a2a2a',
+                                    padding: '1rem',
+                                    borderRadius: '4px',
+                                    overflow: 'auto',
+                                    color: '#e0e0e0',
+                                }}
+                            >
+                                {JSON.stringify(currentEffect, null, 2)}
+                            </pre>
+                        </Box>
+                        <PreviewPanel effect={currentEffect} />
                     </Box>
                 ) : (
                     <Box
@@ -125,11 +163,7 @@ const App: React.FC = () => {
                                 >
                                     Welcome to the [WIP] Particle Editor
                                 </Typography>
-                                <Typography
-                                    variant="body1"
-                                    paragraph
-                                    align="center"
-                                >
+                                <Typography variant="body1" align="center">
                                     Create a new particle effect or open an
                                     existing one to get started.
                                 </Typography>
@@ -145,13 +179,13 @@ const App: React.FC = () => {
                         </Card>
                     </Box>
                 )}
-            </Container>
 
-            <ParticleEffectCreationDialog
-                open={isNewEffectDialogOpen}
-                onClose={() => setIsNewEffectDialogOpen(false)}
-                onCreate={handleCreateEffect}
-            />
+                <ParticleEffectCreationDialog
+                    open={isNewEffectDialogOpen}
+                    onClose={() => setIsNewEffectDialogOpen(false)}
+                    onCreate={handleCreateEffect}
+                />
+            </Box>
         </ThemeProvider>
     )
 }
