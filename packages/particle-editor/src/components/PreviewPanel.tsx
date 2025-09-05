@@ -12,6 +12,8 @@ import FullscreenExit from '@mui/icons-material/FullscreenExit'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import ColorLens from '@mui/icons-material/ColorLens'
+import PlayArrow from '@mui/icons-material/PlayArrow'
+import Pause from '@mui/icons-material/Pause'
 import styled from '@emotion/styled'
 import { handleError } from '../utils/errorHandler'
 
@@ -52,6 +54,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
     const [isMaximized, setIsMaximized] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
+    const [isPaused, setIsPaused] = useState(false)
     const [width] = useState<string | number>(defaultWidth)
     const [bgColor, setBgColor] = useState<string>('#111111')
     const colorInputRef = useRef<HTMLInputElement>(null)
@@ -141,15 +144,25 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             ) {
                 return
             }
-            const dT = clockRef.current.getDelta()
+
+            // Always update controls for camera movement
             controlsRef.current?.update()
-            particleEffectRef.current?.update(dT)
+
+            // Only update effect and render if not paused
+            if (!isPaused) {
+                const dT = clockRef.current.getDelta()
+                particleEffectRef.current?.update(dT)
+            } else {
+                // Still call getDelta to prevent time accumulation when unpausing
+                clockRef.current.getDelta()
+            }
+
             rendererRef.current.render(sceneRef.current, cameraRef.current)
         }
 
         animate()
         return () => cancelAnimationFrame(animationId)
-    }, [isVisible])
+    }, [isVisible, isPaused])
 
     // --- resize helpers & observers ---
     const refreshSize = () => {
@@ -230,6 +243,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             <ButtonGroup>
                 {isVisible && (
                     <>
+                        <ControlButton
+                            onClick={() => setIsPaused(!isPaused)}
+                            color="primary"
+                            title={isPaused ? 'Play' : 'Pause'}
+                        >
+                            {isPaused ? <PlayArrow /> : <Pause />}
+                        </ControlButton>
                         <ControlButton
                             onClick={() => colorInputRef.current?.click()}
                             color="primary"
