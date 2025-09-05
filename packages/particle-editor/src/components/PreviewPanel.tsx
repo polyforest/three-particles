@@ -6,7 +6,15 @@ import {
     ParticleEffectLoader,
     ParticleEffectModelJson,
 } from 'three-particles'
-import { Box, IconButton, SxProps, Theme } from '@mui/material'
+import {
+    Box,
+    IconButton,
+    SxProps,
+    Theme,
+    Menu,
+    MenuItem,
+    Typography,
+} from '@mui/material'
 import Fullscreen from '@mui/icons-material/Fullscreen'
 import FullscreenExit from '@mui/icons-material/FullscreenExit'
 import Visibility from '@mui/icons-material/Visibility'
@@ -14,6 +22,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import ColorLens from '@mui/icons-material/ColorLens'
 import PlayArrow from '@mui/icons-material/PlayArrow'
 import Pause from '@mui/icons-material/Pause'
+import Speed from '@mui/icons-material/Speed'
 import styled from '@emotion/styled'
 import { handleError } from '../utils/errorHandler'
 
@@ -55,6 +64,10 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const [isMaximized, setIsMaximized] = useState(false)
     const [isVisible, setIsVisible] = useState(true)
     const [isPaused, setIsPaused] = useState(false)
+    const [playbackRate, setPlaybackRate] = useState(1)
+    const [speedMenuAnchor, setSpeedMenuAnchor] = useState<null | HTMLElement>(
+        null,
+    )
     const [width] = useState<string | number>(defaultWidth)
     const [bgColor, setBgColor] = useState<string>('#111111')
     const colorInputRef = useRef<HTMLInputElement>(null)
@@ -150,7 +163,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
             // Only update effect and render if not paused
             if (!isPaused) {
-                const dT = clockRef.current.getDelta()
+                const dT = clockRef.current.getDelta() * playbackRate
                 particleEffectRef.current?.update(dT)
             } else {
                 // Still call getDelta to prevent time accumulation when unpausing
@@ -162,7 +175,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
         animate()
         return () => cancelAnimationFrame(animationId)
-    }, [isVisible, isPaused])
+    }, [isVisible, isPaused, playbackRate])
 
     // --- resize helpers & observers ---
     const refreshSize = () => {
@@ -251,6 +264,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                             {isPaused ? <PlayArrow /> : <Pause />}
                         </ControlButton>
                         <ControlButton
+                            onClick={(e) => setSpeedMenuAnchor(e.currentTarget)}
+                            color="primary"
+                            title={`Playback Rate: ${playbackRate}x`}
+                        >
+                            <Speed />
+                        </ControlButton>
+                        <ControlButton
                             onClick={() => colorInputRef.current?.click()}
                             color="primary"
                             title="Background color"
@@ -290,6 +310,35 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                     {isVisible ? <VisibilityOff /> : <Visibility />}
                 </ControlButton>
             </ButtonGroup>
+
+            <Menu
+                anchorEl={speedMenuAnchor}
+                open={Boolean(speedMenuAnchor)}
+                onClose={() => setSpeedMenuAnchor(null)}
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                }}
+            >
+                {[1 / 8, 1 / 4, 1 / 2, 1, 2, 4].map((rate) => (
+                    <MenuItem
+                        key={rate}
+                        selected={playbackRate === rate}
+                        onClick={() => {
+                            setPlaybackRate(rate)
+                            setSpeedMenuAnchor(null)
+                        }}
+                    >
+                        <Typography>
+                            {rate < 1 ? `1/${1 / rate}` : rate}x
+                        </Typography>
+                    </MenuItem>
+                ))}
+            </Menu>
 
             {/* This flex child is what we observe for size */}
             <div
