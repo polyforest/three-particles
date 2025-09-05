@@ -127,8 +127,8 @@
                         "ease": "linear"
                     },
                     "high": {
-                        "min": 0.2,
-                        "max": 0.2,
+                        "min": 12,
+                        "max": 12,
                         "ease": "linear"
                     },
                     "property": "forwardVelocity",
