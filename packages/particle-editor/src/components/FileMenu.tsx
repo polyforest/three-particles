@@ -39,8 +39,20 @@ export const FileMenu: React.FC<FileMenuProps> = ({
 
     const handleOpen = () => {
         ;(async () => {
-            const { effect } = await importEffectFromFile()
-            onOpenEffect(effect)
+            const { filename, effect } = await importEffectFromFile()
+
+            // Save the imported effect to storage
+            try {
+                await storage.saveEffect(filename, effect)
+                logger.info('Imported and saved effect', { filename })
+            } catch (saveError) {
+                logger.error('Failed to save imported effect', saveError, {
+                    filename,
+                })
+                // Continue even if save fails - user can still work with the effect
+            }
+
+            await onOpenEffect(effect, filename)
         })()
             .then(handleMenuClose)
             .catch((error) => {
