@@ -3,7 +3,7 @@
     "version": "0.4.2",
     "private": true,
     "scripts": {
-        "lint": "npm run prettier:check && eslint .",
+        "lint": "npm run prettier:chexck && eslint .",
         "lint:write": "npm run prettier:write && eslint . --fix",
         "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
         "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",

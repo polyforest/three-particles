@@ -15,7 +15,7 @@ import {
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { ParticleEffectModelJson } from 'three-particles'
-import { SavedEffect } from '../storage/SavedEffect'
+import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
@@ -46,18 +46,21 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     onSelectEffect,
     storage,
 }) => {
-    const [effects, setEffects] = useState<SavedEffect[]>([])
+    const [effectsMetadata, setEffectsMetadata] = useState<
+        SavedEffectMetadata[]
+    >([])
     const [loading, setLoading] = useState(true)
 
     const loadEffects = async () => {
         try {
             setLoading(true)
-            const savedEffects = await storage.getAllEffects()
+            const metadata = await storage.getAllEffectsMetadata()
+            logger.debug('metadata:', metadata)
             // Sort by the last modified date, the newest first
-            savedEffects.sort((a, b) => b.lastModified - a.lastModified)
-            setEffects(savedEffects)
+            metadata.sort((a, b) => b.lastModified - a.lastModified)
+            setEffectsMetadata(metadata)
         } catch (error) {
-            logger.error('Failed to load effects', error)
+            logger.error('Failed to load effects metadata', error)
         } finally {
             setLoading(false)
         }
@@ -107,23 +110,23 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
             <DialogContent>
                 {loading ? (
                     <Typography>Loading...</Typography>
-                ) : effects.length === 0 ? (
+                ) : effectsMetadata.length === 0 ? (
                     <Typography>No saved effects found.</Typography>
                 ) : (
                     <List>
-                        {effects.map((effect, index) => (
-                            <React.Fragment key={effect.id}>
+                        {effectsMetadata.map((metadata, index) => (
+                            <React.Fragment key={metadata.id}>
                                 <StyledListItem
                                     onClick={() => {
-                                        handleSelectEffect(effect.id).catch(
+                                        handleSelectEffect(metadata.id).catch(
                                             errorHandler,
                                         )
                                     }}
                                 >
                                     <ListItemText
-                                        primary={effect.name}
+                                        primary={metadata.name}
                                         secondary={formatDate(
-                                            effect.lastModified,
+                                            metadata.lastModified,
                                         )}
                                     />
                                     <ListItemSecondaryAction>
@@ -132,7 +135,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                                             onClick={(e) => {
                                                 handleDeleteEffect(
                                                     e,
-                                                    effect.id,
+                                                    metadata.id,
                                                 ).catch(errorHandler)
                                             }}
                                         >
@@ -140,7 +143,9 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                                         </IconButton>
                                     </ListItemSecondaryAction>
                                 </StyledListItem>
-                                {index < effects.length - 1 && <Divider />}
+                                {index < effectsMetadata.length - 1 && (
+                                    <Divider />
+                                )}
                             </React.Fragment>
                         ))}
                     </List>

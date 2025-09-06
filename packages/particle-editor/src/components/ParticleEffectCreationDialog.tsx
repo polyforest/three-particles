@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { ParticleEffectModelJson } from 'three-particles'
+import logger from '../utils/logger'
 
 interface ParticleEffectCreationDialogProps {
     open: boolean
@@ -35,9 +36,13 @@ export const ParticleEffectCreationDialog: React.FC<
             emitters: [],
         }
 
-        onCreate(name, newEffect).then(onClose).catch((error) => {
-            logger.error('Failed to create particle effect', error, { name })
-        })
+        onCreate(name, newEffect)
+            .then(onClose)
+            .catch((error) => {
+                logger.error('Failed to create particle effect', error, {
+                    name,
+                })
+            })
     }
 
     return (

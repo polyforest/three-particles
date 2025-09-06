@@ -50,7 +50,7 @@ export class IndexedDBStorage implements PersistenceController {
                 })
                 const db = (event.target as IDBOpenDBRequest).result
                 if (!db.objectStoreNames.contains(this.storeName)) {
-                    db.createObjectStore(this.storeName, { keyPath: 'id' })
+                    db.createObjectStore(this.storeName)
                     logger.info('Created object store', {
                         storeName: this.storeName,
                     })
@@ -97,12 +97,11 @@ export class IndexedDBStorage implements PersistenceController {
             storeName: this.storeName,
         })
         const db = await this.openDatabase()
-        const itemToSave = { ...data, id }
 
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(this.storeName, 'readwrite')
             const store = transaction.objectStore(this.storeName)
-            const request = store.add(itemToSave)
+            const request = store.put(data, id)
 
             request.onsuccess = () => {
                 logger.info('Successfully saved item to IndexedDB', {
@@ -130,12 +129,11 @@ export class IndexedDBStorage implements PersistenceController {
             storeName: this.storeName,
         })
         const db = await this.openDatabase()
-        const itemToUpdate = { ...data, id }
 
         return new Promise((resolve, reject) => {
             const transaction = db.transaction(this.storeName, 'readwrite')
             const store = transaction.objectStore(this.storeName)
-            const request = store.put(itemToUpdate)
+            const request = store.put(id, data)
 
             request.onsuccess = () => {
                 logger.info('Successfully updated item in IndexedDB', {
@@ -151,39 +149,6 @@ export class IndexedDBStorage implements PersistenceController {
                     id,
                     storeName: this.storeName,
                     errorCode: request.error?.name,
-                })
-                reject(error)
-            }
-        })
-    }
-
-    async getAll(): Promise<any[]> {
-        logger.debug('Getting all items from IndexedDB', {
-            storeName: this.storeName,
-        })
-        const db = await this.openDatabase()
-
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(this.storeName, 'readonly')
-            const store = transaction.objectStore(this.storeName)
-            const request = store.getAll()
-
-            request.onsuccess = () => {
-                const results = request.result
-                logger.debug(
-                    'Successfully retrieved all items from IndexedDB',
-                    {
-                        count: results.length,
-                        storeName: this.storeName,
-                    },
-                )
-                resolve(results)
-            }
-
-            request.onerror = () => {
-                const error = new Error('Failed to get all items')
-                logger.error('Failed to get all items from IndexedDB', error, {
-                    storeName: this.storeName,
                 })
                 reject(error)
             }
