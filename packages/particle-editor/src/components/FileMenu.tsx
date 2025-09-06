@@ -3,12 +3,14 @@ import { Button, Menu, MenuItem } from '@mui/material'
 import { ParticleEffectModelJson } from 'three-particles'
 import { importEffectFromFile } from '../storage/fileStorage'
 import { RecentEffectsDialog } from './RecentEffectsDialog'
+import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 
 interface FileMenuProps {
     onNewEffect: () => void
     onOpenEffect: (effect: ParticleEffectModelJson) => void
     onSaveEffect: () => void
     currentEffect: ParticleEffectModelJson | null
+    storage: SavedEffectStorage
 }
 
 export const FileMenu: React.FC<FileMenuProps> = ({
@@ -16,6 +18,7 @@ export const FileMenu: React.FC<FileMenuProps> = ({
     onOpenEffect,
     onSaveEffect,
     currentEffect,
+    storage,
 }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [recentDialogOpen, setRecentDialogOpen] = useState(false)
@@ -96,6 +99,7 @@ export const FileMenu: React.FC<FileMenuProps> = ({
                 open={recentDialogOpen}
                 onClose={() => setRecentDialogOpen(false)}
                 onSelectEffect={onOpenEffect}
+                storage={storage}
             />
         </>
     )

@@ -8,11 +8,22 @@ import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { PreviewPanel } from './components/PreviewPanel'
-import { saveEffect } from './storage/indexedDBStorage'
+import { SavedEffectStorage } from './storage/SavedEffectStorage'
+import { IndexedDBStorage } from './storage/IndexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
 import { handleError } from './utils/errorHandler'
 import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
+
+// Instantiate the storage implementation
+const indexedDBStorage = new IndexedDBStorage(
+    'ParticleEditorDB',
+    'particleEffects',
+    1,
+)
+const savedEffectStorage = new SavedEffectStorage({
+    storage: indexedDBStorage,
+})
 
 const App: React.FC = () => {
     const [currentEffect, setCurrentEffect] =
@@ -42,7 +53,7 @@ const App: React.FC = () => {
         effect: ParticleEffectModelJson,
     ): Promise<void> => {
         try {
-            await saveEffect(name, effect)
+            await savedEffectStorage.saveEffect(name, effect)
             setCurrentEffect(effect)
             setCurrentEffectName(name)
             // Save to localStorage for hot reload persistence
@@ -91,6 +102,7 @@ const App: React.FC = () => {
                     onSaveEffect={handleSaveEffect}
                     currentEffect={currentEffect}
                     title={currentEffectName || 'Particle Editor'}
+                    storage={savedEffectStorage}
                 />
 
                 {currentEffect ? (

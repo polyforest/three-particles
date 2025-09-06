@@ -2,6 +2,7 @@ import React from 'react'
 import { AppBar, Toolbar, Typography } from '@mui/material'
 import { ParticleEffectModelJson } from 'three-particles'
 import { FileMenu } from './FileMenu'
+import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 
 interface AppHeaderProps {
     onNewEffect: () => void
@@ -9,6 +10,7 @@ interface AppHeaderProps {
     onSaveEffect: () => void
     currentEffect: ParticleEffectModelJson | null
     title: string
+    storage: SavedEffectStorage
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
@@ -17,6 +19,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
     onSaveEffect,
     currentEffect,
     title,
+    storage,
 }) => {
     return (
         <AppBar
@@ -30,6 +33,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     onOpenEffect={onOpenEffect}
                     onSaveEffect={onSaveEffect}
                     currentEffect={currentEffect}
+                    storage={storage}
                 />
                 <Typography
                     variant="h6"

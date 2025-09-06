@@ -15,18 +15,15 @@ import {
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { ParticleEffectModelJson } from 'three-particles'
-import {
-    SavedEffect,
-    getAllEffects,
-    deleteEffect,
-    getEffectById,
-} from '../storage/indexedDBStorage'
+import { SavedEffect } from '../storage/SavedEffect'
+import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import errorHandler from '../utils/errorHandler'
 
 interface RecentEffectsDialogProps {
     open: boolean
     onClose: () => void
     onSelectEffect: (effect: ParticleEffectModelJson) => void
+    storage: SavedEffectStorage
 }
 
 // Create a styled Paper component for dialog background
@@ -46,6 +43,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     open,
     onClose,
     onSelectEffect,
+    storage,
 }) => {
     const [effects, setEffects] = useState<SavedEffect[]>([])
     const [loading, setLoading] = useState(true)
@@ -53,7 +51,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     const loadEffects = async () => {
         try {
             setLoading(true)
-            const savedEffects = await getAllEffects()
+            const savedEffects = await storage.getAllEffects()
             // Sort by the last modified date, the newest first
             savedEffects.sort((a, b) => b.lastModified - a.lastModified)
             setEffects(savedEffects)
@@ -72,7 +70,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
 
     const handleSelectEffect = async (id: string) => {
         try {
-            const savedEffect = await getEffectById(id)
+            const savedEffect = await storage.getEffectById(id)
             if (savedEffect) {
                 onSelectEffect(savedEffect.effect)
                 onClose()
@@ -85,7 +83,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     const handleDeleteEffect = async (event: React.MouseEvent, id: string) => {
         event.stopPropagation()
         try {
-            await deleteEffect(id)
+            await storage.deleteEffect(id)
             await loadEffects()
         } catch (error) {
             console.error('Failed to delete effect:', error)
