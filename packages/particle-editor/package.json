@@ -19,6 +19,7 @@
         "@emotion/styled": "^11.14.1",
         "@mui/icons-material": "^7.3.0",
         "@mui/material": "^7.3.1",
+        "loglevel": "^1.9.2",
         "re-resizable": "^6.11.2",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
@@ -26,6 +27,7 @@
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
+        "@types/loglevel": "^1.5.4",
         "@types/react": "^19.1.9",
         "@types/react-dom": "^19.1.7"
     }

@@ -14,6 +14,7 @@ import { darkTheme } from './theme/darkTheme'
 import { handleError } from './utils/errorHandler'
 import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
+import { logger } from './utils/logger'
 
 // Instantiate the storage implementation
 const indexedDBStorage = new IndexedDBStorage(
@@ -60,7 +61,7 @@ const App: React.FC = () => {
             localStorage.setItem('current-effect', JSON.stringify(effect))
             localStorage.setItem('current-effect-name', name)
         } catch (error) {
-            console.error('Failed to save new effect:', error)
+            logger.error('Failed to save new effect', error)
         }
     }
 

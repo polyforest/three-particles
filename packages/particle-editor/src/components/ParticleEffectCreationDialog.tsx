@@ -35,7 +35,9 @@ export const ParticleEffectCreationDialog: React.FC<
             emitters: [],
         }
 
-        onCreate(name, newEffect).then(onClose).catch(console.error)
+        onCreate(name, newEffect).then(onClose).catch((error) => {
+            logger.error('Failed to create particle effect', error, { name })
+        })
     }
 
     return (

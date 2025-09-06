@@ -4,6 +4,7 @@ import { ParticleEffectModelJson } from 'three-particles'
 import { importEffectFromFile } from '../storage/fileStorage'
 import { RecentEffectsDialog } from './RecentEffectsDialog'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
+import { logger } from '../utils/logger'
 
 interface FileMenuProps {
     onNewEffect: () => void
@@ -43,7 +44,7 @@ export const FileMenu: React.FC<FileMenuProps> = ({
         })()
             .then(handleMenuClose)
             .catch((error) => {
-                console.error('Failed to import effect:', error)
+                logger.error('Failed to import effect', error)
             })
     }
 

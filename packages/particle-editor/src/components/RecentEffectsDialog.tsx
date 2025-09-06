@@ -18,6 +18,7 @@ import { ParticleEffectModelJson } from 'three-particles'
 import { SavedEffect } from '../storage/SavedEffect'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import errorHandler from '../utils/errorHandler'
+import { logger } from '../utils/logger'
 
 interface RecentEffectsDialogProps {
     open: boolean
@@ -56,7 +57,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
             savedEffects.sort((a, b) => b.lastModified - a.lastModified)
             setEffects(savedEffects)
         } catch (error) {
-            console.error('Failed to load effects:', error)
+            logger.error('Failed to load effects', error)
         } finally {
             setLoading(false)
         }
@@ -76,7 +77,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
                 onClose()
             }
         } catch (error) {
-            console.error('Failed to load effect:', error)
+            logger.error('Failed to load effect', error, { effectId: id })
         }
     }
 
@@ -86,7 +87,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
             await storage.deleteEffect(id)
             await loadEffects()
         } catch (error) {
-            console.error('Failed to delete effect:', error)
+            logger.error('Failed to delete effect', error, { effectId: id })
         }
     }
 
