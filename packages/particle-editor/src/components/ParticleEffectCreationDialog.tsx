@@ -9,13 +9,12 @@ import {
     TextField,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { createNewEffect, SavedEffect } from '../storage/SavedEffect'
-import logger from '../utils/logger'
+import { createNewEffect } from '../storage/SavedEffect'
+import { useEffectStore } from '../store/effectStore'
 
 interface ParticleEffectCreationDialogProps {
     open: boolean
     onClose: () => void
-    onCreate: (savedEffect: SavedEffect) => Promise<void>
 }
 
 // Create a styled Paper component for dialog background
@@ -26,19 +25,13 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 export const ParticleEffectCreationDialog: React.FC<
     ParticleEffectCreationDialogProps
-> = ({ open, onClose, onCreate }) => {
+> = ({ open, onClose }) => {
     const [name, setName] = useState('New Particle Effect')
+    const { setCurrentEffect } = useEffectStore()
 
     const handleCreate = () => {
-        const savedEffect = createNewEffect(name)
-
-        onCreate(savedEffect)
-            .then(onClose)
-            .catch((error) => {
-                logger.error('Failed to create particle effect', error, {
-                    name,
-                })
-            })
+        setCurrentEffect(createNewEffect(name))
+        onClose()
     }
 
     return (

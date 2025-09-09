@@ -1,4 +1,3 @@
-import { ParticleEffectModelJson } from 'three-particles'
 import { SavedEffect } from './SavedEffect'
 import { SavedEffectMetadata } from './SavedEffectMetadata'
 import { PersistenceController } from './PersistenceController'

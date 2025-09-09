@@ -1,11 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import {
-    ParticleEffect,
-    ParticleEffectLoader,
-    ParticleEffectModelJson,
-} from 'three-particles'
+import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import {
     Box,
     IconButton,
@@ -25,6 +21,7 @@ import Pause from '@mui/icons-material/Pause'
 import Speed from '@mui/icons-material/Speed'
 import styled from '@emotion/styled'
 import { handleError } from '../utils/errorHandler'
+import { useEffectStore } from '../store/effectStore'
 
 const ButtonGroup = styled(Box)`
     position: absolute;
@@ -43,14 +40,15 @@ const ControlButton = styled(IconButton)`
 `
 
 interface PreviewPanelProps {
-    effect?: ParticleEffectModelJson
     defaultWidth?: string | number
 }
 
 export const PreviewPanel: React.FC<PreviewPanelProps> = ({
-    effect,
     defaultWidth = '30%',
 }) => {
+    const { currentEffect } = useEffectStore()
+    const effect = currentEffect?.effect
+
     const containerRef = useRef<HTMLDivElement>(null)
 
     const canvasRef = useRef<HTMLCanvasElement>(null)

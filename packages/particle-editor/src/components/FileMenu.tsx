@@ -2,27 +2,24 @@ import React, { useState } from 'react'
 import { Button, Menu, MenuItem } from '@mui/material'
 import { importEffectFromFile } from '../storage/fileStorage'
 import { RecentEffectsDialog } from './RecentEffectsDialog'
-import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import { logger } from '../utils/logger'
 import { SavedEffect } from '../storage/SavedEffect'
+import { useEffectStore } from '../store/effectStore'
 
 interface FileMenuProps {
     onNewEffect: () => void
     onOpenEffect: (effect: SavedEffect) => void
-    onSaveEffect: () => void
-    currentEffect: SavedEffect | null
-    storage: SavedEffectStorage
+    onSaveEffect: (effect: SavedEffect) => void
 }
 
 export const FileMenu: React.FC<FileMenuProps> = ({
     onNewEffect,
     onOpenEffect,
     onSaveEffect,
-    currentEffect,
-    storage,
 }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [recentDialogOpen, setRecentDialogOpen] = useState(false)
+    const { currentEffect } = useEffectStore()
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget)
@@ -40,20 +37,6 @@ export const FileMenu: React.FC<FileMenuProps> = ({
     const handleOpen = () => {
         ;(async () => {
             const savedEffect = await importEffectFromFile()
-
-            // Save the imported effect to storage
-            try {
-                await storage.saveEffect(savedEffect)
-                logger.info('Imported and saved effect', {
-                    name: savedEffect.name,
-                })
-            } catch (saveError) {
-                logger.error('Failed to save imported effect', saveError, {
-                    name: savedEffect.name,
-                })
-                // Continue even if save fails - user can still work with the effect
-            }
-
             onOpenEffect(savedEffect)
         })()
             .then(handleMenuClose)
@@ -64,7 +47,7 @@ export const FileMenu: React.FC<FileMenuProps> = ({
 
     const handleSave = () => {
         if (currentEffect) {
-            onSaveEffect()
+            onSaveEffect(currentEffect)
         }
         handleMenuClose()
     }
@@ -114,7 +97,6 @@ export const FileMenu: React.FC<FileMenuProps> = ({
                 open={recentDialogOpen}
                 onClose={() => setRecentDialogOpen(false)}
                 onSelectEffect={onOpenEffect}
-                storage={storage}
             />
         </>
     )

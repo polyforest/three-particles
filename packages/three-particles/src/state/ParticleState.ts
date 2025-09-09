@@ -212,7 +212,9 @@ class ColorPropertyState implements ParticlePropertyState {
         private readonly timeline: TimelineModel,
     ) {
         if (timeline.timeline.length % 4 !== 0)
-            throw new Error('invalid color timeline, expected stride to be 4')
+            throw new Error(
+                `invalid color timeline, expected stride to be 4, was length ${timeline.timeline.length}`,
+            )
     }
 
     apply(particleAlpha: number, emitterAlpha: number): void {

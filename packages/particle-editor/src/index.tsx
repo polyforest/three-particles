@@ -7,56 +7,34 @@ import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { PreviewPanel } from './components/PreviewPanel'
-import { SavedEffectStorage } from './storage/SavedEffectStorage'
+import { useEffectStore } from './store/effectStore'
 import { SavedEffect } from './storage/SavedEffect'
-import { IndexedDBStorage } from './storage/IndexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
 import { handleError } from './utils/errorHandler'
 import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
-import { logger } from './utils/logger'
-
-// Instantiate the storage implementation
-const indexedDBStorage = new IndexedDBStorage(
-    'ParticleEditorDB',
-    'particleEffects',
-    1,
-)
-const savedEffectStorage = new SavedEffectStorage({
-    storage: indexedDBStorage,
-})
+import { useEffectStorePersistence } from './store/storePersistence'
+import logger from './utils/logger'
 
 const App: React.FC = () => {
-    const [currentEffect, setCurrentEffect] = useState<SavedEffect | null>(null)
+    const { currentEffect, setCurrentEffect, updateName } = useEffectStore()
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
+
+    // Enable auto-save persistence for effect changes
+    useEffectStorePersistence()
 
     const handleNewEffect = () => {
         setIsNewEffectDialogOpen(true)
-    }
-
-    const handleCreateEffect = async (
-        savedEffect: SavedEffect,
-    ): Promise<void> => {
-        try {
-            await savedEffectStorage.saveEffect(savedEffect)
-            setCurrentEffect(savedEffect)
-        } catch (error) {
-            logger.error('Failed to save new effect', error)
-        }
     }
 
     const handleOpenEffect = (effect: SavedEffect) => {
         setCurrentEffect(effect)
     }
 
-    const handleSaveEffect = () => {
-        if (!currentEffect) return
-
+    const handleSaveEffect = (effect: SavedEffect) => {
+        logger.info('saving effect:', effect)
         try {
-            downloadJson(
-                currentEffect.effect,
-                currentEffect.name || 'untitled-effect',
-            )
+            downloadJson(effect.effect, effect.name || 'untitled-effect')
         } catch (error: any) {
             handleError(error, 'downloading effect')
         }
@@ -82,9 +60,7 @@ const App: React.FC = () => {
                     onNewEffect={handleNewEffect}
                     onOpenEffect={handleOpenEffect}
                     onSaveEffect={handleSaveEffect}
-                    currentEffect={currentEffect}
                     title={currentEffect?.name || 'Particle Editor'}
-                    storage={savedEffectStorage}
                 />
 
                 {currentEffect ? (
@@ -106,16 +82,7 @@ const App: React.FC = () => {
                         >
                             <EditableTitle
                                 value={currentEffect.name}
-                                onChange={(name) => {
-                                    setCurrentEffect({
-                                        ...currentEffect,
-                                        name,
-                                    })
-                                    localStorage.setItem(
-                                        'current-effect-name',
-                                        name,
-                                    )
-                                }}
+                                onChange={updateName}
                             />
                             <Typography variant="body1" gutterBottom>
                                 Effect Editor
@@ -132,7 +99,7 @@ const App: React.FC = () => {
                                 {JSON.stringify(currentEffect.effect, null, 2)}
                             </pre>
                         </Box>
-                        <PreviewPanel effect={currentEffect.effect} />
+                        <PreviewPanel />
                     </Box>
                 ) : (
                     <Box
@@ -180,7 +147,6 @@ const App: React.FC = () => {
                 <ParticleEffectCreationDialog
                     open={isNewEffectDialogOpen}
                     onClose={() => setIsNewEffectDialogOpen(false)}
-                    onCreate={handleCreateEffect}
                 />
             </Box>
         </ThemeProvider>

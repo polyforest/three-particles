@@ -15,16 +15,15 @@ import {
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
-import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
 import { SavedEffect } from '../storage/SavedEffect'
+import { savedEffectStorage } from '../store/storePersistence'
 
 interface RecentEffectsDialogProps {
     open: boolean
     onClose: () => void
     onSelectEffect: (effect: SavedEffect) => void
-    storage: SavedEffectStorage
 }
 
 // Create a styled Paper component for dialog background
@@ -40,36 +39,35 @@ const StyledListItem = styled(ListItem)(({ theme }) => ({
     },
 }))
 
+const loadAllEffects = async () => {
+    const metadata = await savedEffectStorage.getAllEffectsMetadata()
+    logger.debug('metadata:', metadata)
+    // Sort by the last modified date, the newest first
+    metadata.sort((a, b) => b.lastModified - a.lastModified)
+    return metadata
+}
+
 export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     open,
     onClose,
     onSelectEffect,
-    storage,
 }) => {
     const [effectsMetadata, setEffectsMetadata] = useState<
         SavedEffectMetadata[]
     >([])
     const [loading, setLoading] = useState(true)
+    const storage = savedEffectStorage
 
-    const loadEffects = async () => {
-        try {
-            setLoading(true)
-            const metadata = await storage.getAllEffectsMetadata()
-            logger.debug('metadata:', metadata)
-            // Sort by the last modified date, the newest first
-            metadata.sort((a, b) => b.lastModified - a.lastModified)
-            setEffectsMetadata(metadata)
-        } catch (error) {
-            logger.error('Failed to load effects metadata', error)
-        } finally {
-            setLoading(false)
-        }
+    const loadEffects = () => {
+        setLoading(true)
+        loadAllEffects()
+            .then((value) => setEffectsMetadata(value))
+            .catch(errorHandler)
+            .finally(() => setLoading(false))
     }
 
     useEffect(() => {
-        if (open) {
-            loadEffects().catch(errorHandler)
-        }
+        if (open) loadEffects()
     }, [open])
 
     const handleSelectEffect = async (id: string) => {
@@ -88,7 +86,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
         event.stopPropagation()
         try {
             await storage.deleteEffect(id)
-            await loadEffects()
+            loadEffects()
         } catch (error) {
             logger.error('Failed to delete effect', error, { effectId: id })
         }

@@ -4,6 +4,7 @@ import { ParticleEffect, ParticleEmitterPoints } from './object'
 import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { getDefaultRadial } from './materialDefaults'
 import { decodeText } from './util'
+import { cloneDeep } from 'lodash'
 
 /**
  * Loads a JSON file describing a particle effect.
@@ -78,6 +79,7 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
             materials?: Record<string, any>
         },
     ): Promise<ParticleEffect> {
+        json = cloneDeep(json)
         if (json.materials) {
             const mLoader = this.materialLoader
             for (const [key, material] of Object.entries(json.materials)) {
