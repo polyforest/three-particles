@@ -4,9 +4,10 @@ import { SavedEffectMetadata } from './SavedEffectMetadata'
 import { PersistenceController } from './PersistenceController'
 import { logger } from '../utils/logger'
 
+const METADATA_KEY = 'effects_metadata'
+
 export class SavedEffectStorage {
     private storage: PersistenceController
-    private readonly metadataKey = 'effects_metadata'
 
     constructor({ storage }: { storage: PersistenceController }) {
         this.storage = storage
@@ -14,7 +15,7 @@ export class SavedEffectStorage {
 
     private async getMetadataIndex(): Promise<SavedEffectMetadata[]> {
         try {
-            const metadata = await this.storage.get(this.metadataKey)
+            const metadata = await this.storage.get(METADATA_KEY)
             return metadata || []
         } catch (error) {
             logger.error('Failed to load metadata index', error)
@@ -26,11 +27,11 @@ export class SavedEffectStorage {
         metadata: SavedEffectMetadata[],
     ): Promise<void> {
         try {
-            await this.storage.update(this.metadataKey, metadata)
+            await this.storage.update(METADATA_KEY, metadata)
         } catch (error) {
             // If update fails, try save (metadata index might not exist yet)
             try {
-                await this.storage.save(this.metadataKey, metadata)
+                await this.storage.save(METADATA_KEY, metadata)
                 logger.debug('Updated metadata index')
             } catch (saveError) {
                 logger.error('Failed to save metadata index', saveError)
