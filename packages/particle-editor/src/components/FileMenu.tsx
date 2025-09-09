@@ -3,23 +3,16 @@ import { Button, Menu, MenuItem } from '@mui/material'
 import { importEffectFromFile } from '../storage/fileStorage'
 import { RecentEffectsDialog } from './RecentEffectsDialog'
 import { logger } from '../utils/logger'
-import { SavedEffect } from '../storage/SavedEffect'
 import { useEffectStore } from '../store/effectStore'
+import { downloadJson } from '../utils/downloadUtils'
+import handleError from '../utils/errorHandler'
+import { ParticleEffectCreationDialog } from './ParticleEffectCreationDialog'
 
-interface FileMenuProps {
-    onNewEffect: () => void
-    onOpenEffect: (effect: SavedEffect) => void
-    onSaveEffect: (effect: SavedEffect) => void
-}
-
-export const FileMenu: React.FC<FileMenuProps> = ({
-    onNewEffect,
-    onOpenEffect,
-    onSaveEffect,
-}) => {
+export const FileMenu: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [recentDialogOpen, setRecentDialogOpen] = useState(false)
-    const { currentEffect } = useEffectStore()
+    const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
+    const { currentEffect, setCurrentEffect } = useEffectStore()
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget)
@@ -30,14 +23,14 @@ export const FileMenu: React.FC<FileMenuProps> = ({
     }
 
     const handleNew = () => {
-        onNewEffect()
+        setIsNewEffectDialogOpen(true)
         handleMenuClose()
     }
 
     const handleOpen = () => {
         ;(async () => {
             const savedEffect = await importEffectFromFile()
-            onOpenEffect(savedEffect)
+            setCurrentEffect(savedEffect)
         })()
             .then(handleMenuClose)
             .catch((error) => {
@@ -47,7 +40,15 @@ export const FileMenu: React.FC<FileMenuProps> = ({
 
     const handleSave = () => {
         if (currentEffect) {
-            onSaveEffect(currentEffect)
+            logger.info('saving effect:', currentEffect)
+            try {
+                downloadJson(
+                    currentEffect.effect,
+                    currentEffect.name || 'untitled-effect',
+                )
+            } catch (error: any) {
+                handleError(error, 'downloading effect')
+            }
         }
         handleMenuClose()
     }
@@ -96,7 +97,10 @@ export const FileMenu: React.FC<FileMenuProps> = ({
             <RecentEffectsDialog
                 open={recentDialogOpen}
                 onClose={() => setRecentDialogOpen(false)}
-                onSelectEffect={onOpenEffect}
+            />
+            <ParticleEffectCreationDialog
+                open={isNewEffectDialogOpen}
+                onClose={() => setIsNewEffectDialogOpen(false)}
             />
         </>
     )

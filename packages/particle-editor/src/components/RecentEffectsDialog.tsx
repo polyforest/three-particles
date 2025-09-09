@@ -17,13 +17,12 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
-import { SavedEffect } from '../storage/SavedEffect'
 import { savedEffectStorage } from '../store/storePersistence'
+import { useEffectStore } from '../store/effectStore'
 
 interface RecentEffectsDialogProps {
     open: boolean
     onClose: () => void
-    onSelectEffect: (effect: SavedEffect) => void
 }
 
 // Create a styled Paper component for dialog background
@@ -50,13 +49,13 @@ const loadAllEffects = async () => {
 export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     open,
     onClose,
-    onSelectEffect,
 }) => {
     const [effectsMetadata, setEffectsMetadata] = useState<
         SavedEffectMetadata[]
     >([])
     const [loading, setLoading] = useState(true)
     const storage = savedEffectStorage
+    const { setCurrentEffect } = useEffectStore()
 
     const loadEffects = () => {
         setLoading(true)
@@ -74,7 +73,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
         try {
             const savedEffect = await storage.getEffectById(id)
             if (savedEffect) {
-                onSelectEffect(savedEffect)
+                setCurrentEffect(savedEffect)
                 onClose()
             }
         } catch (error) {

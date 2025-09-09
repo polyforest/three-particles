@@ -1,21 +1,12 @@
 import React from 'react'
 import { AppBar, Toolbar, Typography } from '@mui/material'
 import { FileMenu } from './FileMenu'
-import { SavedEffect } from '../storage/SavedEffect'
 
 interface AppHeaderProps {
-    onNewEffect: () => void
-    onOpenEffect: (effect: SavedEffect) => void
-    onSaveEffect: (effect: SavedEffect) => void
     title: string
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({
-    onNewEffect,
-    onOpenEffect,
-    onSaveEffect,
-    title,
-}) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ title }) => {
     return (
         <AppBar
             position="static"
@@ -23,11 +14,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}
         >
             <Toolbar>
-                <FileMenu
-                    onNewEffect={onNewEffect}
-                    onOpenEffect={onOpenEffect}
-                    onSaveEffect={onSaveEffect}
-                />
+                <FileMenu />
                 <Typography
                     variant="h6"
                     component="div"

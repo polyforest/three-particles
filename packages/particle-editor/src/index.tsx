@@ -1,44 +1,21 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
 import './App.scss'
 import { Box, Card, CardContent, CssBaseline, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
-import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { PreviewPanel } from './components/PreviewPanel'
 import { useEffectStore } from './store/effectStore'
-import { SavedEffect } from './storage/SavedEffect'
 import { darkTheme } from './theme/darkTheme'
-import { handleError } from './utils/errorHandler'
-import { downloadJson } from './utils/downloadUtils'
 import { GlobalStyles } from './theme/GlobalStyles'
 import { useEffectStorePersistence } from './store/storePersistence'
-import logger from './utils/logger'
 
 const App: React.FC = () => {
-    const { currentEffect, setCurrentEffect, updateName } = useEffectStore()
-    const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
+    const { currentEffect, updateName } = useEffectStore()
 
     // Enable auto-save persistence for effect changes
     useEffectStorePersistence()
-
-    const handleNewEffect = () => {
-        setIsNewEffectDialogOpen(true)
-    }
-
-    const handleOpenEffect = (effect: SavedEffect) => {
-        setCurrentEffect(effect)
-    }
-
-    const handleSaveEffect = (effect: SavedEffect) => {
-        logger.info('saving effect:', effect)
-        try {
-            downloadJson(effect.effect, effect.name || 'untitled-effect')
-        } catch (error: any) {
-            handleError(error, 'downloading effect')
-        }
-    }
 
     return (
         <ThemeProvider theme={darkTheme}>
@@ -56,12 +33,7 @@ const App: React.FC = () => {
                     p: 0,
                 }}
             >
-                <AppHeader
-                    onNewEffect={handleNewEffect}
-                    onOpenEffect={handleOpenEffect}
-                    onSaveEffect={handleSaveEffect}
-                    title={currentEffect?.name || 'Particle Editor'}
-                />
+                <AppHeader title={currentEffect?.name || 'Particle Editor'} />
 
                 {currentEffect ? (
                     <Box
@@ -143,11 +115,6 @@ const App: React.FC = () => {
                         </Card>
                     </Box>
                 )}
-
-                <ParticleEffectCreationDialog
-                    open={isNewEffectDialogOpen}
-                    onClose={() => setIsNewEffectDialogOpen(false)}
-                />
             </Box>
         </ThemeProvider>
     )
