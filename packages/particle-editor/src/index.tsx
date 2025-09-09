@@ -1,11 +1,19 @@
 import React from 'react'
 import { createRoot } from 'react-dom/client'
 import './App.scss'
-import { Box, Card, CardContent, CssBaseline, Typography } from '@mui/material'
+import {
+    Box,
+    Card,
+    CardContent,
+    CssBaseline,
+    Divider,
+    Typography,
+} from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
 import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
 import { PreviewPanel } from './components/PreviewPanel'
+import { RecentEffectsList } from './components/RecentEffectsList'
 import { useEffectStore } from './store/effectStore'
 import { darkTheme } from './theme/darkTheme'
 import { GlobalStyles } from './theme/GlobalStyles'
@@ -77,9 +85,11 @@ const App: React.FC = () => {
                     <Box
                         sx={{
                             display: 'flex',
+                            flexDirection: 'column',
                             justifyContent: 'center',
                             alignItems: 'center',
                             height: '70vh',
+                            p: 4,
                         }}
                     >
                         <Card
@@ -88,6 +98,7 @@ const App: React.FC = () => {
                                 width: '100%',
                                 borderRadius: '12px',
                                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
+                                mb: 4,
                             }}
                         >
                             <CardContent>
@@ -111,6 +122,15 @@ const App: React.FC = () => {
                                     Use the File menu in the top left to create
                                     a new effect or open an existing one.
                                 </Typography>
+                                <Divider sx={{ mt: 2 }} />
+                                <Typography
+                                    variant="h6"
+                                    gutterBottom
+                                    sx={{ mt: 3 }}
+                                >
+                                    Recent Effects
+                                </Typography>
+                                <RecentEffectsList />
                             </CardContent>
                         </Card>
                     </Box>
