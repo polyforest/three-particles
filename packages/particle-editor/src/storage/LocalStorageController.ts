@@ -2,147 +2,35 @@ import { PersistenceController } from './PersistenceController'
 import { logger } from '../utils/logger'
 
 export class LocalStorageController implements PersistenceController {
-    private readonly keyPrefix: string
+    constructor() {
+        logger.info('LocalStorageController initialized')
+    }
 
-    constructor(keyPrefix: string = 'particleEditor') {
-        this.keyPrefix = keyPrefix
-        logger.info('LocalStorageController initialized', {
-            keyPrefix: this.keyPrefix,
+    async get(key: string): Promise<any> {
+        logger.debug('Getting item from localStorage', { key })
+
+        const data = localStorage.getItem(key)
+
+        if (data === null) {
+            logger.debug('Item not found in localStorage', { key })
+            return null
+        }
+
+        const parsedData = JSON.parse(data)
+        logger.debug('Successfully retrieved item from localStorage', {
+            key,
         })
-
-        // Check if localStorage is available
-        if (!this.isLocalStorageAvailable()) {
-            throw new Error('localStorage is not available in this environment')
-        }
+        return parsedData
     }
 
-    private isLocalStorageAvailable(): boolean {
-        try {
-            const test = '__localStorage_test__'
-            localStorage.setItem(test, 'test')
-            localStorage.removeItem(test)
-            return true
-        } catch {
-            return false
-        }
+    async save(key: string, data: any): Promise<void> {
+        logger.debug('Saving item to localStorage', { key })
+        const serializedData = JSON.stringify(data)
+        localStorage.setItem(key, serializedData)
     }
 
-    private getStorageKey(id: string): string {
-        return `${this.keyPrefix}_${id}`
-    }
-
-    async get(id: string): Promise<any> {
-        logger.debug('Getting item from localStorage', { id })
-
-        try {
-            const key = this.getStorageKey(id)
-            const data = localStorage.getItem(key)
-
-            if (data === null) {
-                logger.debug('Item not found in localStorage', { id })
-                return null
-            }
-
-            const parsedData = JSON.parse(data)
-            logger.debug('Successfully retrieved item from localStorage', {
-                id,
-            })
-            return parsedData
-        } catch (error) {
-            logger.error('Failed to get item from localStorage', error, { id })
-            throw new Error(`Failed to get item: ${id}`)
-        }
-    }
-
-    async save(id: string, data: any): Promise<void> {
-        logger.debug('Saving item to localStorage', { id })
-
-        try {
-            const key = this.getStorageKey(id)
-            const serializedData = JSON.stringify(data)
-
-            // Check if we're approaching localStorage size limits
-            const estimatedSize = serializedData.length
-            logger.debug('Saving item size', { id, sizeBytes: estimatedSize })
-
-            localStorage.setItem(key, serializedData)
-
-            logger.info('Successfully saved item to localStorage', {
-                id,
-                sizeBytes: estimatedSize,
-            })
-        } catch (error) {
-            if (error instanceof Error && error.name === 'QuotaExceededError') {
-                logger.error('localStorage quota exceeded', error, { id })
-                throw new Error(
-                    'Storage quota exceeded. Please free up space by deleting some effects.',
-                )
-            }
-
-            logger.error('Failed to save item to localStorage', error, { id })
-            throw new Error(`Failed to save item: ${id}`)
-        }
-    }
-
-    async update(id: string, data: any): Promise<void> {
-        logger.debug('Updating item in localStorage', { id })
-
-        try {
-            const key = this.getStorageKey(id)
-
-            // Check if item exists
-            if (localStorage.getItem(key) === null) {
-                logger.warn('Attempted to update non-existent item', { id })
-                throw new Error(`Item does not exist: ${id}`)
-            }
-
-            const serializedData = JSON.stringify(data)
-            const estimatedSize = serializedData.length
-            logger.debug('Updating item size', { id, sizeBytes: estimatedSize })
-
-            localStorage.setItem(key, serializedData)
-
-            logger.info('Successfully updated item in localStorage', {
-                id,
-                sizeBytes: estimatedSize,
-            })
-        } catch (error) {
-            if (error instanceof Error && error.name === 'QuotaExceededError') {
-                logger.error(
-                    'localStorage quota exceeded during update',
-                    error,
-                    { id },
-                )
-                throw new Error(
-                    'Storage quota exceeded. Please free up space by deleting some effects.',
-                )
-            }
-
-            logger.error('Failed to update item in localStorage', error, { id })
-            throw new Error(`Failed to update item: ${id}`)
-        }
-    }
-
-    async delete(id: string): Promise<void> {
-        logger.debug('Deleting item from localStorage', { id })
-
-        try {
-            const key = this.getStorageKey(id)
-
-            // Check if item exists
-            if (localStorage.getItem(key) === null) {
-                logger.warn('Attempted to delete non-existent item', { id })
-                return // Silently succeed for non-existent items
-            }
-
-            localStorage.removeItem(key)
-
-            logger.info('Successfully deleted item from localStorage', { id })
-        } catch (error) {
-            logger.error('Failed to delete item from localStorage', error, {
-                id,
-            })
-            throw new Error(`Failed to delete item: ${id}`)
-        }
+    async delete(key: string): Promise<void> {
+        logger.debug('Deleting item from localStorage', { key })
+        localStorage.removeItem(key)
     }
 }
