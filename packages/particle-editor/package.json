@@ -23,6 +23,7 @@
         "re-resizable": "^6.11.2",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
+        "react-router-dom": "^7.8.2",
         "three-particles": "*",
         "zustand": "^5.0.8"
     },

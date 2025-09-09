@@ -9,8 +9,10 @@ import {
     TextField,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
+import { useNavigate } from 'react-router-dom'
 import { createNewEffect } from '../storage/SavedEffect'
-import { useEffectStore } from '../store/effectStore'
+import { savedEffectStorage } from '../store/storePersistence'
+import errorHandler from '../utils/errorHandler'
 
 interface ParticleEffectCreationDialogProps {
     open: boolean
@@ -27,11 +29,15 @@ export const ParticleEffectCreationDialog: React.FC<
     ParticleEffectCreationDialogProps
 > = ({ open, onClose }) => {
     const [name, setName] = useState('New Particle Effect')
-    const { setCurrentEffect } = useEffectStore()
+    const navigate = useNavigate()
 
     const handleCreate = () => {
-        setCurrentEffect(createNewEffect(name))
-        onClose()
+        ;(async () => {
+            const newEffect = createNewEffect(name)
+            await savedEffectStorage.saveEffect(newEffect)
+            await navigate(`/effect/${newEffect.id}`)
+            onClose()
+        })().catch(errorHandler)
     }
 
     return (

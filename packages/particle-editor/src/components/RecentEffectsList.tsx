@@ -13,8 +13,8 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
-import { useEffectStore } from '../store/effectStore'
 import { savedEffectStorage } from '../store/storePersistence'
+import { useNavigate } from 'react-router-dom'
 
 interface RecentEffectsListProps {
     onEffectSelected?: () => void
@@ -35,7 +35,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
         SavedEffectMetadata[]
     >([])
     const [loading, setLoading] = useState(true)
-    const { setCurrentEffect } = useEffectStore()
+    const navigate = useNavigate()
 
     const loadEffects = async () => {
         try {
@@ -58,11 +58,8 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
 
     const handleSelectEffect = async (id: string) => {
         try {
-            const savedEffect = await storage.getEffectById(id)
-            if (savedEffect) {
-                setCurrentEffect(savedEffect)
-                onEffectSelected?.()
-            }
+            await navigate(`/effect/${id}`)
+            onEffectSelected?.()
         } catch (error) {
             logger.error('Failed to load effect', error, { effectId: id })
         }
