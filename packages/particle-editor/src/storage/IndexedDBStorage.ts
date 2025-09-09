@@ -123,38 +123,6 @@ export class IndexedDBStorage implements PersistenceController {
         })
     }
 
-    async update(id: string, data: any): Promise<void> {
-        logger.debug('Updating item in IndexedDB', {
-            id,
-            storeName: this.storeName,
-        })
-        const db = await this.openDatabase()
-
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction(this.storeName, 'readwrite')
-            const store = transaction.objectStore(this.storeName)
-            const request = store.put(id, data)
-
-            request.onsuccess = () => {
-                logger.info('Successfully updated item in IndexedDB', {
-                    id,
-                    storeName: this.storeName,
-                })
-                resolve()
-            }
-
-            request.onerror = () => {
-                const error = new Error('Failed to update item')
-                logger.error('Failed to update item in IndexedDB', error, {
-                    id,
-                    storeName: this.storeName,
-                    errorCode: request.error?.name,
-                })
-                reject(error)
-            }
-        })
-    }
-
     async delete(id: string): Promise<void> {
         logger.debug('Deleting item from IndexedDB', {
             id,

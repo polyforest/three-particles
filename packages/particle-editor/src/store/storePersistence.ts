@@ -5,6 +5,7 @@ import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 
 import { useEffect } from 'react'
 import errorHandler from '../utils/errorHandler'
+import logger from '../utils/logger'
 
 // Initialize storage
 const indexedDBStorage = new IndexedDBStorage(
@@ -19,17 +20,19 @@ export const savedEffectStorage = new SavedEffectStorage({
 export function useEffectStorePersistence() {
     const currentEffect = useEffectStore((state) => state.currentEffect)
 
+    const throttledSave = throttle(
+        () => {
+            if (currentEffect) {
+                logger.debug('Saving effect', currentEffect)
+                savedEffectStorage.saveEffect(currentEffect).catch(errorHandler)
+            }
+        },
+        500,
+        { leading: true, trailing: true },
+    )
+
     useEffect(() => {
-        const throttledSave = throttle(
-            () => {
-                if (currentEffect)
-                    savedEffectStorage
-                        .saveEffect(currentEffect)
-                        .catch(errorHandler)
-            },
-            500,
-            { leading: true, trailing: true },
-        )
+        throttledSave()
         return () => throttledSave.flush()
     }, [currentEffect])
 }

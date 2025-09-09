@@ -35,11 +35,26 @@ export class SavedEffectStorage {
 
         // Update metadata index
         const metadata = await this.getMetadataIndex()
-        metadata.push({
+
+        // Find existing metadata entry by ID
+        const existingIndex = metadata.findIndex(
+            (item) => item.id === savedEffect.id,
+        )
+
+        const newMetadata: SavedEffectMetadata = {
             id: savedEffect.id,
             name: savedEffect.name,
             lastModified: savedEffect.lastModified,
-        })
+        }
+
+        if (existingIndex >= 0) {
+            // Update existing entry
+            metadata[existingIndex] = newMetadata
+        } else {
+            // Add new entry
+            metadata.push(newMetadata)
+        }
+
         await this.updateMetadataIndex(metadata)
 
         logger.info('Saved effect', {
