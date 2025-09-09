@@ -14,7 +14,7 @@ import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
 import { savedEffectStorage } from '../store/storePersistence'
-import { useNavigate } from 'react-router-dom'
+import { useSafeNavigate } from '../hooks/useSafeNavigate'
 
 interface RecentEffectsListProps {
     onEffectSelected?: () => void
@@ -35,7 +35,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
         SavedEffectMetadata[]
     >([])
     const [loading, setLoading] = useState(true)
-    const navigate = useNavigate()
+    const navigate = useSafeNavigate()
 
     const loadEffects = async () => {
         try {

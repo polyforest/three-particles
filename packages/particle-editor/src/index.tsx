@@ -34,6 +34,10 @@ const App: React.FC = () => {
                     <Routes>
                         <Route path="/" element={<WelcomeScreen />} />
                         <Route path="/effect/:id" element={<EffectEditor />} />
+                        <Route
+                            path="/effect/:id/source"
+                            element={<EffectEditor />}
+                        />
                     </Routes>
                 </HashRouter>
             </Box>

@@ -7,15 +7,15 @@ import { useEffectStore } from '../store/effectStore'
 import { downloadJson } from '../utils/downloadUtils'
 import handleError from '../utils/errorHandler'
 import { ParticleEffectCreationDialog } from './ParticleEffectCreationDialog'
-import { useNavigate } from 'react-router-dom'
 import { savedEffectStorage } from '../store/storePersistence'
+import { useSafeNavigate } from '../hooks/useSafeNavigate'
 
 export const FileMenu: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [recentDialogOpen, setRecentDialogOpen] = useState(false)
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
     const { currentEffect } = useEffectStore()
-    const navigate = useNavigate()
+    const navigate = useSafeNavigate()
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
         setAnchorEl(event.currentTarget)

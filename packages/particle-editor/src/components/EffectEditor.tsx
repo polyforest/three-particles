@@ -1,122 +1,91 @@
-import { Box, Typography, Divider, IconButton } from '@mui/material'
-import { EditableTitle } from './EditableTitle'
+import { Box, IconButton } from '@mui/material'
 import { PreviewPanel } from './PreviewPanel'
 import React, { useState } from 'react'
 import Visibility from '@mui/icons-material/Visibility'
-import { Resizable } from 're-resizable'
-import { styled } from '@mui/material/styles'
 import { useEffectStore } from '../store/effectStore'
 import { useEffectRouting } from '../hooks/useEffectRouting'
 import { AppHeader } from './AppHeader'
-
-const StyledDivider = styled(Divider)(({ theme }) => ({
-    width: '4px',
-    cursor: 'col-resize',
-    margin: '0 -2px',
-    background: theme.palette.divider,
-    '&:hover': {
-        background: theme.palette.primary.main,
-    },
-}))
+import { EffectGuiEditor } from './EffectGuiEditor'
+import { SourceEditor } from './SourceEditor'
+import { useLocation } from 'react-router-dom'
+import { SplitPane } from './SplitPane'
 
 export const EffectEditor: React.FC = () => {
-    const { currentEffect, updateName } = useEffectStore()
-    const [editorWidth, setEditorWidth] = useState('70%')
+    const { currentEffect } = useEffectStore()
     const [isPreviewVisible, setIsPreviewVisible] = useState(true)
+    const location = useLocation()
+    const isSourceEditor = location.pathname.endsWith('/source')
+
     useEffectRouting()
+
     return (
         currentEffect && (
-            <>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: '100%',
+                    p: 0,
+                }}
+            >
                 <AppHeader />
                 <Box
                     sx={{
-                        display: 'flex',
-                        height: '100%',
-                        p: 0,
+                        position: 'relative',
+                        flexGrow: 1,
+                        overflow: 'hidden',
                     }}
                 >
-                    <Resizable
-                        size={{
-                            width: isPreviewVisible ? editorWidth : '100%',
-                            height: '100%',
+                    <SplitPane
+                        direction={'horizontal'}
+                        sx={{
+                            p: 0,
                         }}
-                        onResizeStop={(e, direction, ref, d) => {
-                            const containerWidth =
-                                ref.parentElement?.clientWidth ||
-                                window.innerWidth
-                            const currentWidth =
-                                (parseFloat(editorWidth) / 100) * containerWidth
-                            const newWidth = currentWidth + d.width
-                            const newWidthPercent =
-                                (newWidth / containerWidth) * 100
-                            setEditorWidth(`${newWidthPercent}%`)
-                        }}
-                        minWidth={'10%'}
-                        maxWidth={isPreviewVisible ? '90%' : undefined}
-                        enable={{
-                            top: false,
-                            right: isPreviewVisible,
-                            bottom: false,
-                            left: false,
-                            topRight: false,
-                            bottomRight: false,
-                            bottomLeft: false,
-                            topLeft: false,
-                        }}
-                        handleComponent={{
-                            right: <StyledDivider orientation="vertical" />,
+                        onUpdate={(sizes) => {
+                            console.log('size:', sizes)
                         }}
                     >
-                        <Box
-                            sx={{
-                                height: '100%',
-                                overflowY: 'auto',
-                                p: 4,
-                            }}
-                        >
-                            <EditableTitle
-                                value={currentEffect.name}
-                                onChange={updateName}
+                        {isSourceEditor ? (
+                            <SourceEditor
+                                isPreviewVisible={isPreviewVisible}
+                                setIsPreviewVisible={setIsPreviewVisible}
+                                sx={{ width: '100%', height: '100%' }}
                             />
-                            <Typography variant="body1" gutterBottom>
-                                Effect Editor
-                            </Typography>
-                            <pre
-                                style={{
-                                    background: '#2a2a2a',
-                                    padding: '1rem',
-                                    borderRadius: '4px',
-                                    overflow: 'auto',
-                                    color: '#e0e0e0',
+                        ) : (
+                            <EffectGuiEditor
+                                sx={{
+                                    width: '100%',
+                                    height: '100%',
                                 }}
-                            >
-                                {JSON.stringify(currentEffect.effect, null, 2)}
-                            </pre>
-                            {!isPreviewVisible && (
-                                <IconButton
-                                    sx={{
-                                        position: 'absolute',
-                                        right: '24px',
-                                        top: '10px',
-                                    }}
-                                    onClick={() => setIsPreviewVisible(true)}
-                                    color="primary"
-                                    title="Show Preview"
-                                >
-                                    <Visibility />
-                                </IconButton>
-                            )}
-                        </Box>
-                    </Resizable>
-                    {isPreviewVisible && (
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
-                            <PreviewPanel
-                                onMinimize={() => setIsPreviewVisible(false)}
                             />
-                        </Box>
+                        )}
+
+                        {isPreviewVisible && (
+                            <Box sx={{ flex: 1 }}>
+                                <PreviewPanel
+                                    onMinimize={() =>
+                                        setIsPreviewVisible(false)
+                                    }
+                                />
+                            </Box>
+                        )}
+                    </SplitPane>
+                    {!isPreviewVisible && (
+                        <IconButton
+                            sx={{
+                                position: 'absolute',
+                                right: '24px',
+                                top: '10px',
+                            }}
+                            onClick={() => setIsPreviewVisible(true)}
+                            color="primary"
+                            title="Show Preview"
+                        >
+                            <Visibility />
+                        </IconButton>
                     )}
                 </Box>
-            </>
+            </Box>
         )
     )
 }

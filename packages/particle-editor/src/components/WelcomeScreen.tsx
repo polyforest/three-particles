@@ -5,7 +5,12 @@ import { AppHeader } from './AppHeader'
 
 export const WelcomeScreen: React.FC = () => {
     return (
-        <>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+            }}
+        >
             <AppHeader />
             <Box
                 sx={{
@@ -13,7 +18,6 @@ export const WelcomeScreen: React.FC = () => {
                     flexDirection: 'column',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    height: '70vh',
                     p: 4,
                 }}
             >
@@ -55,6 +59,6 @@ export const WelcomeScreen: React.FC = () => {
                     </CardContent>
                 </Card>
             </Box>
-        </>
+        </Box>
     )
 }
