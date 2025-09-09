@@ -23,7 +23,8 @@
         "re-resizable": "^6.11.2",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
-        "three-particles": "*"
+        "three-particles": "*",
+        "zustand": "^5.0.8"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
