@@ -5,15 +5,14 @@ import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import {
     Box,
     IconButton,
-    SxProps,
-    Theme,
     Menu,
     MenuItem,
+    SxProps,
+    Theme,
     Typography,
 } from '@mui/material'
 import Fullscreen from '@mui/icons-material/Fullscreen'
 import FullscreenExit from '@mui/icons-material/FullscreenExit'
-import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import ColorLens from '@mui/icons-material/ColorLens'
 import PlayArrow from '@mui/icons-material/PlayArrow'
@@ -40,16 +39,12 @@ const ControlButton = styled(IconButton)`
 `
 
 interface PreviewPanelProps {
-    defaultWidth?: string | number
+    onMinimize: () => void
 }
 
-export const PreviewPanel: React.FC<PreviewPanelProps> = ({
-    defaultWidth = '30%',
-}) => {
+export const PreviewPanel: React.FC<PreviewPanelProps> = ({ onMinimize }) => {
     const { currentEffect } = useEffectStore()
     const effect = currentEffect?.effect
-
-    const containerRef = useRef<HTMLDivElement>(null)
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const rendererRef = useRef<THREE.WebGLRenderer | null>(null)
@@ -60,13 +55,11 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
     const clockRef = useRef<THREE.Clock | null>(null)
 
     const [isMaximized, setIsMaximized] = useState(false)
-    const [isVisible, setIsVisible] = useState(true)
     const [isPaused, setIsPaused] = useState(false)
     const [playbackRate, setPlaybackRate] = useState(1)
     const [speedMenuAnchor, setSpeedMenuAnchor] = useState<null | HTMLElement>(
         null,
     )
-    const [width] = useState<string | number>(defaultWidth)
     const [bgColor, setBgColor] = useState<string>('#111111')
     const colorInputRef = useRef<HTMLInputElement>(null)
 
@@ -147,7 +140,6 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             animationId = requestAnimationFrame(animate)
 
             if (
-                !isVisible ||
                 !clockRef.current ||
                 !rendererRef.current ||
                 !sceneRef.current ||
@@ -173,41 +165,32 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
 
         animate()
         return () => cancelAnimationFrame(animationId)
-    }, [isVisible, isPaused, playbackRate])
+    }, [isPaused, playbackRate])
 
     // --- resize helpers & observers ---
     const refreshSize = () => {
-        const el = containerRef.current
-        if (!el || !cameraRef.current || !rendererRef.current) return
-        const rect = el.getBoundingClientRect()
-        const w = rect.width
-        const h = rect.height
-        const widthPx = Math.max(1, Math.floor(w))
-        const heightPx = Math.max(1, Math.floor(h))
-
-        rendererRef.current.setPixelRatio(window.devicePixelRatio)
-        rendererRef.current.setSize(widthPx, heightPx, false)
-
-        cameraRef.current.aspect = widthPx / heightPx
-        cameraRef.current.updateProjectionMatrix()
+        const camera = cameraRef.current
+        const renderer = rendererRef.current
+        const canvas = canvasRef.current
+        if (!camera || !renderer || !canvas) return
+        const width = canvas.clientWidth
+        const height = canvas.clientHeight
+        renderer.setPixelRatio(window.devicePixelRatio)
+        renderer.setSize(width, height, false)
+        camera.aspect = width / height
+        camera.updateProjectionMatrix()
     }
 
-    useEffect(() => refreshSize(), [containerRef, cameraRef, rendererRef])
+    useEffect(() => refreshSize(), [canvasRef, cameraRef, rendererRef])
 
-    // Observe container size (fires during drag + layout changes)
+    // Observe canvas size changes
     useLayoutEffect(() => {
-        const el = containerRef.current
+        const el = canvasRef.current
         if (!el) return
-
         const ro = new ResizeObserver(refreshSize)
-
         ro.observe(el)
-
-        // Kick once after mount / toggles (next frame so the layout settles)
-        requestAnimationFrame(refreshSize)
-
         return () => ro.disconnect()
-    }, [containerRef])
+    }, [canvasRef])
 
     // Window resize/zoom fallback
     useEffect(() => {
@@ -229,19 +212,17 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown)
     }, [isMaximized])
 
-    const maximizedStyles: SxProps<Theme> =
-        isVisible && isMaximized
-            ? {
-                  width: '100%',
-                  position: 'absolute',
-                  left: 0,
-              }
-            : {}
+    const maximizedStyles: SxProps<Theme> = isMaximized
+        ? {
+              width: '100%',
+              position: 'absolute',
+              left: 0,
+          }
+        : {}
 
     return (
         <Box
             sx={{
-                width: isVisible ? width : '65px',
                 height: '100%', // parent must define a height
                 display: 'flex',
                 flexDirection: 'column',
@@ -252,7 +233,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
             }}
         >
             <ButtonGroup>
-                {isVisible && (
+                {
                     <>
                         <ControlButton
                             onClick={() => setIsPaused(!isPaused)}
@@ -299,13 +280,13 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                             {isMaximized ? <FullscreenExit /> : <Fullscreen />}
                         </ControlButton>
                     </>
-                )}
+                }
                 <ControlButton
-                    onClick={() => setIsVisible(!isVisible)}
+                    onClick={onMinimize}
                     color="primary"
                     title="Minimize"
                 >
-                    {isVisible ? <VisibilityOff /> : <Visibility />}
+                    <VisibilityOff />
                 </ControlButton>
             </ButtonGroup>
 
@@ -338,9 +319,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({
                 ))}
             </Menu>
 
-            {/* This flex child is what we observe for size */}
             <div
-                ref={containerRef}
                 style={{
                     position: 'relative',
                     flex: 1,
