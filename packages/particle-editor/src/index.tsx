@@ -40,12 +40,6 @@ const App: React.FC = () => {
         try {
             await savedEffectStorage.saveEffect(savedEffect)
             setCurrentEffect(savedEffect)
-            // Save to localStorage for hot reload persistence
-            localStorage.setItem(
-                'current-effect',
-                JSON.stringify(savedEffect.effect),
-            )
-            localStorage.setItem('current-effect-name', savedEffect.name)
         } catch (error) {
             logger.error('Failed to save new effect', error)
         }
@@ -53,8 +47,6 @@ const App: React.FC = () => {
 
     const handleOpenEffect = (effect: SavedEffect) => {
         setCurrentEffect(effect)
-        // Save to localStorage for hot reload persistence
-        localStorage.setItem('current-effect', JSON.stringify(effect))
     }
 
     const handleSaveEffect = () => {
