@@ -3,12 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './App.scss'
 import { Box, Card, CardContent, CssBaseline, Typography } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { ParticleEffectModelJson } from 'three-particles'
 import { AppHeader } from './components/AppHeader'
 import { EditableTitle } from './components/EditableTitle'
 import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
 import { PreviewPanel } from './components/PreviewPanel'
 import { SavedEffectStorage } from './storage/SavedEffectStorage'
+import { SavedEffect } from './storage/SavedEffect'
 import { IndexedDBStorage } from './storage/IndexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
 import { handleError } from './utils/errorHandler'
@@ -27,22 +27,7 @@ const savedEffectStorage = new SavedEffectStorage({
 })
 
 const App: React.FC = () => {
-    const [currentEffect, setCurrentEffect] =
-        useState<ParticleEffectModelJson | null>(() => {
-            // Restore effect from localStorage on hot reload
-            if (typeof window !== 'undefined') {
-                const saved = localStorage.getItem('current-effect')
-                return saved ? JSON.parse(saved) : null
-            }
-            return null
-        })
-    const [currentEffectName, setCurrentEffectName] = useState<string>(() => {
-        // Restore effect name from localStorage on hot reload
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('current-effect-name') || ''
-        }
-        return ''
-    })
+    const [currentEffect, setCurrentEffect] = useState<SavedEffect | null>(null)
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
 
     const handleNewEffect = () => {
@@ -50,22 +35,23 @@ const App: React.FC = () => {
     }
 
     const handleCreateEffect = async (
-        name: string,
-        effect: ParticleEffectModelJson,
+        savedEffect: SavedEffect,
     ): Promise<void> => {
         try {
-            await savedEffectStorage.saveEffect(name, effect)
-            setCurrentEffect(effect)
-            setCurrentEffectName(name)
+            await savedEffectStorage.saveEffect(savedEffect)
+            setCurrentEffect(savedEffect)
             // Save to localStorage for hot reload persistence
-            localStorage.setItem('current-effect', JSON.stringify(effect))
-            localStorage.setItem('current-effect-name', name)
+            localStorage.setItem(
+                'current-effect',
+                JSON.stringify(savedEffect.effect),
+            )
+            localStorage.setItem('current-effect-name', savedEffect.name)
         } catch (error) {
             logger.error('Failed to save new effect', error)
         }
     }
 
-    const handleOpenEffect = (effect: ParticleEffectModelJson) => {
+    const handleOpenEffect = (effect: SavedEffect) => {
         setCurrentEffect(effect)
         // Save to localStorage for hot reload persistence
         localStorage.setItem('current-effect', JSON.stringify(effect))
@@ -75,7 +61,10 @@ const App: React.FC = () => {
         if (!currentEffect) return
 
         try {
-            downloadJson(currentEffect, currentEffectName || 'untitled-effect')
+            downloadJson(
+                currentEffect.effect,
+                currentEffect.name || 'untitled-effect',
+            )
         } catch (error: any) {
             handleError(error, 'downloading effect')
         }
@@ -102,7 +91,7 @@ const App: React.FC = () => {
                     onOpenEffect={handleOpenEffect}
                     onSaveEffect={handleSaveEffect}
                     currentEffect={currentEffect}
-                    title={currentEffectName || 'Particle Editor'}
+                    title={currentEffect?.name || 'Particle Editor'}
                     storage={savedEffectStorage}
                 />
 
@@ -124,9 +113,12 @@ const App: React.FC = () => {
                             }}
                         >
                             <EditableTitle
-                                value={currentEffectName}
+                                value={currentEffect.name}
                                 onChange={(name) => {
-                                    setCurrentEffectName(name)
+                                    setCurrentEffect({
+                                        ...currentEffect,
+                                        name,
+                                    })
                                     localStorage.setItem(
                                         'current-effect-name',
                                         name,
@@ -145,10 +137,10 @@ const App: React.FC = () => {
                                     color: '#e0e0e0',
                                 }}
                             >
-                                {JSON.stringify(currentEffect, null, 2)}
+                                {JSON.stringify(currentEffect.effect, null, 2)}
                             </pre>
                         </Box>
-                        <PreviewPanel effect={currentEffect} />
+                        <PreviewPanel effect={currentEffect.effect} />
                     </Box>
                 ) : (
                     <Box

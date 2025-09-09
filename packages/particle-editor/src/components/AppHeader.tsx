@@ -1,14 +1,14 @@
 import React from 'react'
 import { AppBar, Toolbar, Typography } from '@mui/material'
-import { ParticleEffectModelJson } from 'three-particles'
 import { FileMenu } from './FileMenu'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
+import { SavedEffect } from '../storage/SavedEffect'
 
 interface AppHeaderProps {
     onNewEffect: () => void
-    onOpenEffect: (effect: ParticleEffectModelJson) => void
+    onOpenEffect: (effect: SavedEffect) => void
     onSaveEffect: () => void
-    currentEffect: ParticleEffectModelJson | null
+    currentEffect: SavedEffect | null
     title: string
     storage: SavedEffectStorage
 }

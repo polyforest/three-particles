@@ -1,29 +1,29 @@
 import React, { useEffect, useState } from 'react'
 import {
     Dialog,
-    DialogTitle,
     DialogContent,
+    DialogTitle,
+    Divider,
+    IconButton,
     List,
     ListItem,
-    ListItemText,
     ListItemSecondaryAction,
-    IconButton,
-    Typography,
-    Divider,
+    ListItemText,
     Paper,
+    Typography,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
-import { ParticleEffectModelJson } from 'three-particles'
 import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
+import { SavedEffect } from '../storage/SavedEffect'
 
 interface RecentEffectsDialogProps {
     open: boolean
     onClose: () => void
-    onSelectEffect: (effect: ParticleEffectModelJson) => void
+    onSelectEffect: (effect: SavedEffect) => void
     storage: SavedEffectStorage
 }
 
@@ -76,7 +76,7 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
         try {
             const savedEffect = await storage.getEffectById(id)
             if (savedEffect) {
-                onSelectEffect(savedEffect.effect)
+                onSelectEffect(savedEffect)
                 onClose()
             }
         } catch (error) {

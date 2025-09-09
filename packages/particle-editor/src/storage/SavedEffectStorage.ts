@@ -30,34 +30,23 @@ export class SavedEffectStorage {
         logger.debug('Updated metadata index')
     }
 
-    async saveEffect(
-        name: string,
-        effect: ParticleEffectModelJson,
-    ): Promise<string> {
-        const id = crypto.randomUUID()
-        const timestamp = Date.now()
-
-        const savedEffect: SavedEffect = {
-            id,
-            name,
-            effect,
-            lastModified: timestamp,
-        }
-
+    async saveEffect(savedEffect: SavedEffect): Promise<void> {
         // Save the effect
-        await this.storage.save(id, savedEffect)
+        await this.storage.save(savedEffect.id, savedEffect)
 
         // Update metadata index
         const metadata = await this.getMetadataIndex()
         metadata.push({
-            id,
-            name,
-            lastModified: timestamp,
+            id: savedEffect.id,
+            name: savedEffect.name,
+            lastModified: savedEffect.lastModified,
         })
         await this.updateMetadataIndex(metadata)
 
-        logger.info('Saved effect with metadata', { id, name })
-        return id
+        logger.info('Saved effect', {
+            id: savedEffect.id,
+            name: savedEffect.name,
+        })
     }
 
     async getEffectById(id: string): Promise<SavedEffect | null> {

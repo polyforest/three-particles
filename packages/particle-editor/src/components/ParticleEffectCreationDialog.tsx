@@ -1,21 +1,21 @@
 import React, { useState } from 'react'
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
     Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Paper,
+    TextField,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { ParticleEffectModelJson } from 'three-particles'
+import { createNewEffect, SavedEffect } from '../storage/SavedEffect'
 import logger from '../utils/logger'
 
 interface ParticleEffectCreationDialogProps {
     open: boolean
     onClose: () => void
-    onCreate: (name: string, effect: ParticleEffectModelJson) => Promise<void>
+    onCreate: (savedEffect: SavedEffect) => Promise<void>
 }
 
 // Create a styled Paper component for dialog background
@@ -30,13 +30,9 @@ export const ParticleEffectCreationDialog: React.FC<
     const [name, setName] = useState('New Particle Effect')
 
     const handleCreate = () => {
-        // Create a basic particle effect template
-        const newEffect: ParticleEffectModelJson = {
-            version: '1.0',
-            emitters: [],
-        }
+        const savedEffect = createNewEffect(name)
 
-        onCreate(name, newEffect)
+        onCreate(savedEffect)
             .then(onClose)
             .catch((error) => {
                 logger.error('Failed to create particle effect', error, {

@@ -1,16 +1,16 @@
 import React, { useState } from 'react'
 import { Button, Menu, MenuItem } from '@mui/material'
-import { ParticleEffectModelJson } from 'three-particles'
 import { importEffectFromFile } from '../storage/fileStorage'
 import { RecentEffectsDialog } from './RecentEffectsDialog'
 import { SavedEffectStorage } from '../storage/SavedEffectStorage'
 import { logger } from '../utils/logger'
+import { SavedEffect } from '../storage/SavedEffect'
 
 interface FileMenuProps {
     onNewEffect: () => void
-    onOpenEffect: (effect: ParticleEffectModelJson) => void
+    onOpenEffect: (effect: SavedEffect) => void
     onSaveEffect: () => void
-    currentEffect: ParticleEffectModelJson | null
+    currentEffect: SavedEffect | null
     storage: SavedEffectStorage
 }
 
@@ -39,20 +39,22 @@ export const FileMenu: React.FC<FileMenuProps> = ({
 
     const handleOpen = () => {
         ;(async () => {
-            const { filename, effect } = await importEffectFromFile()
+            const savedEffect = await importEffectFromFile()
 
             // Save the imported effect to storage
             try {
-                await storage.saveEffect(filename, effect)
-                logger.info('Imported and saved effect', { filename })
+                await storage.saveEffect(savedEffect)
+                logger.info('Imported and saved effect', {
+                    name: savedEffect.name,
+                })
             } catch (saveError) {
                 logger.error('Failed to save imported effect', saveError, {
-                    filename,
+                    name: savedEffect.name,
                 })
                 // Continue even if save fails - user can still work with the effect
             }
 
-            await onOpenEffect(effect, filename)
+            onOpenEffect(savedEffect)
         })()
             .then(handleMenuClose)
             .catch((error) => {
