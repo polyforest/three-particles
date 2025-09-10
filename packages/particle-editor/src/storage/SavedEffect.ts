@@ -1,12 +1,10 @@
 import { ParticleEffectModelJson } from 'three-particles'
 import { MathUtils } from 'three'
 import { cloneDeep } from 'lodash'
+import { SavedEffectMetadata } from './SavedEffectMetadata'
 
-export interface SavedEffect {
-    id: string
-    name: string
+export interface SavedEffect extends SavedEffectMetadata {
     effect: ParticleEffectModelJson
-    lastModified: number
 }
 
 const emptyEffect: ParticleEffectModelJson = {

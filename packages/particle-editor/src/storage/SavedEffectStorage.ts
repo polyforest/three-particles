@@ -12,7 +12,7 @@ export class SavedEffectStorage {
         this.storage = storage
     }
 
-    private async getMetadataIndex(): Promise<SavedEffectMetadata[]> {
+    public async getMetadataIndex(): Promise<SavedEffectMetadata[]> {
         try {
             const metadata = await this.storage.get(METADATA_KEY)
             return metadata || []
@@ -22,9 +22,7 @@ export class SavedEffectStorage {
         }
     }
 
-    private async updateMetadataIndex(
-        metadata: SavedEffectMetadata[],
-    ): Promise<void> {
+    async updateMetadataIndex(metadata: SavedEffectMetadata[]): Promise<void> {
         await this.storage.save(METADATA_KEY, metadata)
         logger.debug('Updated metadata index')
     }
@@ -67,23 +65,78 @@ export class SavedEffectStorage {
         return await this.storage.get(id)
     }
 
-    async getAllEffectsMetadata(): Promise<SavedEffectMetadata[]> {
-        return await this.getMetadataIndex()
+    async deleteEffect(id: string): Promise<void> {
+        // Mark effect as deleted instead of actually deleting
+        const metadata = await this.getMetadataIndex()
+        const existingIndex = metadata.findIndex((item) => item.id === id)
+
+        if (existingIndex >= 0) {
+            metadata[existingIndex].deleted = true
+            metadata[existingIndex].lastModified = Date.now()
+            await this.updateMetadataIndex(metadata)
+            logger.info('Marked effect as deleted', { id })
+        } else {
+            logger.warn('Effect not found in metadata index', { id })
+        }
     }
 
-    async deleteEffect(id: string): Promise<void> {
-        // Delete the effect
-        await this.storage.delete(id)
-
-        // Update metadata index
+    async restoreEffect(id: string): Promise<void> {
+        // Restore deleted effect
         const metadata = await this.getMetadataIndex()
-        const filteredMetadata = metadata.filter((item) => item.id !== id)
+        const existingIndex = metadata.findIndex((item) => item.id === id)
 
-        if (filteredMetadata.length !== metadata.length) {
-            await this.updateMetadataIndex(filteredMetadata)
-            logger.info('Deleted effect and updated metadata', { id })
+        if (existingIndex >= 0 && metadata[existingIndex].deleted) {
+            delete metadata[existingIndex].deleted
+            metadata[existingIndex].lastModified = Date.now()
+            await this.updateMetadataIndex(metadata)
+            logger.info('Restored effect from trash', { id })
         } else {
-            logger.warn('Deleted effect not found in metadata index', { id })
+            logger.warn('Effect not found or not deleted', { id })
+        }
+    }
+
+    async cleanOldTrashItems(): Promise<void> {
+        const oneMonthAgo = Date.now() - 30 * 24 * 60 * 60 * 1000 // 30 days in milliseconds
+        const metadata = await this.getMetadataIndex()
+        const itemsToDelete: string[] = []
+
+        // Find deleted items older than a month
+        const updatedMetadata = metadata.filter((item) => {
+            console.log(
+                'item:',
+                item.deleted,
+                item.lastModified < oneMonthAgo,
+                new Date(item.lastModified),
+                new Date(oneMonthAgo),
+            )
+            if (item.deleted && item.lastModified < oneMonthAgo) {
+                console.log('to delete: ', itemsToDelete)
+                itemsToDelete.push(item.id)
+                return false // Remove from metadata
+            }
+            return true // Keep in metadata
+        })
+
+        // Actually delete the old items from storage
+        for (const id of itemsToDelete) {
+            try {
+                await this.storage.delete(id)
+                logger.info('Permanently deleted old trash item', { id })
+            } catch (error) {
+                logger.error(
+                    'Failed to permanently delete old trash item',
+                    error,
+                    { id },
+                )
+            }
+        }
+
+        // Update metadata index if items were removed
+        if (itemsToDelete.length > 0) {
+            await this.updateMetadataIndex(updatedMetadata)
+            logger.info('Cleaned old trash items', {
+                count: itemsToDelete.length,
+            })
         }
     }
 }

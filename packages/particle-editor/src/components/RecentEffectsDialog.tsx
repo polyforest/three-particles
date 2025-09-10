@@ -6,6 +6,7 @@ import { RecentEffectsList } from './RecentEffectsList'
 interface RecentEffectsDialogProps {
     open: boolean
     onClose: () => void
+    filter?: 'all' | 'deleted' | 'active'
 }
 
 // Create a styled Paper component for dialog background
@@ -17,7 +18,19 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
     open,
     onClose,
+    filter = 'active',
 }) => {
+    const getDialogTitle = () => {
+        switch (filter) {
+            case 'deleted':
+                return 'Trash (items removed after 30 days)'
+            case 'all':
+                return 'All Effects'
+            default:
+                return 'Recent Effects'
+        }
+    }
+
     return (
         <Dialog
             open={open}
@@ -26,9 +39,9 @@ export const RecentEffectsDialog: React.FC<RecentEffectsDialogProps> = ({
             fullWidth
             slotProps={{ paper: { component: StyledPaper } }}
         >
-            <DialogTitle>Recent Effects</DialogTitle>
+            <DialogTitle>{getDialogTitle()}</DialogTitle>
             <DialogContent>
-                <RecentEffectsList onEffectSelected={onClose} />
+                <RecentEffectsList onEffectSelected={onClose} filter={filter} />
             </DialogContent>
         </Dialog>
     )

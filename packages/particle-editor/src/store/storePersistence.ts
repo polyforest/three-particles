@@ -18,7 +18,7 @@ export const savedEffectStorage = new SavedEffectStorage({
 })
 
 export function useEffectStorePersistence() {
-    const currentEffect = useEffectStore((state) => state.currentEffect)
+    const { currentEffect } = useEffectStore()
 
     const throttledSave = throttle(
         () => {
@@ -35,4 +35,8 @@ export function useEffectStorePersistence() {
         throttledSave()
         return () => throttledSave.flush()
     }, [currentEffect])
+
+    useEffect(() => {
+        savedEffectStorage.cleanOldTrashItems().catch(errorHandler)
+    }, [])
 }

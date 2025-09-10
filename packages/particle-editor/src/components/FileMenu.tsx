@@ -13,6 +13,7 @@ import { useSafeNavigate } from '../hooks/useSafeNavigate'
 export const FileMenu: React.FC = () => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [recentDialogOpen, setRecentDialogOpen] = useState(false)
+    const [trashDialogOpen, setTrashDialogOpen] = useState(false)
     const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
     const { currentEffect } = useEffectStore()
     const navigate = useSafeNavigate()
@@ -34,7 +35,7 @@ export const FileMenu: React.FC = () => {
         ;(async () => {
             const effect = await importEffectFromFile()
             await savedEffectStorage.saveEffect(effect)
-            await navigate(`/effect/${effect.id}`)
+            navigate(`/effect/${effect.id}`)
         })()
             .then(handleMenuClose)
             .catch((error) => {
@@ -59,6 +60,11 @@ export const FileMenu: React.FC = () => {
 
     const handleOpenRecent = () => {
         setRecentDialogOpen(true)
+        handleMenuClose()
+    }
+
+    const handleOpenTrash = () => {
+        setTrashDialogOpen(true)
         handleMenuClose()
     }
 
@@ -93,6 +99,7 @@ export const FileMenu: React.FC = () => {
                 <MenuItem onClick={handleOpenRecent}>
                     Recent Effects...
                 </MenuItem>
+                <MenuItem onClick={handleOpenTrash}>Trash...</MenuItem>
                 <MenuItem onClick={handleSave} disabled={!currentEffect}>
                     Download...
                 </MenuItem>
@@ -101,6 +108,12 @@ export const FileMenu: React.FC = () => {
             <RecentEffectsDialog
                 open={recentDialogOpen}
                 onClose={() => setRecentDialogOpen(false)}
+                filter="active"
+            />
+            <RecentEffectsDialog
+                open={trashDialogOpen}
+                onClose={() => setTrashDialogOpen(false)}
+                filter="deleted"
             />
             <ParticleEffectCreationDialog
                 open={isNewEffectDialogOpen}

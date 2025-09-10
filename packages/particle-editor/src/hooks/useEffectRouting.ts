@@ -15,7 +15,7 @@ export const useEffectRouting = () => {
             if (!id) return
 
             const effect = await savedEffectStorage.getEffectById(id)
-            if (effect) {
+            if (effect && !effect.deleted) {
                 logger.debug('Loaded effect', effect)
                 setCurrentEffect(effect)
             } else {
