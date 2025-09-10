@@ -1,9 +1,9 @@
-import { SavedEffect } from './SavedEffect'
-import { SavedEffectMetadata } from './SavedEffectMetadata'
+import { EffectFile } from './EffectFile'
+import { FileMetadata } from './FileMetadata'
 import { PersistenceController } from './PersistenceController'
 import { logger } from '../utils/logger'
 
-const METADATA_KEY = 'effects_metadata'
+const METADATA_KEY = 'metadata_index'
 
 export class SavedEffectStorage {
     private storage: PersistenceController
@@ -12,87 +12,93 @@ export class SavedEffectStorage {
         this.storage = storage
     }
 
-    public async getMetadataIndex(): Promise<SavedEffectMetadata[]> {
+    async getMetadataIndex(): Promise<readonly FileMetadata[]> {
         try {
-            const metadata = await this.storage.get(METADATA_KEY)
-            return metadata || []
+            return (await this.storage.get(METADATA_KEY)) ?? []
         } catch (error) {
             logger.error('Failed to load metadata index', error)
             return []
         }
     }
 
-    async updateMetadataIndex(metadata: SavedEffectMetadata[]): Promise<void> {
+    async updateMetadataIndex(
+        metadata: readonly FileMetadata[],
+    ): Promise<void> {
         await this.storage.save(METADATA_KEY, metadata)
         logger.debug('Updated metadata index')
     }
 
-    async saveEffect(savedEffect: SavedEffect): Promise<void> {
+    async updateMetadataForEffect(
+        effectId: string,
+        newMetadata: Partial<FileMetadata>,
+    ) {
+        // Mark effect as deleted instead of actually deleting
+        const metadata = [...(await this.getMetadataIndex())]
+        const existingIndex = metadata.findIndex((item) => item.id === effectId)
+
+        if (existingIndex >= 0) {
+            const merged: FileMetadata = {
+                ...metadata[existingIndex],
+                ...newMetadata,
+            }
+            metadata[existingIndex] = merged
+            await this.updateMetadataIndex(metadata)
+            logger.info('Updated effect', merged)
+        } else {
+            logger.warn('Effect not found in metadata index', { effectId })
+        }
+    }
+
+    async saveEffect(savedEffect: EffectFile): Promise<void> {
         // Save the effect
-        await this.storage.save(savedEffect.id, savedEffect)
+        const id = savedEffect.metadata.id
+        await this.storage.save(id, savedEffect.effect)
 
         // Update metadata index
-        const metadata = await this.getMetadataIndex()
+        const metadata = [...(await this.getMetadataIndex())]
 
         // Find existing metadata entry by ID
-        const existingIndex = metadata.findIndex(
-            (item) => item.id === savedEffect.id,
-        )
-
-        const newMetadata: SavedEffectMetadata = {
-            id: savedEffect.id,
-            name: savedEffect.name,
-            lastModified: savedEffect.lastModified,
-        }
+        const existingIndex = metadata.findIndex((item) => item.id === id)
 
         if (existingIndex >= 0) {
             // Update existing entry
-            metadata[existingIndex] = newMetadata
+            metadata[existingIndex] = savedEffect.metadata
         } else {
             // Add new entry
-            metadata.push(newMetadata)
+            metadata.push(savedEffect.metadata)
         }
 
         await this.updateMetadataIndex(metadata)
 
-        logger.info('Saved effect', {
-            id: savedEffect.id,
-            name: savedEffect.name,
-        })
+        logger.info('Saved effect', savedEffect.metadata)
     }
 
-    async getEffectById(id: string): Promise<SavedEffect | null> {
-        return await this.storage.get(id)
-    }
-
-    async deleteEffect(id: string): Promise<void> {
-        // Mark effect as deleted instead of actually deleting
+    async getEffectById(id: string): Promise<EffectFile | null> {
+        const effectJson = await this.storage.get(id)
+        if (effectJson === null) return null
         const metadata = await this.getMetadataIndex()
-        const existingIndex = metadata.findIndex((item) => item.id === id)
-
-        if (existingIndex >= 0) {
-            metadata[existingIndex].deleted = true
-            metadata[existingIndex].lastModified = Date.now()
-            await this.updateMetadataIndex(metadata)
-            logger.info('Marked effect as deleted', { id })
-        } else {
-            logger.warn('Effect not found in metadata index', { id })
+        let m = metadata.find((item) => item.id === id)
+        if (!m) {
+            logger.error('Metadata not found for effect, creating', { id })
+            m = {
+                id,
+                lastModified: Date.now(),
+                name: 'Untitled Effect',
+            }
+            await this.updateMetadataIndex([...metadata, m])
+        }
+        return {
+            effect: effectJson,
+            metadata: m,
         }
     }
 
-    async restoreEffect(id: string): Promise<void> {
-        // Restore deleted effect
-        const metadata = await this.getMetadataIndex()
-        const existingIndex = metadata.findIndex((item) => item.id === id)
+    deleteEffect(id: string): Promise<void> {
+        return this.updateMetadataForEffect(id, { deleted: true })
+    }
 
-        if (existingIndex >= 0 && metadata[existingIndex].deleted) {
-            delete metadata[existingIndex].deleted
-            metadata[existingIndex].lastModified = Date.now()
-            await this.updateMetadataIndex(metadata)
-            logger.info('Restored effect from trash', { id })
-        } else {
-            logger.warn('Effect not found or not deleted', { id })
-        }
+    undeleteEffect(id: string): Promise<void> {
+        return this.updateMetadataForEffect(id, { deleted: false })
     }
 
     async cleanOldTrashItems(): Promise<void> {
@@ -102,15 +108,7 @@ export class SavedEffectStorage {
 
         // Find deleted items older than a month
         const updatedMetadata = metadata.filter((item) => {
-            console.log(
-                'item:',
-                item.deleted,
-                item.lastModified < oneMonthAgo,
-                new Date(item.lastModified),
-                new Date(oneMonthAgo),
-            )
             if (item.deleted && item.lastModified < oneMonthAgo) {
-                console.log('to delete: ', itemsToDelete)
                 itemsToDelete.push(item.id)
                 return false // Remove from metadata
             }

@@ -1,15 +1,16 @@
 import { create } from 'zustand'
-import { SavedEffect } from '../storage/SavedEffect'
+import { EffectFile } from '../storage/EffectFile'
 import { ParticleEffectModelJson } from 'three-particles'
+import { FileMetadata } from '../storage/FileMetadata'
 
 interface EffectStore {
-    currentEffect: SavedEffect | null
+    currentEffect: EffectFile | null
 
     /**
      * Sets the current effect.
      * @param effect
      */
-    setCurrentEffect: (effect: SavedEffect | null) => void
+    setCurrentEffectFile: (effect: EffectFile | null) => void
 
     updateEffect: (effect: ParticleEffectModelJson) => void
 
@@ -19,13 +20,30 @@ interface EffectStore {
 }
 
 export const useEffectStore = create<EffectStore>((set, get) => {
-    const update = (effect: Partial<SavedEffect>) => {
+    const update = (effect: Partial<EffectFile>) => {
         const current = get().currentEffect
         if (!current) return
-        const updatedEffect: SavedEffect = {
+        const updatedEffect: EffectFile = {
             ...current,
             ...effect,
-            lastModified: Date.now(),
+            metadata: {
+                ...current.metadata,
+                lastModified: Date.now(),
+            },
+        }
+        set({ currentEffect: updatedEffect })
+    }
+
+    const updateMetadata = (metadata: Partial<FileMetadata>) => {
+        const current = get().currentEffect
+        if (!current) return
+        const updatedEffect: EffectFile = {
+            ...current,
+            metadata: {
+                ...current.metadata,
+                ...metadata,
+                lastModified: Date.now(),
+            },
         }
         set({ currentEffect: updatedEffect })
     }
@@ -33,7 +51,7 @@ export const useEffectStore = create<EffectStore>((set, get) => {
     return {
         currentEffect: null,
 
-        setCurrentEffect: (effect) => {
+        setCurrentEffectFile: (effect) => {
             set({ currentEffect: effect })
         },
 
@@ -42,11 +60,19 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         updateName: (name) => {
-            update({ name })
+            updateMetadata({ name })
+        },
+
+        delete: () => {
+            updateMetadata({ deleted: true })
+        },
+
+        undelete: () => {
+            updateMetadata({ deleted: false })
         },
 
         clearEffect: () => {
-            get().setCurrentEffect(null)
+            get().setCurrentEffectFile(null)
         },
     }
 })

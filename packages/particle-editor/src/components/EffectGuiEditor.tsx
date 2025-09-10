@@ -29,7 +29,10 @@ export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
                 p: 4,
             }}
         >
-            <EditableTitle value={currentEffect.name} onChange={updateName} />
+            <EditableTitle
+                value={currentEffect.metadata.name}
+                onChange={updateName}
+            />
             <Box
                 sx={{
                     display: 'flex',

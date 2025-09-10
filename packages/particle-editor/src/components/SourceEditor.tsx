@@ -13,7 +13,7 @@ import Visibility from '@mui/icons-material/Visibility'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import { useEffectStore } from '../store/effectStore'
 import errorHandler from '../utils/errorHandler'
-import { SavedEffect } from '../storage/SavedEffect'
+import { EffectFile } from '../storage/EffectFile'
 import { useParams } from 'react-router-dom'
 import { BoxProps } from '@mui/material/Box/Box'
 import { useSafeNavigate } from '../hooks/useSafeNavigate'
@@ -45,7 +45,7 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({
     setIsPreviewVisible,
     ...boxProps
 }) => {
-    const { currentEffect, setCurrentEffect } = useEffectStore()
+    const { currentEffect, setCurrentEffectFile } = useEffectStore()
     const navigate = useSafeNavigate()
     const { id } = useParams<{ id: string }>()
     const [sourceCode, setSourceCode] = useState('')
@@ -75,12 +75,11 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({
                     const parsedEffect = JSON.parse(source)
 
                     // Update the effect
-                    const updatedEffect: SavedEffect = {
-                        ...currentEffect,
+                    const updatedEffect: EffectFile = {
+                        metadata: currentEffect.metadata,
                         effect: parsedEffect,
-                        lastModified: Date.now(),
                     }
-                    setCurrentEffect(updatedEffect)
+                    setCurrentEffectFile(updatedEffect)
                     setLastSavedSource(source)
                     setIsDirty(false)
                     setError(null)
@@ -91,7 +90,7 @@ export const SourceEditor: React.FC<SourceEditorProps> = ({
                 }
             })().catch(errorHandler)
         },
-        [currentEffect, setCurrentEffect],
+        [currentEffect, setCurrentEffectFile],
     )
 
     // Debounced save function using lodash

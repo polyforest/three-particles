@@ -10,7 +10,7 @@ import {
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import RestoreIcon from '@mui/icons-material/Restore'
-import { SavedEffectMetadata } from '../storage/SavedEffectMetadata'
+import { FileMetadata } from '../storage/FileMetadata'
 import errorHandler from '../utils/errorHandler'
 import { logger } from '../utils/logger'
 import { savedEffectStorage } from '../store/storePersistence'
@@ -33,9 +33,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
     filter = 'active',
 }) => {
     const storage = savedEffectStorage
-    const [effectsMetadata, setEffectsMetadata] = useState<
-        SavedEffectMetadata[]
-    >([])
+    const [effectsMetadata, setEffectsMetadata] = useState<FileMetadata[]>([])
     const [loading, setLoading] = useState(true)
     const navigate = useSafeNavigate()
 
@@ -43,10 +41,9 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
         try {
             setLoading(true)
             const metadata = await storage.getMetadataIndex()
-            logger.debug('metadata:', metadata)
 
             // Filter based on the filter prop
-            let filterFn: (metadata: SavedEffectMetadata) => boolean
+            let filterFn: (metadata: FileMetadata) => boolean
             if (filter === 'deleted') {
                 filterFn = (item) => item.deleted === true
             } else if (filter === 'active') {
@@ -84,7 +81,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
 
     const handleRestoreEffect = async (event: React.MouseEvent, id: string) => {
         event.stopPropagation()
-        await storage.restoreEffect(id)
+        await storage.undeleteEffect(id)
         await loadEffects()
     }
 

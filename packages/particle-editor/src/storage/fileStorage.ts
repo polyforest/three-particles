@@ -1,5 +1,5 @@
 import { ParticleEffectModelJson } from 'three-particles'
-import { SavedEffect } from './SavedEffect'
+import { EffectFile } from './EffectFile'
 import { MathUtils } from 'three'
 
 export const exportEffectToFile = (
@@ -21,7 +21,7 @@ export const exportEffectToFile = (
     URL.revokeObjectURL(url)
 }
 
-export const importEffectFromFile = (): Promise<SavedEffect> => {
+export const importEffectFromFile = (): Promise<EffectFile> => {
     return new Promise((resolve, reject) => {
         const input = document.createElement('input')
         input.type = 'file'
@@ -44,9 +44,11 @@ export const importEffectFromFile = (): Promise<SavedEffect> => {
                     ) as ParticleEffectModelJson
                     const filename = file.name.replace(/\.json$/, '')
                     resolve({
-                        id: MathUtils.generateUUID(),
-                        lastModified: file.lastModified,
-                        name: filename,
+                        metadata: {
+                            id: MathUtils.generateUUID(),
+                            lastModified: file.lastModified,
+                            name: filename,
+                        },
                         effect,
                     })
                 } catch (_error: any) {

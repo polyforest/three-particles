@@ -35,7 +35,7 @@ export const FileMenu: React.FC = () => {
         ;(async () => {
             const effect = await importEffectFromFile()
             await savedEffectStorage.saveEffect(effect)
-            navigate(`/effect/${effect.id}`)
+            navigate(`/effect/${effect.metadata.id}`)
         })()
             .then(handleMenuClose)
             .catch((error) => {
@@ -49,7 +49,7 @@ export const FileMenu: React.FC = () => {
             try {
                 downloadJson(
                     currentEffect.effect,
-                    currentEffect.name || 'untitled-effect',
+                    currentEffect.metadata.name || 'untitled-effect',
                 )
             } catch (error: any) {
                 handleError(error, 'downloading effect')

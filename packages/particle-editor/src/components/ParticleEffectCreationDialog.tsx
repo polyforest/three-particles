@@ -9,7 +9,7 @@ import {
     TextField,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { createNewEffect } from '../storage/SavedEffect'
+import { createNewEffect } from '../storage/EffectFile'
 import { savedEffectStorage } from '../store/storePersistence'
 import errorHandler from '../utils/errorHandler'
 import { useSafeNavigate } from '../hooks/useSafeNavigate'
@@ -35,7 +35,7 @@ export const ParticleEffectCreationDialog: React.FC<
         ;(async () => {
             const newEffect = createNewEffect(name)
             await savedEffectStorage.saveEffect(newEffect)
-            navigate(`/effect/${newEffect.id}`)
+            navigate(`/effect/${newEffect.metadata.id}`)
             onClose()
         })().catch(errorHandler)
     }

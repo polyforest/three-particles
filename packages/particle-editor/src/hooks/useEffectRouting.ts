@@ -8,25 +8,26 @@ import logger from '../utils/logger'
 export const useEffectRouting = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const { setCurrentEffect } = useEffectStore()
+    const { setCurrentEffectFile } = useEffectStore()
 
     useEffect(() => {
         const loadEffect = async () => {
             if (!id) return
 
             const effect = await savedEffectStorage.getEffectById(id)
-            if (effect && !effect.deleted) {
+            const deleted = effect?.metadata.deleted
+            if (effect && !deleted) {
                 logger.debug('Loaded effect', effect)
-                setCurrentEffect(effect)
+                setCurrentEffectFile(effect)
             } else {
                 // Effect not found, show message and navigate home
-                alert('Effect not found')
+                alert(deleted ? 'Effect is in the trash' : 'Effect not found')
                 await navigate('/')
             }
         }
 
         loadEffect().catch(errorHandler)
-    }, [id, navigate, setCurrentEffect])
+    }, [id, navigate, setCurrentEffectFile])
 
     return { navigate }
 }
