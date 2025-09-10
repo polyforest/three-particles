@@ -58,7 +58,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
 
     const handleSelectEffect = async (id: string) => {
         try {
-            await navigate(`/effect/${id}`)
+            navigate(`/effect/${id}`)
             onEffectSelected?.()
         } catch (error) {
             logger.error('Failed to load effect', error, { effectId: id })
@@ -113,6 +113,7 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
                                                 metadata.id,
                                             ).catch(errorHandler)
                                         }}
+                                        title={'Delete Effect'}
                                     >
                                         <DeleteIcon />
                                     </IconButton>
