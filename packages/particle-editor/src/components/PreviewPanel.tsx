@@ -252,7 +252,7 @@ export const PreviewPanel: React.FC<PreviewPanelProps> = ({ onMinimize }) => {
                         <ControlButton
                             onClick={() => colorInputRef.current?.click()}
                             color="primary"
-                            title="Background color"
+                            title="Preview background color"
                         >
                             <ColorLens />
                         </ControlButton>
