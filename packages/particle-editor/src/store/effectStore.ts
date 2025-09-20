@@ -1,7 +1,12 @@
 import { create } from 'zustand'
 import { EffectFile } from '../storage/EffectFile'
-import { ParticleEffectModelJson } from 'three-particles'
+import {
+    ParticleEffectModelJson,
+    ParticleEmitterModelJson,
+} from 'three-particles'
 import { FileMetadata } from '../storage/FileMetadata'
+import { cloneDeep } from 'lodash'
+import logger from '../utils/logger'
 
 interface EffectStore {
     currentEffect: EffectFile | null
@@ -25,7 +30,7 @@ interface EffectStore {
 
     clearEffect: () => void
 
-    addEmitter: (emitter: any) => void
+    addEmitter: (emitter: ParticleEmitterModelJson) => void
 
     removeEmitter: (emitterUuid: string) => void
 
@@ -41,13 +46,11 @@ interface EffectStore {
 }
 
 export const useEffectStore = create<EffectStore>((set, get) => {
-    const deepClone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
-
     const pushToHistory = () => {
         const state = get()
         const current = state.currentEffect
         if (!current) return
-        const snapshot = deepClone(current)
+        const snapshot = cloneDeep(current)
         set({ past: [...state.past, snapshot], future: [] })
     }
 
@@ -96,23 +99,28 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         updateName: (name) => {
+            logger.debug('updateName', name)
             updateMetadata({ name })
         },
 
         delete: () => {
+            logger.debug('delete')
             updateMetadata({ deleted: true })
         },
 
         undelete: () => {
+            logger.debug('undelete')
             updateMetadata({ deleted: false })
         },
 
         clearEffect: () => {
+            logger.debug('clearEffect')
             // Clearing effect also clears history
             set({ currentEffect: null, past: [], future: [] })
         },
 
         addEmitter: (emitter) => {
+            logger.debug('addEmitter', emitter)
             const current = get().currentEffect
             if (!current) return
             const updatedEmitters = [
@@ -128,6 +136,7 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         removeEmitter: (emitterUuid) => {
+            logger.debug('removeEmitter', emitterUuid)
             const current = get().currentEffect
             if (!current) return
             const updatedEmitters = (current.effect.emitters || []).filter(
@@ -142,6 +151,7 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         toggleEmitter: (emitterUuid) => {
+            logger.debug('toggleEmitter', emitterUuid)
             const current = get().currentEffect
             if (!current) return
             const updatedEmitters = (current.effect.emitters || []).map((e) =>
@@ -156,6 +166,7 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         toggleAllEmitters: (enabled) => {
+            logger.debug('toggleAllEmitters')
             const current = get().currentEffect
             if (!current) return
             const updatedEmitters = (current.effect.emitters || []).map(
@@ -170,21 +181,31 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         undo: () => {
+            logger.debug('undo')
             const { past, currentEffect, future } = get()
             if (!currentEffect || past.length === 0) return
             const previous = past[past.length - 1]
             const newPast = past.slice(0, past.length - 1)
-            const snapshot = deepClone(currentEffect)
-            set({ currentEffect: previous, past: newPast, future: [snapshot, ...future] })
+            const snapshot = cloneDeep(currentEffect)
+            set({
+                currentEffect: previous,
+                past: newPast,
+                future: [snapshot, ...future],
+            })
         },
 
         redo: () => {
+            logger.debug('redo')
             const { past, currentEffect, future } = get()
             if (!currentEffect || future.length === 0) return
             const next = future[0]
             const newFuture = future.slice(1)
-            const snapshot = deepClone(currentEffect)
-            set({ currentEffect: next, past: [...past, snapshot], future: newFuture })
+            const snapshot = cloneDeep(currentEffect)
+            set({
+                currentEffect: next,
+                past: [...past, snapshot],
+                future: newFuture,
+            })
         },
 
         canUndo: () => get().past.length > 0,

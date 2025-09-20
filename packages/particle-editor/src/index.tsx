@@ -33,6 +33,7 @@ const App: React.FC = () => {
                         state.redo()
                     }
                 } else {
+                    console.log('undo key:', state.canUndo())
                     if (state.canUndo()) {
                         e.preventDefault()
                         state.undo()

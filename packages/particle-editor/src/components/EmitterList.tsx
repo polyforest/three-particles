@@ -21,7 +21,8 @@ import { MathUtils } from 'three'
 import { ParticleEmitterModelJson } from 'three-particles'
 
 export const EmitterList: React.FC = () => {
-    const { currentEffect, updateEffect } = useEffectStore()
+    const { currentEffect, updateEffect, addEmitter, canUndo } =
+        useEffectStore()
     const navigate = useSafeNavigate()
     const { id } = useParams<{ id: string }>()
 
@@ -90,11 +91,7 @@ export const EmitterList: React.FC = () => {
             material: null,
         } as const satisfies ParticleEmitterModelJson
 
-        const updatedEmitters = [...emitters, newEmitter]
-        updateEffect({
-            ...currentEffect.effect,
-            emitters: updatedEmitters,
-        })
+        addEmitter(newEmitter)
 
         // Navigate to the new emitter
         if (id) {
