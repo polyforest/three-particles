@@ -1,20 +1,22 @@
 import React, { useState } from 'react'
 import {
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    TextField,
     Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
     Paper,
+    TextField,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
-import { ParticleEffectModelJson } from 'three-particles'
+import { createNewEffect } from '../storage/EffectFile'
+import { savedEffectStorage } from '../store/storePersistence'
+import errorHandler from '../utils/errorHandler'
+import { useSafeNavigate } from '../hooks/useSafeNavigate'
 
 interface ParticleEffectCreationDialogProps {
     open: boolean
     onClose: () => void
-    onCreate: (name: string, effect: ParticleEffectModelJson) => Promise<void>
 }
 
 // Create a styled Paper component for dialog background
@@ -25,17 +27,17 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
 
 export const ParticleEffectCreationDialog: React.FC<
     ParticleEffectCreationDialogProps
-> = ({ open, onClose, onCreate }) => {
+> = ({ open, onClose }) => {
     const [name, setName] = useState('New Particle Effect')
+    const navigate = useSafeNavigate()
 
     const handleCreate = () => {
-        // Create a basic particle effect template
-        const newEffect: ParticleEffectModelJson = {
-            version: '1.0',
-            emitters: [],
-        }
-
-        onCreate(name, newEffect).then(onClose).catch(console.error)
+        ;(async () => {
+            const newEffect = createNewEffect(name)
+            await savedEffectStorage.saveEffect(newEffect)
+            navigate(`/effect/${newEffect.metadata.id}`)
+            onClose()
+        })().catch(errorHandler)
     }
 
     return (

@@ -1,23 +1,9 @@
 import React from 'react'
-import { AppBar, Toolbar, Typography } from '@mui/material'
-import { ParticleEffectModelJson } from 'three-particles'
+import { AppBar, Box, IconButton, Toolbar, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
 import { FileMenu } from './FileMenu'
 
-interface AppHeaderProps {
-    onNewEffect: () => void
-    onOpenEffect: (effect: ParticleEffectModelJson) => void
-    onSaveEffect: (name: string) => void
-    currentEffect: ParticleEffectModelJson | null
-    title: string
-}
-
-export const AppHeader: React.FC<AppHeaderProps> = ({
-    onNewEffect,
-    onOpenEffect,
-    onSaveEffect,
-    currentEffect,
-    title,
-}) => {
+export const AppHeader: React.FC = () => {
     return (
         <AppBar
             position="static"
@@ -25,18 +11,26 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             sx={{ borderBottom: '1px solid rgba(255, 255, 255, 0.12)' }}
         >
             <Toolbar>
-                <FileMenu
-                    onNewEffect={onNewEffect}
-                    onOpenEffect={onOpenEffect}
-                    onSaveEffect={onSaveEffect}
-                    currentEffect={currentEffect}
-                />
+                <IconButton
+                    component={RouterLink}
+                    to="/"
+                    size="small"
+                    aria-label="Home"
+                >
+                    <Box
+                        component="img"
+                        src="/favicon.svg"
+                        alt="Particle Editor Logo"
+                        sx={{ width: 24, height: 24, display: 'block' }}
+                    />
+                </IconButton>
+                <FileMenu />
                 <Typography
                     variant="h6"
                     component="div"
                     sx={{ flexGrow: 1, ml: 2, fontWeight: 500 }}
                 >
-                    {title}
+                    PolyForest<sup>®</sup> Particle Editor
                 </Typography>
             </Toolbar>
         </AppBar>

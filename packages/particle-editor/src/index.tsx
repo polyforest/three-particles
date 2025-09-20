@@ -1,168 +1,93 @@
-import React, { useState } from 'react'
+import React from 'react'
 import { createRoot } from 'react-dom/client'
+import { HashRouter, Route, Routes } from 'react-router-dom'
 import './App.scss'
-import {
-    CssBaseline,
-    Container,
-    Box,
-    Card,
-    CardContent,
-    Typography,
-} from '@mui/material'
+import { Box, CssBaseline } from '@mui/material'
 import { ThemeProvider } from '@mui/material/styles'
-import { ParticleEffectModelJson } from 'three-particles'
-import { AppHeader } from './components/AppHeader'
-import { ParticleEffectCreationDialog } from './components/ParticleEffectCreationDialog'
-import { saveEffect, updateEffect } from './storage/indexedDBStorage'
 import { darkTheme } from './theme/darkTheme'
-import errorHandler, {
-    handleError,
-    showSuccessToast,
-} from './utils/errorHandler'
 import { GlobalStyles } from './theme/GlobalStyles'
+import { useEffectStorePersistence } from './store/storePersistence'
+import { useEffect } from 'react'
+import { useEffectStore } from './store/effectStore'
+import { EffectEditor } from './components/EffectEditor'
+import { WelcomeScreen } from './components/WelcomeScreen'
 
 const App: React.FC = () => {
-    const [currentEffect, setCurrentEffect] =
-        useState<ParticleEffectModelJson | null>(null)
-    const [currentEffectId, setCurrentEffectId] = useState<string | null>(null)
-    const [currentEffectName, setCurrentEffectName] = useState<string>('')
-    const [isNewEffectDialogOpen, setIsNewEffectDialogOpen] = useState(false)
+    // Enable auto-save persistence for effect changes
+    useEffectStorePersistence()
 
-    const handleNewEffect = () => {
-        setIsNewEffectDialogOpen(true)
-    }
-
-    const handleCreateEffect = async (
-        name: string,
-        effect: ParticleEffectModelJson,
-    ): Promise<void> => {
-        try {
-            const id = await saveEffect(name, effect)
-            setCurrentEffect(effect)
-            setCurrentEffectId(id)
-            setCurrentEffectName(name)
-        } catch (error) {
-            console.error('Failed to save new effect:', error)
-        }
-    }
-
-    const handleOpenEffect = (effect: ParticleEffectModelJson) => {
-        setCurrentEffect(effect)
-    }
-
-    const handleSaveEffect = (name: string) => {
-        ;(async () => {
-            if (!currentEffect) return
-
-            try {
-                if (currentEffectId) {
-                    await updateEffect(currentEffectId, name, currentEffect)
+    // Global undo/redo hotkeys (Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z)
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            const isMac = /Mac|iPhone|iPad|iPod/i.test(
+                navigator.platform || navigator.userAgent,
+            )
+            const mod = isMac ? e.metaKey : e.ctrlKey
+            if (!mod) return
+            const key = e.key.toLowerCase()
+            if (key === 'z') {
+                const state = useEffectStore.getState()
+                if (e.shiftKey) {
+                    if (state.canRedo()) {
+                        e.preventDefault()
+                        state.redo()
+                    }
                 } else {
-                    const id = await saveEffect(name, currentEffect)
-                    setCurrentEffectId(id)
+                    console.log('undo key:', state.canUndo())
+                    if (state.canUndo()) {
+                        e.preventDefault()
+                        state.undo()
+                    }
                 }
-                setCurrentEffectName(name)
-                showSuccessToast('Effect saved successfully')
-            } catch (error: any) {
-                handleError(error, 'saving effect')
             }
-        })().catch(errorHandler)
-    }
+        }
+        window.addEventListener('keydown', handler)
+        return () => window.removeEventListener('keydown', handler)
+    }, [])
 
     return (
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <GlobalStyles />
-            <AppHeader
-                onNewEffect={handleNewEffect}
-                onOpenEffect={handleOpenEffect}
-                onSaveEffect={handleSaveEffect}
-                currentEffect={currentEffect}
-                title={currentEffectName || 'Particle Editor'}
-            />
-
-            <Container
-                maxWidth="lg"
+            <Box
                 sx={{
-                    mt: 4,
                     backgroundColor: 'background.default',
                     color: 'text.primary',
+                    height: '100%',
+                    width: '100%',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    p: 0,
                 }}
             >
-                {currentEffect ? (
-                    <Box sx={{ p: 2 }}>
-                        {/* Placeholder for actual particle editor UI */}
-                        <Typography variant="h5" gutterBottom>
-                            Editing: {currentEffectName || 'Untitled Effect'}
-                        </Typography>
-                        <Typography variant="body1" gutterBottom>
-                            Particle Editor UI will be implemented here
-                        </Typography>
-                        <pre
-                            style={{
-                                background: '#2a2a2a',
-                                padding: '1rem',
-                                borderRadius: '4px',
-                                overflow: 'auto',
-                                color: '#e0e0e0',
-                            }}
-                        >
-                            {JSON.stringify(currentEffect, null, 2)}
-                        </pre>
-                    </Box>
-                ) : (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            height: '70vh',
-                        }}
-                    >
-                        <Card
-                            sx={{
-                                maxWidth: 600,
-                                width: '100%',
-                                borderRadius: '12px',
-                                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.5)',
-                            }}
-                        >
-                            <CardContent>
-                                <Typography
-                                    variant="h5"
-                                    component="div"
-                                    gutterBottom
-                                    align="center"
-                                >
-                                    Welcome to the [WIP] Particle Editor
-                                </Typography>
-                                <Typography
-                                    variant="body1"
-                                    paragraph
-                                    align="center"
-                                >
-                                    Create a new particle effect or open an
-                                    existing one to get started.
-                                </Typography>
-                                <Typography
-                                    variant="body2"
-                                    align="center"
-                                    color="text.secondary"
-                                >
-                                    Use the File menu in the top left to create
-                                    a new effect or open an existing one.
-                                </Typography>
-                            </CardContent>
-                        </Card>
-                    </Box>
-                )}
-            </Container>
-
-            <ParticleEffectCreationDialog
-                open={isNewEffectDialogOpen}
-                onClose={() => setIsNewEffectDialogOpen(false)}
-                onCreate={handleCreateEffect}
-            />
+                <HashRouter>
+                    <Routes>
+                        <Route path="/" element={<WelcomeScreen />} />
+                        <Route path="/effect/:id" element={<EffectEditor />} />
+                        <Route
+                            path="/effect/:id/source"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitters"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitter/:emitterId"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitters"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitter/:emitterId"
+                            element={<EffectEditor />}
+                        />
+                    </Routes>
+                </HashRouter>
+            </Box>
         </ThemeProvider>
     )
 }

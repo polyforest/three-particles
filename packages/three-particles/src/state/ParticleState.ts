@@ -4,6 +4,8 @@ import { ParticleEmitterModel, randomFromZone, TimelineModel } from '../model'
 import { PropertyValue } from './PropertyValue'
 import { getTimelineValues, HALF_PI } from '../util'
 
+const tmpVec = new Vector3()
+
 /**
  * Updates the particle state.
  */
@@ -95,9 +97,14 @@ export class ParticleState implements ParticleProperties {
             prop.apply(alphaClamped, emitterAlpha)
         }
 
-        this.position.add(this.velocity)
-        this.rotation.add(this.rotationalVelocity)
-        this.forwardDirection.add(this.forwardDirectionVelocity)
+        // Scale velocities by tickTime
+        this.position.add(tmpVec.copy(this.velocity).multiplyScalar(tickTime))
+        this.rotation.add(
+            tmpVec.copy(this.rotationalVelocity).multiplyScalar(tickTime),
+        )
+        this.forwardDirection.add(
+            tmpVec.copy(this.forwardDirectionVelocity).multiplyScalar(tickTime),
+        )
         if (this.forwardVelocity !== 0) {
             if (
                 this.forwardDirection.y !== 0 ||
@@ -106,8 +113,10 @@ export class ParticleState implements ParticleProperties {
                 // TODO: 3D forward direction.
             } else if (this.forwardDirection.z !== 0) {
                 const theta = this.forwardDirection.z
-                this.position.x += Math.cos(theta) * this.forwardVelocity
-                this.position.y += Math.sin(theta) * this.forwardVelocity
+                this.position.x +=
+                    Math.cos(theta) * this.forwardVelocity * tickTime
+                this.position.y +=
+                    Math.sin(theta) * this.forwardVelocity * tickTime
             }
         }
 
@@ -203,7 +212,9 @@ class ColorPropertyState implements ParticlePropertyState {
         private readonly timeline: TimelineModel,
     ) {
         if (timeline.timeline.length % 4 !== 0)
-            throw new Error('invalid color timeline, expected stride to be 4')
+            throw new Error(
+                `invalid color timeline, expected stride to be 4, was length ${timeline.timeline.length}`,
+            )
     }
 
     apply(particleAlpha: number, emitterAlpha: number): void {
