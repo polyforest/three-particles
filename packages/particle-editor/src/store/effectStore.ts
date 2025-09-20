@@ -6,6 +6,10 @@ import { FileMetadata } from '../storage/FileMetadata'
 interface EffectStore {
     currentEffect: EffectFile | null
 
+    // History stacks for undo/redo
+    past: EffectFile[]
+    future: EffectFile[]
+
     /**
      * Sets the current effect.
      * @param effect
@@ -16,6 +20,9 @@ interface EffectStore {
 
     updateName: (name: string) => void
 
+    delete: () => void
+    undelete: () => void
+
     clearEffect: () => void
 
     addEmitter: (emitter: any) => void
@@ -25,12 +32,29 @@ interface EffectStore {
     toggleEmitter: (emitterUuid: string) => void
 
     toggleAllEmitters: (enabled: boolean) => void
+
+    // Undo/redo API
+    undo: () => void
+    redo: () => void
+    canUndo: () => boolean
+    canRedo: () => boolean
 }
 
 export const useEffectStore = create<EffectStore>((set, get) => {
+    const deepClone = <T,>(obj: T): T => JSON.parse(JSON.stringify(obj))
+
+    const pushToHistory = () => {
+        const state = get()
+        const current = state.currentEffect
+        if (!current) return
+        const snapshot = deepClone(current)
+        set({ past: [...state.past, snapshot], future: [] })
+    }
+
     const update = (effect: Partial<EffectFile>) => {
         const current = get().currentEffect
         if (!current) return
+        pushToHistory()
         const updatedEffect: EffectFile = {
             ...current,
             ...effect,
@@ -45,6 +69,7 @@ export const useEffectStore = create<EffectStore>((set, get) => {
     const updateMetadata = (metadata: Partial<FileMetadata>) => {
         const current = get().currentEffect
         if (!current) return
+        pushToHistory()
         const updatedEffect: EffectFile = {
             ...current,
             metadata: {
@@ -58,9 +83,12 @@ export const useEffectStore = create<EffectStore>((set, get) => {
 
     return {
         currentEffect: null,
+        past: [],
+        future: [],
 
         setCurrentEffectFile: (effect) => {
-            set({ currentEffect: effect })
+            // Setting a new current effect resets history
+            set({ currentEffect: effect, past: [], future: [] })
         },
 
         updateEffect: (effect) => {
@@ -80,7 +108,8 @@ export const useEffectStore = create<EffectStore>((set, get) => {
         },
 
         clearEffect: () => {
-            get().setCurrentEffectFile(null)
+            // Clearing effect also clears history
+            set({ currentEffect: null, past: [], future: [] })
         },
 
         addEmitter: (emitter) => {
@@ -139,5 +168,26 @@ export const useEffectStore = create<EffectStore>((set, get) => {
                 },
             })
         },
+
+        undo: () => {
+            const { past, currentEffect, future } = get()
+            if (!currentEffect || past.length === 0) return
+            const previous = past[past.length - 1]
+            const newPast = past.slice(0, past.length - 1)
+            const snapshot = deepClone(currentEffect)
+            set({ currentEffect: previous, past: newPast, future: [snapshot, ...future] })
+        },
+
+        redo: () => {
+            const { past, currentEffect, future } = get()
+            if (!currentEffect || future.length === 0) return
+            const next = future[0]
+            const newFuture = future.slice(1)
+            const snapshot = deepClone(currentEffect)
+            set({ currentEffect: next, past: [...past, snapshot], future: newFuture })
+        },
+
+        canUndo: () => get().past.length > 0,
+        canRedo: () => get().future.length > 0,
     }
 })
