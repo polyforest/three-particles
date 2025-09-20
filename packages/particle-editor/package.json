@@ -1,6 +1,6 @@
 {
     "name": "@polyforest/three-particles-editor",
-    "version": "0.4.2",
+    "version": "0.5.0",
     "private": true,
     "scripts": {
         "lint": "npm run prettier:check && eslint .",
