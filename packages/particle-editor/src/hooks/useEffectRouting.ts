@@ -8,11 +8,14 @@ import logger from '../utils/logger'
 export const useEffectRouting = () => {
     const { id } = useParams<{ id: string }>()
     const navigate = useNavigate()
-    const { setCurrentEffectFile } = useEffectStore()
+    const { setCurrentEffectFile, currentEffect } = useEffectStore()
 
     useEffect(() => {
         const loadEffect = async () => {
             if (!id) return
+
+            // Avoid resetting history by only loading when the route id differs from the loaded effect
+            if (currentEffect?.metadata.id === id) return
 
             const effect = await savedEffectStorage.getEffectById(id)
             const deleted = effect?.metadata.deleted
@@ -27,7 +30,8 @@ export const useEffectRouting = () => {
         }
 
         loadEffect().catch(errorHandler)
-    }, [id, navigate, setCurrentEffectFile])
+        // Intentionally exclude setCurrentEffectFile from deps to avoid effect re-running on store updates
+    }, [id, currentEffect?.metadata.id])
 
     return { navigate }
 }
