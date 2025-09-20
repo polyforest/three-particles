@@ -10,13 +10,39 @@ import { SourceEditor } from './SourceEditor'
 import { useLocation } from 'react-router-dom'
 import { SplitPane } from './SplitPane'
 
+import { EmitterList } from './EmitterList'
+
 export const EffectEditor: React.FC = () => {
     const { currentEffect } = useEffectStore()
     const [isPreviewVisible, setIsPreviewVisible] = useState(true)
     const location = useLocation()
     const isSourceEditor = location.pathname.endsWith('/source')
+    const isEmitterList = location.pathname.endsWith('/emitters')
 
     useEffectRouting()
+
+    const renderMainContent = () => {
+        if (isSourceEditor) {
+            return (
+                <SourceEditor
+                    isPreviewVisible={isPreviewVisible}
+                    setIsPreviewVisible={setIsPreviewVisible}
+                    sx={{ width: '100%', height: '100%' }}
+                />
+            )
+        } else if (isEmitterList) {
+            return <EmitterList />
+        } else {
+            return (
+                <EffectGuiEditor
+                    sx={{
+                        width: '100%',
+                        height: '100%',
+                    }}
+                />
+            )
+        }
+    }
 
     return (
         currentEffect && (
@@ -45,20 +71,7 @@ export const EffectEditor: React.FC = () => {
                             console.log('size:', sizes)
                         }}
                     >
-                        {isSourceEditor ? (
-                            <SourceEditor
-                                isPreviewVisible={isPreviewVisible}
-                                setIsPreviewVisible={setIsPreviewVisible}
-                                sx={{ width: '100%', height: '100%' }}
-                            />
-                        ) : (
-                            <EffectGuiEditor
-                                sx={{
-                                    width: '100%',
-                                    height: '100%',
-                                }}
-                            />
-                        )}
+                        {renderMainContent()}
 
                         {isPreviewVisible && (
                             <Box sx={{ flex: 1 }}>

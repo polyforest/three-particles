@@ -38,6 +38,22 @@ const App: React.FC = () => {
                             path="/effect/:id/source"
                             element={<EffectEditor />}
                         />
+                            <Route
+                                path="/effect/:id/emitters"
+                                element={<EffectEditor />}
+                            />
+                            <Route
+                                path="/effect/:id/emitter/:emitterId"
+                                element={<EffectEditor />}
+                            />
+                        <Route
+                            path="/effect/:id/emitters"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitter/:emitterId"
+                            element={<EffectEditor />}
+                        />
                     </Routes>
                 </HashRouter>
             </Box>

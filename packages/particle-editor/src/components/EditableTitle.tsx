@@ -57,6 +57,8 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
                         },
                         padding: '4px 8px',
                         borderRadius: 1,
+                        minWidth: '300px',
+                        maxWidth: '100%',
                     }}
                 >
                     {displayValue}

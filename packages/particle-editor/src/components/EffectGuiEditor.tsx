@@ -2,10 +2,12 @@ import React from 'react'
 import { Box, Button, Typography } from '@mui/material'
 import { EditableTitle } from './EditableTitle'
 import EditIcon from '@mui/icons-material/Edit'
+import ListIcon from '@mui/icons-material/List'
 import { useEffectStore } from '../store/effectStore'
 import { useParams } from 'react-router-dom'
 import { useSafeNavigate } from '../hooks/useSafeNavigate'
 import { BoxProps } from '@mui/material/Box/Box'
+import { EmitterEditor } from './EmitterEditor'
 
 export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
     const { currentEffect, updateName } = useEffectStore()
@@ -18,6 +20,12 @@ export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
         }
     }
 
+    const handleOpenEmitterList = () => {
+        if (id) {
+            navigate(`/effect/${id}/emitters`)
+        }
+    }
+
     if (!currentEffect) return null
 
     return (
@@ -25,43 +33,43 @@ export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
             {...boxProps}
             sx={{
                 ...boxProps.sx,
-                overflowY: 'auto',
+                overflow: 'auto',
                 p: 4,
             }}
         >
-            <EditableTitle
-                value={currentEffect.metadata.name}
-                onChange={updateName}
-            />
             <Box
                 sx={{
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     mb: 2,
+                    minWidth: '400px',
                 }}
             >
-                <Typography variant="body1">Effect Editor</Typography>
-                <Button
-                    variant="outlined"
-                    startIcon={<EditIcon />}
-                    onClick={handleEditSource}
-                    size="small"
-                >
-                    Edit Source
-                </Button>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                        variant="outlined"
+                        startIcon={<ListIcon />}
+                        onClick={handleOpenEmitterList}
+                        size="small"
+                    >
+                        Emitters
+                    </Button>
+                    <Button
+                        variant="outlined"
+                        startIcon={<EditIcon />}
+                        onClick={handleEditSource}
+                        size="small"
+                    >
+                        Source
+                    </Button>
+                </Box>
             </Box>
-            <pre
-                style={{
-                    background: '#2a2a2a',
-                    padding: '1rem',
-                    borderRadius: '4px',
-                    overflow: 'auto',
-                    color: '#e0e0e0',
-                }}
-            >
-                {JSON.stringify(currentEffect.effect, null, 2)}
-            </pre>
+            <EditableTitle
+                value={currentEffect.metadata.name}
+                onChange={updateName}
+            />
+            <EmitterEditor />
         </Box>
     )
 }
