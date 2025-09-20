@@ -12,7 +12,7 @@ export class SavedEffectStorage {
         this.storage = storage
     }
 
-    async getMetadataIndex(): Promise<readonly FileMetadata[]> {
+    async getMetadataIndex(): Promise<FileMetadata[]> {
         try {
             return (await this.storage.get(METADATA_KEY)) ?? []
         } catch (error) {

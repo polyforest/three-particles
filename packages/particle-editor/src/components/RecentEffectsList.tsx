@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
     Divider,
     IconButton,
@@ -10,11 +10,9 @@ import {
 import { styled } from '@mui/material/styles'
 import DeleteIcon from '@mui/icons-material/Delete'
 import RestoreIcon from '@mui/icons-material/Restore'
-import { FileMetadata } from '../storage/FileMetadata'
 import errorHandler from '../utils/errorHandler'
-import { logger } from '../utils/logger'
-import { savedEffectStorage } from '../store/storePersistence'
 import { useSafeNavigate } from '../hooks/useSafeNavigate'
+import { useRecentEffectsStore } from '../store/recentEffectsStore'
 
 interface RecentEffectsListProps {
     onEffectSelected?: () => void
@@ -32,41 +30,26 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
     onEffectSelected,
     filter = 'active',
 }) => {
-    const storage = savedEffectStorage
-    const [effectsMetadata, setEffectsMetadata] = useState<FileMetadata[]>([])
-    const [loading, setLoading] = useState(true)
+    const { metadataIndex, loading, loadIndex, deleteEffect, undeleteEffect } =
+        useRecentEffectsStore()
     const navigate = useSafeNavigate()
 
-    const loadEffects = async () => {
-        try {
-            setLoading(true)
-            const metadata = await storage.getMetadataIndex()
-
-            // Filter based on the filter prop
-            let filterFn: (metadata: FileMetadata) => boolean
-            if (filter === 'deleted') {
-                filterFn = (item) => item.deleted === true
-            } else if (filter === 'active') {
-                filterFn = (item) => !item.deleted
-            } else {
-                // 'all' shows everything without filtering
-                filterFn = () => true
-            }
-            const filteredMetadata = metadata.filter(filterFn)
-
-            // Sort by the last modified date, the newest first
-            filteredMetadata.sort((a, b) => b.lastModified - a.lastModified)
-            setEffectsMetadata(filteredMetadata)
-        } catch (error) {
-            logger.error('Failed to load effects metadata', error)
-        } finally {
-            setLoading(false)
-        }
-    }
-
     useEffect(() => {
-        loadEffects().catch(errorHandler)
+        loadIndex().catch(errorHandler)
     }, [])
+
+    const effectsMetadata = React.useMemo(() => {
+        let filterFn: (metadata: any) => boolean
+        if (filter === 'deleted') {
+            filterFn = (item) => item.deleted === true
+        } else if (filter === 'active') {
+            filterFn = (item) => !item.deleted
+        } else {
+            // 'all' shows everything without filtering
+            filterFn = () => true
+        }
+        return metadataIndex.filter(filterFn)
+    }, [metadataIndex, filter])
 
     const handleSelectEffect = async (id: string) => {
         navigate(`/effect/${id}`)
@@ -75,14 +58,12 @@ export const RecentEffectsList: React.FC<RecentEffectsListProps> = ({
 
     const handleDeleteEffect = async (event: React.MouseEvent, id: string) => {
         event.stopPropagation()
-        await storage.deleteEffect(id)
-        await loadEffects()
+        await deleteEffect(id)
     }
 
     const handleRestoreEffect = async (event: React.MouseEvent, id: string) => {
         event.stopPropagation()
-        await storage.undeleteEffect(id)
-        await loadEffects()
+        await undeleteEffect(id)
     }
 
     const formatDate = (timestamp: number) => {
