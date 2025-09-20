@@ -13,6 +13,8 @@ interface SplitPaneProps extends BoxProps {
     direction: 'horizontal' | 'vertical'
     onUpdate?: (sizes: PaneSize[]) => void
     initialSizes?: number[]
+    minSizes?: number[]
+    maxSizes?: number[]
 }
 
 const StyledDivider = styled(Box)<{ direction: 'horizontal' | 'vertical' }>(
@@ -47,6 +49,8 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
     direction,
     onUpdate,
     initialSizes,
+    minSizes,
+    maxSizes,
     ...restProps
 }) => {
     const nodeChildren = children.filter(
@@ -120,34 +124,63 @@ export const SplitPane: React.FC<SplitPaneProps> = ({
 
             const delta = currentPos - startPos
 
-            const deltaPercent = delta / containerSize
+            let deltaPercent = delta / containerSize
 
-            const newSizes = [...startSizes]
             const leftPaneIndex = dragIndex
             const rightPaneIndex = dragIndex + 1
 
-            // Calculate new sizes (minimum 5% = 0.05)
-            const newLeftSize = Math.max(
-                0.05,
-                startSizes[leftPaneIndex] + deltaPercent,
+            // Determine min/max constraints (default min 5%, max 95%)
+            const getMin = (i: number) =>
+                minSizes != null && typeof minSizes[i] === 'number'
+                    ? minSizes[i]
+                    : 0.05
+            const getMax = (i: number) =>
+                maxSizes != null && typeof maxSizes[i] === 'number'
+                    ? maxSizes[i]
+                    : 0.95
+
+            const leftStart = startSizes[leftPaneIndex]
+            const rightStart = startSizes[rightPaneIndex]
+
+            const leftMin = getMin(leftPaneIndex)
+            const leftMax = getMax(leftPaneIndex)
+            const rightMin = getMin(rightPaneIndex)
+            const rightMax = getMax(rightPaneIndex)
+
+            // Compute allowable delta range such that:
+            // leftStart + deltaPercent ∈ [leftMin, leftMax]
+            // rightStart - deltaPercent ∈ [rightMin, rightMax]
+            const lowerBound = Math.max(
+                leftMin - leftStart, // don't make left smaller than min
+                rightStart - rightMax, // don't make right larger than max
             )
-            const newRightSize = Math.max(
-                0.05,
-                startSizes[rightPaneIndex] - deltaPercent,
+            const upperBound = Math.min(
+                leftMax - leftStart, // don't make left larger than max
+                rightStart - rightMin, // don't make right smaller than min
             )
 
-            // Ensure we don't exceed bounds
-            const totalChange =
-                newLeftSize +
-                newRightSize -
-                (startSizes[leftPaneIndex] + startSizes[rightPaneIndex])
+            // Clamp delta within bounds
+            if (deltaPercent < lowerBound) deltaPercent = lowerBound
+            else if (deltaPercent > upperBound) deltaPercent = upperBound
 
-            newSizes[leftPaneIndex] = newLeftSize - totalChange / 2
-            newSizes[rightPaneIndex] = newRightSize - totalChange / 2
+            const newLeft = leftStart + deltaPercent
+            const newRight = rightStart - deltaPercent
+
+            const newSizes = [...startSizes]
+            newSizes[leftPaneIndex] = newLeft
+            newSizes[rightPaneIndex] = newRight
 
             setSizes(newSizes)
         },
-        [isDragging, dragIndex, startPos, startSizes, direction],
+        [
+            isDragging,
+            dragIndex,
+            startPos,
+            startSizes,
+            direction,
+            minSizes,
+            maxSizes,
+        ],
     )
 
     const handleMouseUp = useCallback(() => {
