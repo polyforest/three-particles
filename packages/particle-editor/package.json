@@ -1,6 +1,6 @@
 {
     "name": "@polyforest/three-particles-editor",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "private": true,
     "scripts": {
         "lint": "npm run prettier:check && eslint .",
@@ -23,7 +23,7 @@
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
         "react-router-dom": "^7.8.2",
-        "three-particles": "*",
+        "three-particles": "^0.6.0",
         "zustand": "^5.0.8"
     },
     "devDependencies": {

@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.6.0](https://github.com/polyforest/three-particles/compare/v0.5.0...v0.6.0) (2025-09-20)
+
+### Features
+
+- scale particle state by tickTime ([9c13174](https://github.com/polyforest/three-particles/commit/9c131744321d498d6412c6e61e3fe21b23ca1b07))
+
 # [0.5.0](https://github.com/polyforest/three-particles/compare/v0.4.2...v0.5.0) (2025-08-30)
 
 ### Features
