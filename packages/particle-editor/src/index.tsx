@@ -7,12 +7,42 @@ import { ThemeProvider } from '@mui/material/styles'
 import { darkTheme } from './theme/darkTheme'
 import { GlobalStyles } from './theme/GlobalStyles'
 import { useEffectStorePersistence } from './store/storePersistence'
+import { useEffect } from 'react'
+import { useEffectStore } from './store/effectStore'
 import { EffectEditor } from './components/EffectEditor'
 import { WelcomeScreen } from './components/WelcomeScreen'
 
 const App: React.FC = () => {
     // Enable auto-save persistence for effect changes
     useEffectStorePersistence()
+
+    // Global undo/redo hotkeys (Cmd/Ctrl+Z and Shift+Cmd/Ctrl+Z)
+    useEffect(() => {
+        const handler = (e: KeyboardEvent) => {
+            const isMac = /Mac|iPhone|iPad|iPod/i.test(
+                navigator.platform || navigator.userAgent,
+            )
+            const mod = isMac ? e.metaKey : e.ctrlKey
+            if (!mod) return
+            const key = e.key.toLowerCase()
+            if (key === 'z') {
+                const state = useEffectStore.getState()
+                if (e.shiftKey) {
+                    if (state.canRedo()) {
+                        e.preventDefault()
+                        state.redo()
+                    }
+                } else {
+                    if (state.canUndo()) {
+                        e.preventDefault()
+                        state.undo()
+                    }
+                }
+            }
+        }
+        window.addEventListener('keydown', handler)
+        return () => window.removeEventListener('keydown', handler)
+    }, [])
 
     return (
         <ThemeProvider theme={darkTheme}>
@@ -38,14 +68,14 @@ const App: React.FC = () => {
                             path="/effect/:id/source"
                             element={<EffectEditor />}
                         />
-                            <Route
-                                path="/effect/:id/emitters"
-                                element={<EffectEditor />}
-                            />
-                            <Route
-                                path="/effect/:id/emitter/:emitterId"
-                                element={<EffectEditor />}
-                            />
+                        <Route
+                            path="/effect/:id/emitters"
+                            element={<EffectEditor />}
+                        />
+                        <Route
+                            path="/effect/:id/emitter/:emitterId"
+                            element={<EffectEditor />}
+                        />
                         <Route
                             path="/effect/:id/emitters"
                             element={<EffectEditor />}
