@@ -19,7 +19,7 @@ export const AppHeader: React.FC = () => {
                 >
                     <Box
                         component="img"
-                        src="/favicon.svg"
+                        src="favicon.svg"
                         alt="Particle Editor Logo"
                         sx={{ width: 24, height: 24, display: 'block' }}
                     />
