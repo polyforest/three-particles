@@ -38,6 +38,8 @@ interface EffectStore {
 
     toggleAllEmitters: (enabled: boolean) => void
 
+    updateEmitter: (emitter: ParticleEmitterModelJson) => void
+
     // Undo/redo API
     undo: () => void
     redo: () => void
@@ -171,6 +173,21 @@ export const useEffectStore = create<EffectStore>((set, get) => {
             if (!current) return
             const updatedEmitters = (current.effect.emitters || []).map(
                 (e) => ({ ...e, enabled }),
+            )
+            update({
+                effect: {
+                    ...current.effect,
+                    emitters: updatedEmitters,
+                },
+            })
+        },
+
+        updateEmitter: (emitter) => {
+            logger.debug('updateEmitter', emitter.uuid)
+            const current = get().currentEffect
+            if (!current || !emitter.uuid) return
+            const updatedEmitters = (current.effect.emitters || []).map((e) =>
+                e.uuid === emitter.uuid ? emitter : e,
             )
             update({
                 effect: {

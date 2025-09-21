@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { EditableTitle } from './EditableTitle'
 import EditIcon from '@mui/icons-material/Edit'
 import ListIcon from '@mui/icons-material/List'
@@ -34,9 +34,17 @@ export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
             sx={{
                 ...boxProps.sx,
                 overflow: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 2,
                 p: 4,
             }}
         >
+            <EditableTitle
+                label="EFFECT"
+                value={currentEffect.metadata.name}
+                onChange={updateName}
+            />
             <Box
                 sx={{
                     display: 'flex',
@@ -65,10 +73,7 @@ export const EffectGuiEditor: React.FC<BoxProps> = (boxProps: BoxProps) => {
                     </Button>
                 </Box>
             </Box>
-            <EditableTitle
-                value={currentEffect.metadata.name}
-                onChange={updateName}
-            />
+
             <EmitterEditor />
         </Box>
     )

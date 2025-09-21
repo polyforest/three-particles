@@ -2,9 +2,10 @@ import React from 'react'
 import { Box, Typography, Alert } from '@mui/material'
 import { useEffectStore } from '../store/effectStore'
 import { useParams } from 'react-router-dom'
+import { EditableTitle } from './EditableTitle'
 
 export const EmitterEditor: React.FC = () => {
-    const { currentEffect } = useEffectStore()
+    const { currentEffect, updateEmitter } = useEffectStore()
     const { emitterId } = useParams<{ emitterId: string }>()
 
     if (!currentEffect) {
@@ -55,9 +56,14 @@ export const EmitterEditor: React.FC = () => {
 
     return (
         <Box sx={{ minWidth: '400px' }}>
-            <Typography variant="h6" gutterBottom>
-                Editing Emitter: {emitter.uuid}
-            </Typography>
+            <EditableTitle
+                label="EMITTER"
+                value={emitter.name || ''}
+                onChange={(newName) =>
+                    updateEmitter({ ...emitter, name: newName })
+                }
+                defaultValue={`[Untitled Emitter]`}
+            />
 
             <Typography
                 variant="body2"

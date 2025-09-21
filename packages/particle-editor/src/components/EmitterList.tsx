@@ -1,16 +1,16 @@
 import React from 'react'
 import {
     Box,
+    Button,
+    IconButton,
     List,
     ListItem,
-    ListItemText,
-    ListItemSecondaryAction,
-    Switch,
-    IconButton,
-    Button,
-    Typography,
-    Tooltip,
     ListItemButton,
+    ListItemSecondaryAction,
+    ListItemText,
+    Switch,
+    Tooltip,
+    Typography,
 } from '@mui/material'
 import DeleteIcon from '@mui/icons-material/Delete'
 import AddIcon from '@mui/icons-material/Add'
@@ -21,8 +21,7 @@ import { MathUtils } from 'three'
 import { ParticleEmitterModelJson } from 'three-particles'
 
 export const EmitterList: React.FC = () => {
-    const { currentEffect, updateEffect, addEmitter, canUndo } =
-        useEffectStore()
+    const { currentEffect, updateEffect, addEmitter } = useEffectStore()
     const navigate = useSafeNavigate()
     const { id } = useParams<{ id: string }>()
 
@@ -63,6 +62,7 @@ export const EmitterList: React.FC = () => {
     const handleAddEmitter = () => {
         const newEmitter = {
             uuid: MathUtils.generateUUID(),
+            name: `Emitter ${emitters.length + 1}`,
             enabled: true,
             loops: true,
             count: 100,
@@ -170,7 +170,7 @@ export const EmitterList: React.FC = () => {
                                 >
                                     <ListItemText
                                         primary={
-                                            emitter.uuid ||
+                                            emitter.name ||
                                             `Emitter ${index + 1}`
                                         }
                                         secondary={`${emitter.count || 0} particles`}

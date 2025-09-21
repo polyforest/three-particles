@@ -5,12 +5,14 @@ interface EditableTitleProps {
     value: string
     onChange: (newValue: string) => void
     defaultValue?: string
+    label?: string
 }
 
 export const EditableTitle: React.FC<EditableTitleProps> = ({
     value,
     onChange,
     defaultValue = 'Untitled Effect',
+    label,
 }) => {
     const [isEditing, setIsEditing] = useState(false)
     const displayValue = value || defaultValue
@@ -29,7 +31,22 @@ export const EditableTitle: React.FC<EditableTitleProps> = ({
     }
 
     return (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+            {label && (
+                <Typography
+                    variant="overline"
+                    sx={{
+                        color: 'text.secondary',
+                        fontSize: 10,
+                        letterSpacing: 1.5,
+                        lineHeight: 1,
+                        mb: 0.5,
+                        ml: 0.5,
+                    }}
+                >
+                    {label}
+                </Typography>
+            )}
             {isEditing ? (
                 <TextField
                     autoFocus
