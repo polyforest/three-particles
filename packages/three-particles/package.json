@@ -13,7 +13,7 @@
         "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
         "prettier:write": "prettier . --ignore-path ../../.prettierignore --cache --write",
         "test": "jest",
-        "build": "tsx buildSrc/build.ts && tsc",
+        "build": "tsx buildSrc/build.ts && tsc && npm run lint",
         "watch": "tsx buildSrc/build.ts -w"
     },
     "files": [
@@ -42,13 +42,14 @@
     "homepage": "https://github.com/polyforest/three-particles#readme",
     "type": "module",
     "devDependencies": {
-        "@types/three": "^0.174.0"
+        "@types/three": "^0.180.0",
+        "lerna": "^8.2.4"
     },
     "overrides": {
         "globals": "^16.0.0"
     },
     "peerDependencies": {
-        "three": "^0.174.0"
+        "three": ">=0.180.0 <0.181.0"
     },
     "dependencies": {
         "@types/lodash": "^4.17.20",

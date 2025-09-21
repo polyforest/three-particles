@@ -13,7 +13,7 @@ copyFiles({
     },
 })
 
-for (const pckg of ['example', 'particle-editor']) {
+for (const pckg of ['example']) {
     copyFiles({
         src: `packages/${pckg}/dist`,
         dest: `www/${pckg}`,
