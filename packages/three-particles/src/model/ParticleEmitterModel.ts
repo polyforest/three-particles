@@ -19,6 +19,11 @@ export interface ParticleEmitterModel {
     uuid: string
 
     /**
+     * The friendly name of the emitter.
+     */
+    name: string
+
+    /**
      * True if the emitter should be used.
      */
     enabled: boolean
@@ -88,6 +93,7 @@ export type ParticleEmitterModelJson = Omit<
  */
 export const particleEmitterDefaults = {
     uuid: '',
+    name: '',
     enabled: true,
     count: 100,
     loops: true,
@@ -146,7 +152,9 @@ export function sanitizeEmitter(
 ): asserts emitter is ParticleEmitterModel {
     defaults(
         emitter,
-        { id: MathUtils.generateUUID() },
+        {
+            id: MathUtils.generateUUID(),
+        },
         cloneDeep(
             particleEmitterDefaults,
         ) as WritableDeep<ParticleEmitterModel>,
