@@ -3,6 +3,7 @@
     "version": "0.6.0",
     "private": true,
     "scripts": {
+        "clean": "rimraf dist",
         "lint": "npm run prettier:check && eslint .",
         "lint:write": "npm run prettier:write && eslint . --fix",
         "prettier:check": "prettier . --ignore-path ../../.prettierignore --cache --check",
