@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/polyforest/three-particles/compare/three-particles@0.7.0...three-particles@0.8.0) (2025-09-24)
+
+### Features
+
+- export easing package ([ac4c9e7](https://github.com/polyforest/three-particles/commit/ac4c9e785891137529bf22dbcd1375830eae1d05))
+
 # 0.7.0 (2025-09-21)
 
 ### Features
