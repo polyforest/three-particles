@@ -3,7 +3,13 @@ import tseslint from 'typescript-eslint'
 
 export default [
     {
-        ignores: ['**/dist/**', '**/build/**', '**/buildSrc/**', '**/*.js', '**/*.config.ts'],
+        ignores: [
+            '**/dist/**',
+            '**/build/**',
+            '**/buildSrc/**',
+            '**/*.js',
+            '**/*.config.ts',
+        ],
     },
     ...tseslint.config(
         eslint.configs.recommended,
