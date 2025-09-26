@@ -52,8 +52,8 @@ let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
 loader
     .loadAsync('./fire.json')
-    .then((e) => {
-        particleEffect = e
+    .then((model) => {
+        particleEffect = new ParticleEffect(model)
         scene.add(particleEffect)
     })
     .catch(console.error)

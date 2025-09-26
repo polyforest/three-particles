@@ -2,13 +2,13 @@
  * @file Data descriptors for a particle effect (TypeScript version).
  */
 
-import { cloneDeep, defaults } from 'lodash'
 import { isNonNil } from '../util'
 import { RangeModel } from './RangeModel'
 import {
     ParticleEmitterModel,
     ParticleEmitterModelJson,
-    sanitizeEmitter,
+    particleEmitterModelToJson,
+    parseEmitter,
 } from './ParticleEmitterModel'
 import { PartialDeep } from 'type-fest'
 import { Material } from 'three'
@@ -39,6 +39,7 @@ export interface EmitterDurationModel {
 export interface ParticleEffectModel {
     version: string
     emitters: ParticleEmitterModel[]
+    materials: Record<string, Material>
 }
 
 /**
@@ -47,6 +48,7 @@ export interface ParticleEffectModel {
 export const particleEffectDefaults = {
     version: '1.0',
     emitters: [],
+    materials: {},
 } as const satisfies ParticleEffectModel
 
 export type ParticleEffectModelJson = Omit<
@@ -54,18 +56,49 @@ export type ParticleEffectModelJson = Omit<
     'emitters'
 > & {
     emitters?: ParticleEmitterModelJson[]
+    materials?: Record<string, any>
 }
 
 /**
- * Sets defaults on the particle effect data object.
- * Mutates the passed-in `effect`.
+ * Returns a new ParticleEffectModel with defaults applied.
  */
-export function sanitizeParticleEffect(
+export function parseParticleEffect(
     effect: ParticleEffectModelJson,
     materials: Record<string, Material>,
-): asserts effect is ParticleEffectModel {
-    defaults(effect, cloneDeep(particleEffectDefaults))
-    effect.emitters
+): ParticleEffectModel {
+    const emitters = (effect.emitters ?? [])
         .filter(isNonNil)
-        .forEach((emitter) => sanitizeEmitter(emitter, materials))
+        .map((emitter) => parseEmitter(emitter, materials))
+
+    return {
+        version: effect.version ?? particleEffectDefaults.version,
+        emitters,
+        materials,
+    }
+}
+
+/**
+ * Returns a compact representation of a ParticleEffectModel with default values removed.
+ */
+export function particleEffectModelToJson(
+    effect: ParticleEffectModel,
+): ParticleEffectModelJson {
+    const out: ParticleEffectModelJson = {}
+    out.version = effect.version
+    if (effect.emitters.length)
+        out.emitters = effect.emitters.map((e) =>
+            particleEmitterModelToJson(e, effect.materials),
+        )
+
+    const materialEntries = Object.entries(effect.materials)
+    if (materialEntries.length) {
+        const materials: Record<string, any> = {}
+        for (const [id, mat] of materialEntries) {
+            // Use three.js Material.toJSON to serialize material
+            materials[id] = mat.toJSON()
+        }
+        if (Object.keys(materials).length) out.materials = materials
+    }
+
+    return out
 }
