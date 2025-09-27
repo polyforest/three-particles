@@ -216,7 +216,9 @@ export function particleEmitterModelToJson(
     emitter: ParticleEmitterModel,
     materials: Record<string, Material | undefined>,
 ): Partial<ParticleEmitterModelJson> {
-    const out: ParticleEmitterModelJson = {}
+    const out: ParticleEmitterModelJson = {
+        uuid: emitter.uuid,
+    }
     if (emitter.name !== particleEmitterDefaults.name) out.name = emitter.name
     if (emitter.enabled !== particleEmitterDefaults.enabled)
         out.enabled = emitter.enabled
