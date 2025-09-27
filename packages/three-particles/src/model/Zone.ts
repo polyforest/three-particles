@@ -1,4 +1,3 @@
-import { defaults } from 'lodash'
 import { EaseType, getEase } from '../util'
 import { Vector3 } from 'three'
 import { PartialDeep } from 'type-fest'
@@ -6,16 +5,16 @@ import { PartialDeep } from 'type-fest'
 const { random, cos, sin, PI, acos, cbrt } = Math
 
 export interface Zone {
-    type: 'point' | 'box' | 'ellipsoid'
-    x: number
-    y: number
-    z: number
-    w: number
-    h: number
-    d: number
+    readonly type: 'point' | 'box' | 'ellipsoid'
+    readonly x: number
+    readonly y: number
+    readonly z: number
+    readonly w: number
+    readonly h: number
+    readonly d: number
 
     /** The easing from the center to the edge */
-    ease: EaseType
+    readonly ease: EaseType
 }
 
 export const zoneDefaults = {
@@ -29,8 +28,16 @@ export const zoneDefaults = {
     ease: 'linear',
 } as const satisfies Zone
 
-export function sanitizeZone(zone: PartialDeep<Zone>): asserts zone is Zone {
-    defaults(zone, zoneDefaults)
+export function parseZone(zone: PartialDeep<Zone>): Zone {
+    return { ...(zoneDefaults as Zone), ...zone }
+}
+
+export function zoneToJson(zone: Zone): Partial<Zone> {
+    const out: any = {}
+    for (const key of Object.keys(zoneDefaults) as (keyof Zone)[]) {
+        if (zone[key] !== zoneDefaults[key]) out[key] = zone[key]
+    }
+    return out
 }
 
 function setEaseVec(easeType: EaseType, out: Vector3) {
