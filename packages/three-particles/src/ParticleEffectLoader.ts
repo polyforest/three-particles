@@ -87,16 +87,17 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         json: ParticleEffectModelJson,
     ): Promise<ParticleEffectModel> {
         json = cloneDeep(json)
+        const bundledMaterials: Record<string, Material> = {}
         if (json.materials) {
             // Load materials from the JSON.
             const mLoader = this.materialLoader
             for (const [key, material] of Object.entries(json.materials)) {
-                this.materials[key] =
+                bundledMaterials[key] =
                     typeof material === 'string'
                         ? await mLoader.loadAsync(material)
                         : mLoader.parse(material)
             }
         }
-        return parseParticleEffect(json, this.materials)
+        return parseParticleEffect(json, bundledMaterials, this.materials)
     }
 }

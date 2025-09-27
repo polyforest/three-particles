@@ -26,7 +26,7 @@ describe('ParticleEffectModel', () => {
     describe('particleEffectModelToJson', () => {
         it('should omit defaults', () => {
             const parsed = parseParticleEffect({}, {})
-            const json = particleEffectModelToJson(parsed)
+            const json = particleEffectModelToJson(parsed, {}, {})
             expect(json).toEqual({ version: '1.0' })
         })
 
@@ -38,7 +38,8 @@ describe('ParticleEffectModel', () => {
                 emitters: [emitter],
                 materials: { a: mat },
             }
-            const json = particleEffectModelToJson(effect)
+            // Pass materials map so emitter/materials serialization can use it
+            const json = particleEffectModelToJson(effect, { a: mat }, {})
             expect(json.version).toBe('2.0')
             expect(Array.isArray(json.emitters)).toBe(true)
             expect(json.emitters!.length).toBe(1)
@@ -47,8 +48,11 @@ describe('ParticleEffectModel', () => {
             )
             expect(json.materials).toBeDefined()
             expect(typeof json.materials!.a).toBe('object')
-            // Three.js should produce a type for material JSON
-            expect(json.materials?.a.type).toBe('PointsMaterial')
+            // Three.js should produce a type for material JSON.
+            // Depending on three.js version, this may be top-level or nested under materials[0].
+            const matJson: any = json.materials?.a
+            const type = matJson?.type ?? matJson?.materials?.[0]?.type
+            expect(type).toBe('PointsMaterial')
         })
     })
 })
