@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/polyforest/three-particles/compare/three-particles@0.8.0...three-particles@0.9.0) (2025-09-28)
+
+### Bug Fixes
+
+- add uuid to ParticleEmitterModelJson ([caf2d03](https://github.com/polyforest/three-particles/commit/caf2d03e0298d8c03e10489c45c8f481dfe277d5))
+- particleEffectModelToJson texture mapping ([64ce69f](https://github.com/polyforest/three-particles/commit/64ce69ff36389d3daf81ae6436756e387986e030))
+
+### Features
+
+- export all utils ([b190027](https://github.com/polyforest/three-particles/commit/b190027448cc5064b6f61729f133cd7eedfe7be1))
+
 # [0.8.0](https://github.com/polyforest/three-particles/compare/three-particles@0.7.0...three-particles@0.8.0) (2025-09-24)
 
 ### Features
