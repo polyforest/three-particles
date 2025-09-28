@@ -1,16 +1,18 @@
 import { EmitterDurationModel } from './ParticleEffectModel'
 import { Material, MathUtils } from 'three'
 import {
-    sanitizeTimeline,
+    parseTimeline,
     timelineDefaults,
     TimelineModel,
     TimelineModelJson,
+    timelineModelToJson,
 } from './TimelineModel'
-import { rangeDefaults, sanitizeRange } from './RangeModel'
-import { PartialDeep, WritableDeep } from 'type-fest'
-import { cloneDeep, defaults } from 'lodash'
-import { isNonNil, Maybe } from '../util'
-import { sanitizeZone, Zone, zoneDefaults } from './Zone'
+import { rangeDefaults, rangeModelToJson, parseRange } from './RangeModel'
+import cloneDeep from 'lodash/cloneDeep'
+import { PartialDeep } from 'type-fest'
+import { isNonNil } from '../util/object'
+import { Maybe } from '../util/type'
+import { parseZone, Zone, zoneDefaults, zoneToJson } from './Zone'
 
 /**
  * Data for a particle emitter.
@@ -75,8 +77,8 @@ export interface ParticleEmitterModel {
 }
 
 /**
- * A loose definition of ParticleEmitterModel that may be sanitized by
- * sanitizeEmitter
+ * A loose definition of ParticleEmitterModel that may be parsed by
+ * parseEmitter
  */
 export type ParticleEmitterModelJson = Omit<
     PartialDeep<ParticleEmitterModel, { recurseIntoArrays: true }>,
@@ -84,7 +86,13 @@ export type ParticleEmitterModelJson = Omit<
 > & {
     emissionRate?: TimelineModelJson
     particleLifeExpectancy?: TimelineModelJson
-    material?: string | string[] | Material | Material[] | null
+    material?:
+        | string
+        | string[]
+        | Material
+        | Material[]
+        | (string | Material)[]
+        | null
     propertyTimelines?: TimelineModelJson[]
 }
 
@@ -143,38 +151,127 @@ export const particleEmitterDefaults = {
 } as const satisfies ParticleEmitterModel
 
 /**
- * Sets any defaults for unset properties on an emitter.
- * Mutates the passed-in `emitter`.
+ * Returns a new ParticleEmitterModel with defaults applied.
  */
-export function sanitizeEmitter(
+export function parseEmitter(
     emitter: ParticleEmitterModelJson,
     materials: Record<string, Material>,
-): asserts emitter is ParticleEmitterModel {
-    defaults(
-        emitter,
-        {
-            id: MathUtils.generateUUID(),
-        },
-        cloneDeep(
-            particleEmitterDefaults,
-        ) as WritableDeep<ParticleEmitterModel>,
+): ParticleEmitterModel {
+    const id = emitter.uuid ?? MathUtils.generateUUID()
+    const spawn = parseZone(emitter.spawn ?? (cloneDeep(zoneDefaults) as Zone))
+    const duration = parseEmitterDuration(
+        emitter.duration ?? cloneDeep(particleEmitterDefaults.duration),
     )
-    sanitizeZone(emitter.spawn)
-    sanitizeEmitterDuration(emitter.duration)
-    sanitizeTimeline(emitter.emissionRate)
-    sanitizeTimeline(emitter.particleLifeExpectancy)
-    emitter.propertyTimelines.filter(isNonNil).forEach(sanitizeTimeline)
+    const emissionRate = parseTimeline(
+        emitter.emissionRate ?? cloneDeep(particleEmitterDefaults.emissionRate),
+    )
+    const particleLifeExpectancy = parseTimeline(
+        emitter.particleLifeExpectancy ??
+            cloneDeep(particleEmitterDefaults.particleLifeExpectancy),
+    )
+    const propertyTimelines = (emitter.propertyTimelines ?? [])
+        .filter(isNonNil)
+        .map((t) => parseTimeline(t))
 
-    emitter.material = toMaterials(emitter.material, materials)
+    const material = toMaterials(emitter.material, materials)
+
+    return {
+        uuid: id,
+        name: emitter.name ?? particleEmitterDefaults.name,
+        enabled: emitter.enabled ?? particleEmitterDefaults.enabled,
+        loops: emitter.loops ?? particleEmitterDefaults.loops,
+        duration,
+        count: emitter.count ?? particleEmitterDefaults.count,
+        emissionRate,
+        particleLifeExpectancy,
+        spawn,
+        orientToForwardDirection:
+            emitter.orientToForwardDirection ??
+            particleEmitterDefaults.orientToForwardDirection,
+        propertyTimelines,
+        material,
+    }
 }
 
-export function sanitizeEmitterDuration(
-    duration: PartialDeep<EmitterDurationModel>,
-): asserts duration is EmitterDurationModel {
-    defaults(duration, cloneDeep(particleEmitterDefaults.duration))
-    sanitizeRange(duration.duration)
-    sanitizeRange(duration.delayBefore)
-    sanitizeRange(duration.delayAfter)
+export function parseEmitterDuration(
+    duration: Maybe<PartialDeep<EmitterDurationModel>>,
+): EmitterDurationModel {
+    const d = duration ?? {}
+    return {
+        duration: parseRange(
+            d.duration ?? cloneDeep(particleEmitterDefaults.duration.duration),
+        ),
+        delayBefore: parseRange(
+            d.delayBefore ??
+                cloneDeep(particleEmitterDefaults.duration.delayBefore),
+        ),
+        delayAfter: parseRange(
+            d.delayAfter ??
+                cloneDeep(particleEmitterDefaults.duration.delayAfter),
+        ),
+    }
+}
+
+export function particleEmitterModelToJson(
+    emitter: ParticleEmitterModel,
+    materials: Record<string, Material | undefined>,
+): Partial<ParticleEmitterModelJson> {
+    const out: ParticleEmitterModelJson = {
+        uuid: emitter.uuid,
+    }
+    if (emitter.name !== particleEmitterDefaults.name) out.name = emitter.name
+    if (emitter.enabled !== particleEmitterDefaults.enabled)
+        out.enabled = emitter.enabled
+    if (emitter.loops !== particleEmitterDefaults.loops)
+        out.loops = emitter.loops
+
+    const duration = durationToJson(emitter.duration)
+    if (Object.keys(duration).length) out.duration = duration
+
+    if (emitter.count !== particleEmitterDefaults.count)
+        out.count = emitter.count
+
+    const emissionRate = timelineModelToJson(emitter.emissionRate)
+    if (Object.keys(emissionRate).length) out.emissionRate = emissionRate
+
+    const life = timelineModelToJson(emitter.particleLifeExpectancy)
+    if (Object.keys(life).length) out.particleLifeExpectancy = life
+
+    const spawn = zoneToJson(emitter.spawn)
+    if (Object.keys(spawn).length) out.spawn = spawn
+
+    if (
+        emitter.orientToForwardDirection !==
+        particleEmitterDefaults.orientToForwardDirection
+    )
+        out.orientToForwardDirection = emitter.orientToForwardDirection
+
+    if (emitter.propertyTimelines.length)
+        out.propertyTimelines = emitter.propertyTimelines.map((t) =>
+            timelineModelToJson(t),
+        )
+
+    if (emitter.material != null) {
+        const mat = toMaterialIds(emitter.material, materials)
+        if (mat != null && (!Array.isArray(mat) || mat.length > 0)) {
+            out.material = mat
+        }
+    }
+
+    return out
+}
+
+export function durationToJson(
+    duration: EmitterDurationModel,
+): Partial<EmitterDurationModel> {
+    const out: any = {}
+    const dur = rangeModelToJson(duration.duration)
+    if (Object.keys(dur).length) out.duration = dur
+    const before = rangeModelToJson(duration.delayBefore)
+    if (Object.keys(before).length) out.delayBefore = before
+    const after = rangeModelToJson(duration.delayAfter)
+    if (Object.keys(after).length) out.delayAfter = after
+    return out
 }
 
 /**
@@ -182,7 +279,9 @@ export function sanitizeEmitterDuration(
  * Keeps Material objects as is.
  */
 export function toMaterials(
-    materialIds: Maybe<Material | Material[] | string | string[]>,
+    materialIds: Maybe<
+        Material | Material[] | string | string[] | (string | Material)[]
+    >,
     materials: Record<string, Material | undefined>,
 ): Material[] | Material | null {
     if (!materialIds) return null
@@ -210,4 +309,39 @@ export function toMaterial(
         return material
     }
     return materialId ?? null
+}
+
+/**
+ * Reverse of toMaterials: maps Material object(s) to their id(s).
+ * Keeps string id(s) as-is.
+ */
+export function toMaterialIds(
+    mats: Maybe<Material | Material[] | string | string[]>,
+    materials: Record<string, Material | undefined>,
+): string | string[] | null {
+    if (!mats) return null
+    if (Array.isArray(mats)) {
+        const out: string[] = []
+        for (const m of mats) {
+            const id = toMaterialId(m, materials)
+            if (id != null) out.push(id)
+        }
+        return out
+    } else {
+        return toMaterialId(mats, materials)
+    }
+}
+
+export function toMaterialId(
+    mat: Maybe<Material | string>,
+    materials: Record<string, Material | undefined>,
+): string | null {
+    if (mat == null) return null
+    if (typeof mat === 'string') return mat
+    // find key whose value strictly equals the material
+    for (const [id, material] of Object.entries(materials)) {
+        if (material === mat) return id
+    }
+    console.warn('Missing material id for provided Material')
+    return null
 }

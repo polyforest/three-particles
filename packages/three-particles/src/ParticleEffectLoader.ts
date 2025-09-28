@@ -1,6 +1,9 @@
 import { FileLoader, Loader, Material, MaterialLoader } from 'three'
-import { ParticleEffectModelJson, sanitizeParticleEffect } from './model'
-import { ParticleEffect, ParticleEmitterPoints } from './object'
+import {
+    ParticleEffectModelJson,
+    parseParticleEffect,
+    ParticleEffectModel,
+} from './model'
 import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { getDefaultRadial } from './materialDefaults'
 import { decodeText } from './util'
@@ -9,14 +12,20 @@ import { cloneDeep } from 'lodash'
 /**
  * Loads a JSON file describing a particle effect.
  */
-export class ParticleEffectLoader extends Loader<ParticleEffect> {
+export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
     public readonly materialLoader: MaterialLoader
 
     public materials: Record<string, Material> = {}
 
-    constructor(manager?: LoadingManager) {
+    constructor(
+        manager?: LoadingManager,
+        deps?: {
+            readonly materialLoader?: MaterialLoader
+        },
+    ) {
         super(manager)
-        this.materialLoader = new MaterialLoader(this.manager)
+        this.materialLoader =
+            deps?.materialLoader ?? new MaterialLoader(manager)
 
         // TODO temp
         this.materialLoader.setTextures({
@@ -44,7 +53,7 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
      */
     public load(
         url: string,
-        onLoad?: (effect: ParticleEffect) => void,
+        onLoad?: (effect: ParticleEffectModel) => void,
         onProgress?: (event: ProgressEvent) => void,
         onError?: (error: unknown) => void,
     ): void {
@@ -75,26 +84,20 @@ export class ParticleEffectLoader extends Loader<ParticleEffect> {
      * @return {ParticleEffect} The parsed ParticleEffect object.
      */
     async parseAsync(
-        json: ParticleEffectModelJson & {
-            materials?: Record<string, any>
-        },
-    ): Promise<ParticleEffect> {
+        json: ParticleEffectModelJson,
+    ): Promise<ParticleEffectModel> {
         json = cloneDeep(json)
+        const bundledMaterials: Record<string, Material> = {}
         if (json.materials) {
+            // Load materials from the JSON.
             const mLoader = this.materialLoader
             for (const [key, material] of Object.entries(json.materials)) {
-                this.materials[key] =
+                bundledMaterials[key] =
                     typeof material === 'string'
                         ? await mLoader.loadAsync(material)
                         : mLoader.parse(material)
             }
         }
-        sanitizeParticleEffect(json, this.materials)
-
-        const effect = new ParticleEffect()
-        for (const emitterModel of json.emitters) {
-            effect.add(new ParticleEmitterPoints(emitterModel))
-        }
-        return effect
+        return parseParticleEffect(json, bundledMaterials, this.materials)
     }
 }

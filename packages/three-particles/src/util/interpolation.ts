@@ -7,7 +7,10 @@ import { closeTo } from './math'
  * @param timeline `[time0, value0, time1, value1, timeN, valueN, ...]`
  * @param time The time value.
  */
-export function getTimelineValue(timeline: Float32Array, time: number): number {
+export function getTimelineValue(
+    timeline: ArrayLike<number>,
+    time: number,
+): number {
     const stride = 2
     let indexB = getInsertionIndex(timeline, time, stride)
     const indexA = Math.max(0, indexB - stride)
@@ -29,7 +32,7 @@ export function getTimelineValue(timeline: Float32Array, time: number): number {
  * Gets the interpolated timeline values for a timeline.
  */
 export function getTimelineValues(
-    timeline: Float32Array,
+    timeline: ArrayLike<number>,
     numComponents: number,
     time: number,
     out: Float32Array,
@@ -69,7 +72,7 @@ export function getTimelineValues(
  * @param affordance The maximum value the time can be distant.
  */
 export function getIndexCloseToTime(
-    timeline: Float32Array,
+    timeline: ArrayLike<number>,
     numComponents: number,
     time: number,
     affordance: number = 0.02,
@@ -81,7 +84,7 @@ export function getIndexCloseToTime(
 }
 
 export function getIndexClosestToTime(
-    timeline: Float32Array,
+    timeline: ArrayLike<number>,
     numComponents: number,
     time: number,
 ): number {

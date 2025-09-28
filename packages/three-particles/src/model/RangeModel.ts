@@ -1,5 +1,5 @@
 import * as easing from '../util/easing'
-import { defaults } from 'lodash'
+import type { Maybe } from '../util/type'
 
 /**
  * Describes a number range with easing.
@@ -9,6 +9,8 @@ export interface RangeModel {
     max: number
     ease: easing.EaseType
 }
+
+export type RangeModelJson = Partial<RangeModel>
 
 /**
  * Default RangeModel values.
@@ -20,12 +22,13 @@ export const rangeDefaults = {
 } as const satisfies RangeModel
 
 /**
- * Populates a `RangeModel` with defaults.
- * Mutates the passed-in `range`.
+ * Returns a new RangeModel with defaults applied.
  */
-export function sanitizeRange(range: any): asserts range is RangeModel {
-    // If max is undefined, use range.min.
-    defaults(range, { max: range.min ?? 0 }, rangeDefaults)
+export function parseRange(range: Maybe<RangeModelJson>): RangeModel {
+    const min = range?.min ?? rangeDefaults.min
+    const max = range?.max ?? range?.min ?? rangeDefaults.max
+    const ease = range?.ease ?? rangeDefaults.ease
+    return { min, max, ease }
 }
 
 /**
@@ -45,4 +48,17 @@ export function createRange(
 export function valueFromRange(range: RangeModel): number {
     const fn = easing.getEase(range.ease)
     return fn(Math.random()) * (range.max - range.min) + range.min
+}
+
+/**
+ * Returns a compact representation of a RangeModel with default values removed.
+ */
+export function rangeModelToJson(range: RangeModel): RangeModelJson {
+    const out: RangeModelJson = {}
+    if (range.min !== rangeDefaults.min) out.min = range.min
+    // Only include max if it differs from min and default
+    if (range.max !== range.min && range.max !== rangeDefaults.max)
+        out.max = range.max
+    if (range.ease !== rangeDefaults.ease) out.ease = range.ease
+    return out
 }

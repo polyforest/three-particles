@@ -1,6 +1,6 @@
 export function getInsertionIndex(
     values: ArrayLike<number>,
-    time: number,
+    value: number,
     stride: number = 1,
     offset: number = 0,
 ): number {
@@ -8,7 +8,7 @@ export function getInsertionIndex(
     let high = values.length / stride
     while (low < high) {
         const mid = (low + high) >> 1
-        if (values[mid * stride + offset] < time) {
+        if (values[mid * stride + offset] < value) {
             low = mid + 1
         } else {
             high = mid

@@ -4,6 +4,7 @@ import {
     isParticleEmitterObject,
     ParticleEmitterObject,
 } from './ParticleEmitterObject'
+import { ParticleEffectModel } from '../model'
 
 /**
  * A Particle effect. This is a group of particle emitters with properties
@@ -18,22 +19,32 @@ export class ParticleEffect extends Group {
     public emittersNeedUpdate: boolean = true
 
     /**
-     * The active list of particle emitters belonging to this effect.
-     */
-    private emitters: ParticleEmitterPoints[] = []
-
-    /**
      * Constructs a new ParticleEffect from the given data.
      */
-    constructor() {
+    constructor(readonly model: ParticleEffectModel) {
         super()
     }
 
     private forEachEmitter(cb: (emitter: ParticleEmitterObject) => void) {
+        if (this.emittersNeedUpdate) {
+            this.refreshEmitters()
+        }
+
         for (const child of this.children) {
             if (isParticleEmitterObject(child)) {
                 cb(child)
             }
+        }
+    }
+
+    private refreshEmitters() {
+        this.emittersNeedUpdate = false
+        // TODO: smart recycle
+        this.clear()
+
+        for (const emitter of this.model.emitters) {
+            const instance = new ParticleEmitterPoints(emitter)
+            this.add(instance)
         }
     }
 
@@ -58,25 +69,17 @@ export class ParticleEffect extends Group {
      * Stops all emitters
      */
     stop(allowCompletion: boolean): void {
-        this.emitters.forEach((instance) =>
-            instance.state.stop(allowCompletion),
-        )
+        this.forEachEmitter((instance) => instance.state.stop(allowCompletion))
     }
 
     /**
      * Resets all emitters.
      */
     reset(): void {
-        this.emitters.forEach((instance) => instance.state.reset())
+        this.forEachEmitter((instance) => instance.state.reset())
     }
 
-    clone(recursive: boolean = true): this {
-        const effect = new ParticleEffect()
-        if (recursive) {
-            for (const child of this.children) {
-                effect.add(child.clone(recursive))
-            }
-        }
-        return effect as this
+    clone(): this {
+        return new ParticleEffect(this.model) as this
     }
 }
