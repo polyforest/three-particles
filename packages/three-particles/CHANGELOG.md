@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.10.0](https://github.com/polyforest/three-particles/compare/three-particles@0.9.0...three-particles@0.10.0) (2025-09-29)
+
+### Bug Fixes
+
+- fix bounce easing ([1e99c7e](https://github.com/polyforest/three-particles/commit/1e99c7e42ff23c3e45fdad33481a11f0e8e8f4a9))
+
+### Features
+
+- add toJSON method on ParticleEffectModel ([7e6dd37](https://github.com/polyforest/three-particles/commit/7e6dd37bb7766d801b0a15114caa114c2d98c18d))
+
 # [0.9.0](https://github.com/polyforest/three-particles/compare/three-particles@0.8.0...three-particles@0.9.0) (2025-09-28)
 
 ### Bug Fixes
