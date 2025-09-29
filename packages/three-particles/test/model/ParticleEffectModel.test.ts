@@ -1,5 +1,7 @@
 import {
     parseParticleEffect,
+    ParticleEffectModel,
+    ParticleEffectModelJson,
     particleEffectModelToJson,
 } from '../../src/model/ParticleEffectModel'
 import {
@@ -12,20 +14,20 @@ describe('ParticleEffectModel', () => {
     describe('parseParticleEffect', () => {
         it('should set defaults', () => {
             const effect = {}
-            const parsed = parseParticleEffect(effect, {})
+            const parsed = parseParticleEffect(effect, {}, {}, {}, {})
             expect(parsed.version).toBeDefined()
         })
 
         it('should not override set values', () => {
             const effect = { version: 'v1' }
-            const parsed = parseParticleEffect(effect, {})
+            const parsed = parseParticleEffect(effect, {}, {}, {}, {})
             expect(parsed.version).toBe('v1')
         })
     })
 
     describe('particleEffectModelToJson', () => {
         it('should omit defaults', () => {
-            const parsed = parseParticleEffect({}, {})
+            const parsed = parseParticleEffect({}, {}, {}, {}, {})
             const json = particleEffectModelToJson(parsed, {}, {})
             expect(json).toEqual({ version: '1.0' })
         })
@@ -33,10 +35,14 @@ describe('ParticleEffectModel', () => {
         it('should include non-default version, emitter json, and materials serialized via toJSON', () => {
             const emitter = parseEmitter({ name: 'E', count: 2 }, {})
             const mat = new PointsMaterial()
-            const effect = {
+            const effect: ParticleEffectModel = {
                 version: '2.0',
                 emitters: [emitter],
                 materials: { a: mat },
+                textures: {},
+                toJSON(): ParticleEffectModelJson {
+                    return {}
+                },
             }
             // Pass materials map so emitter/materials serialization can use it
             const json = particleEffectModelToJson(effect, { a: mat }, {})

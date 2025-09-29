@@ -24,10 +24,10 @@ export const rangeDefaults = {
 /**
  * Returns a new RangeModel with defaults applied.
  */
-export function parseRange(range: Maybe<RangeModelJson>): RangeModel {
-    const min = range?.min ?? rangeDefaults.min
-    const max = range?.max ?? range?.min ?? rangeDefaults.max
-    const ease = range?.ease ?? rangeDefaults.ease
+export function parseRange(rangeJson: Maybe<RangeModelJson>): RangeModel {
+    const min = rangeJson?.min ?? rangeDefaults.min
+    const max = rangeJson?.max ?? rangeJson?.min ?? rangeDefaults.max
+    const ease = rangeJson?.ease ?? rangeDefaults.ease
     return { min, max, ease }
 }
 

@@ -154,39 +154,42 @@ export const particleEmitterDefaults = {
  * Returns a new ParticleEmitterModel with defaults applied.
  */
 export function parseEmitter(
-    emitter: ParticleEmitterModelJson,
+    emitterJson: ParticleEmitterModelJson,
     materials: Record<string, Material>,
 ): ParticleEmitterModel {
-    const id = emitter.uuid ?? MathUtils.generateUUID()
-    const spawn = parseZone(emitter.spawn ?? (cloneDeep(zoneDefaults) as Zone))
+    const id = emitterJson.uuid ?? MathUtils.generateUUID()
+    const spawn = parseZone(
+        emitterJson.spawn ?? (cloneDeep(zoneDefaults) as Zone),
+    )
     const duration = parseEmitterDuration(
-        emitter.duration ?? cloneDeep(particleEmitterDefaults.duration),
+        emitterJson.duration ?? cloneDeep(particleEmitterDefaults.duration),
     )
     const emissionRate = parseTimeline(
-        emitter.emissionRate ?? cloneDeep(particleEmitterDefaults.emissionRate),
+        emitterJson.emissionRate ??
+            cloneDeep(particleEmitterDefaults.emissionRate),
     )
     const particleLifeExpectancy = parseTimeline(
-        emitter.particleLifeExpectancy ??
+        emitterJson.particleLifeExpectancy ??
             cloneDeep(particleEmitterDefaults.particleLifeExpectancy),
     )
-    const propertyTimelines = (emitter.propertyTimelines ?? [])
+    const propertyTimelines = (emitterJson.propertyTimelines ?? [])
         .filter(isNonNil)
         .map((t) => parseTimeline(t))
 
-    const material = toMaterials(emitter.material, materials)
+    const material = toMaterials(emitterJson.material, materials)
 
     return {
         uuid: id,
-        name: emitter.name ?? particleEmitterDefaults.name,
-        enabled: emitter.enabled ?? particleEmitterDefaults.enabled,
-        loops: emitter.loops ?? particleEmitterDefaults.loops,
+        name: emitterJson.name ?? particleEmitterDefaults.name,
+        enabled: emitterJson.enabled ?? particleEmitterDefaults.enabled,
+        loops: emitterJson.loops ?? particleEmitterDefaults.loops,
         duration,
-        count: emitter.count ?? particleEmitterDefaults.count,
+        count: emitterJson.count ?? particleEmitterDefaults.count,
         emissionRate,
         particleLifeExpectancy,
         spawn,
         orientToForwardDirection:
-            emitter.orientToForwardDirection ??
+            emitterJson.orientToForwardDirection ??
             particleEmitterDefaults.orientToForwardDirection,
         propertyTimelines,
         material,
@@ -194,9 +197,9 @@ export function parseEmitter(
 }
 
 export function parseEmitterDuration(
-    duration: Maybe<PartialDeep<EmitterDurationModel>>,
+    durationJson: Maybe<PartialDeep<EmitterDurationModel>>,
 ): EmitterDurationModel {
-    const d = duration ?? {}
+    const d = durationJson ?? {}
     return {
         duration: parseRange(
             d.duration ?? cloneDeep(particleEmitterDefaults.duration.duration),

@@ -11,7 +11,7 @@ import {
     parseEmitter,
 } from './ParticleEmitterModel'
 import { PartialDeep } from 'type-fest'
-import { Material, MaterialJSON, Texture } from 'three'
+import { Material, MaterialJSON, Texture, TextureJSON } from 'three'
 
 /**
  * A model describing the duration and delay padding for an emitter.
@@ -40,6 +40,8 @@ export interface ParticleEffectModel {
     version: string
     emitters: ParticleEmitterModel[]
     materials: Record<string, Material>
+    textures: Record<string, Texture>
+    toJSON(): ParticleEffectModelJson
 }
 
 /**
@@ -48,8 +50,7 @@ export interface ParticleEffectModel {
 export const particleEffectDefaults = {
     version: '1.0',
     emitters: [],
-    materials: {},
-} as const satisfies ParticleEffectModel
+} as const
 
 export type ParticleEffectModelJson = Omit<
     PartialDeep<ParticleEffectModel, { recurseIntoArrays: true }>,
@@ -57,29 +58,42 @@ export type ParticleEffectModelJson = Omit<
 > & {
     emitters?: ParticleEmitterModelJson[]
     materials?: Record<string, MaterialJSON>
+    textures?: Record<string, TextureJSON>
 }
 
 /**
  * Returns a new ParticleEffectModel with defaults applied.
  */
 export function parseParticleEffect(
-    effect: ParticleEffectModelJson,
+    effectJson: ParticleEffectModelJson,
     bundledMaterials: Record<string, Material>,
-    externalMaterialsMaterials: Record<string, Material> = {},
+    externalMaterials: Record<string, Material>,
+    bundledTextures: Record<string, Texture>,
+    externalTextures: Record<string, Texture>,
 ): ParticleEffectModel {
     const allMaterials = {
-        ...externalMaterialsMaterials,
+        ...externalMaterials,
         ...bundledMaterials,
     }
-    const emitters = (effect.emitters ?? [])
+    const emitters = (effectJson.emitters ?? [])
         .filter(isNonNil)
         .map((emitter) => parseEmitter(emitter, allMaterials))
 
-    return {
-        version: effect.version ?? particleEffectDefaults.version,
+    const effectModel: ParticleEffectModel = {
+        version: effectJson.version ?? particleEffectDefaults.version,
         emitters,
         materials: bundledMaterials,
+        textures: bundledTextures,
+        toJSON: () => {
+            return particleEffectModelToJson(
+                effectModel,
+                externalMaterials,
+                externalTextures,
+            )
+        },
     }
+
+    return effectModel
 }
 
 /**

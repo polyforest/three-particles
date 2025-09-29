@@ -98,6 +98,13 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
                         : mLoader.parse(material)
             }
         }
-        return parseParticleEffect(json, bundledMaterials, this.materials)
+        // TODO: bundled textures
+        return parseParticleEffect(
+            json,
+            bundledMaterials,
+            this.materials,
+            {},
+            this.materialLoader.textures,
+        )
     }
 }

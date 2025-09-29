@@ -2,6 +2,8 @@
  * @file A collection of easing functions and their registry.
  */
 
+import { clamp } from 'lodash'
+
 /**
  * Function representing an interpolation, taking and returning a number in the
  * range [0, 1].
@@ -10,19 +12,55 @@ export type EasingFun = (x: number) => number
 
 const { cos, pow, sin, sqrt, PI } = Math
 
-const bounceOut: EasingFun = (x) => {
-    const n1 = 7.5625
-    const d1 = 2.75
+/**
+ * Generates a parametric bounce easing with a given number of bounces and restitution (0..1)
+ * - bounces: number of rebound arcs after the initial fall (0 means linear)
+ * - restitution: velocity restitution per bounce (0..1). Height scales by restitution^2.
+ */
+export function makeBounce(bounces: number, restitution: number): EasingFun {
+    // sanitize inputs
+    const n = Math.max(0, Math.floor(bounces))
+    const r = clamp(restitution, 0, 0.99) // avoid 1 to keep finite series
 
-    if (x < 1 / d1) {
-        return n1 * x * x
-    } else if (x < 2 / d1) {
-        const v = x - 1.5
-        return n1 * (v / d1) * v + 0.75
-    } else if (x < 2.5 / d1) {
-        return n1 * (x -= 2.25 / d1) * x + 0.9375
-    } else {
-        return n1 * (x -= 2.625 / d1) * x + 0.984375
+    if (n === 0) return (x: number) => (x <= 0 ? 0 : x >= 1 ? 1 : x)
+
+    // Segment durations follow a geometric progression so later bounces are quicker.
+    // We have segments = 1 (initial fall) + n (each bounce arc)
+    const segCount = n + 1
+    const durations: number[] = new Array(segCount)
+    for (let i = 0; i < segCount; i++) durations[i] = Math.pow(r, i)
+    // Normalize to sum to 1
+    const sum = durations.reduce((a, b) => a + b, 0)
+    for (let i = 0; i < segCount; i++) durations[i] /= sum
+
+    // cumulative times
+    const tEnds: number[] = new Array(segCount)
+    let acc = 0
+    for (let i = 0; i < segCount; i++) {
+        acc += durations[i]
+        tEnds[i] = acc
+    }
+
+    return (x: number) => {
+        if (x <= 0) return 0
+        if (x >= 1) return 1
+
+        // find segment index
+        let idx = 0
+        while (idx < segCount && x > tEnds[idx]) idx++
+        const tStart = idx === 0 ? 0 : tEnds[idx - 1]
+        const segLen = durations[idx]
+        const u = (x - tStart) / segLen // local [0,1]
+
+        if (idx === 0) {
+            // initial fall: accelerate under gravity-like parabola
+            return u * u
+        }
+
+        // bounce arc idx>=1: symmetric parabola touching 1 at both ends and reaching (1 - H) at the apex
+        const height = Math.pow(r, 2 * idx) // diminishing maximum excursion below 1
+        // y = 1 - H * 4u(1-u), which starts/ends at 1 and dips to 1-H at u=0.5
+        return 1 - height * 4 * u * (1 - u)
     }
 }
 
@@ -57,7 +95,8 @@ const baseEasings = {
     circ: (x) => 1 - sqrt(1 - x * x),
     back: (x) => 2.7 * x * x * x - 1.7 * x * x,
     elastic,
-    bounce: (x) => 1 - bounceOut(1 - x),
+    // Default bounce: 3 bounces with restitution 0.5
+    bounce: makeBounce(3, 0.5),
 } as const satisfies Record<string, EasingFun>
 
 export type EasingVariants<T extends Record<string, EasingFun>> = {
