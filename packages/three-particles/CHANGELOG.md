@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.10.1](https://github.com/polyforest/three-particles/compare/three-particles@0.10.0...three-particles@0.10.1) (2025-09-30)
+
+### Bug Fixes
+
+- fix ellipsoid zone spawn ([c2b3842](https://github.com/polyforest/three-particles/commit/c2b384260ebef75902e26ddd3bb7d1ef87889873))
+- fix toJSON in ParticleEffectModel when copied ([4fd314b](https://github.com/polyforest/three-particles/commit/4fd314bd6b5f522f9896179c63b970408248c756))
+
 # [0.10.0](https://github.com/polyforest/three-particles/compare/three-particles@0.9.0...three-particles@0.10.0) (2025-09-29)
 
 ### Bug Fixes
