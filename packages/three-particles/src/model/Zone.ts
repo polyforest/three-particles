@@ -5,16 +5,16 @@ import { PartialDeep } from 'type-fest'
 const { random, cos, sin, PI, acos, cbrt } = Math
 
 export interface Zone {
-    readonly type: 'point' | 'box' | 'ellipsoid'
-    readonly x: number
-    readonly y: number
-    readonly z: number
-    readonly w: number
-    readonly h: number
-    readonly d: number
+    type: 'point' | 'box' | 'ellipsoid'
+    x: number
+    y: number
+    z: number
+    w: number
+    h: number
+    d: number
 
     /** The easing from the center to the edge */
-    readonly ease: EaseType
+    ease: EaseType
 }
 
 export const zoneDefaults = {
