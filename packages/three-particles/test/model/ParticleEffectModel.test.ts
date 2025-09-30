@@ -62,3 +62,13 @@ describe('ParticleEffectModel', () => {
         })
     })
 })
+
+// Added test to ensure toJSON works when spreading a model
+describe('ParticleEffectModel spread toJSON', () => {
+    it('works when creating a new model using spread', () => {
+        const base = parseParticleEffect({}, {}, {}, {}, {})
+        const spread: ParticleEffectModel = { ...base, version: '2.0' }
+        const json = spread.toJSON()
+        expect(json.version).toBe('2.0')
+    })
+})
