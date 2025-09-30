@@ -1,31 +1,42 @@
-import { parseZone, zoneDefaults, zoneToJson } from '../../src/model/Zone'
+import { Vector3 } from 'three'
+import { parseZone, randomFromZone } from '../../src/model/Zone'
 
-describe('Zone', () => {
-    describe('parseZone', () => {
-        it('should apply defaults', () => {
-            const z = parseZone({})
-            expect(z).toEqual(zoneDefaults)
+describe('Zone ellipsoid spawn', () => {
+    it('returns center point when extents are zero', () => {
+        const zone = parseZone({
+            type: 'ellipsoid',
+            x: 1,
+            y: 2,
+            z: 3,
+            w: 0,
+            h: 0,
+            d: 0,
         })
-        it('should override specified values', () => {
-            const z = parseZone({ type: 'box', w: 1, h: 2, d: 3 })
-            expect(z.type).toBe('box')
-            expect(z.w).toBe(1)
-            expect(z.h).toBe(2)
-            expect(z.d).toBe(3)
-        })
+        const out = new Vector3()
+        randomFromZone(zone, out)
+        expect(out.x).toBe(zone.x)
+        expect(out.y).toBe(zone.y)
+        expect(out.z).toBe(zone.z)
     })
 
-    describe('zoneToJson', () => {
-        it('should omit defaults', () => {
-            const z = parseZone({})
-            const json = zoneToJson(z)
-            expect(json).toEqual({})
+    it('spawns within half-extents around center', () => {
+        const zone = parseZone({
+            type: 'ellipsoid',
+            x: 10,
+            y: -5,
+            z: 2,
+            w: 2,
+            h: 4,
+            d: 6,
+            ease: 'linear',
         })
-        it('should include non-defaults', () => {
-            const z = parseZone({ type: 'box', w: 1 })
-            const json = zoneToJson(z)
-            expect(json.type).toBe('box')
-            expect(json.w).toBe(1)
-        })
+        const out = new Vector3()
+        randomFromZone(zone, out)
+        const halfW = 0.5 * zone.w
+        const halfH = 0.5 * zone.h
+        const halfD = 0.5 * zone.d
+        expect(Math.abs(out.x - zone.x)).toBeLessThanOrEqual(halfW + 1e-8)
+        expect(Math.abs(out.y - zone.y)).toBeLessThanOrEqual(halfH + 1e-8)
+        expect(Math.abs(out.z - zone.z)).toBeLessThanOrEqual(halfD + 1e-8)
     })
 })

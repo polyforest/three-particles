@@ -5,16 +5,16 @@ import { PartialDeep } from 'type-fest'
 const { random, cos, sin, PI, acos, cbrt } = Math
 
 export interface Zone {
-    readonly type: 'point' | 'box' | 'ellipsoid'
-    readonly x: number
-    readonly y: number
-    readonly z: number
-    readonly w: number
-    readonly h: number
-    readonly d: number
+    type: 'point' | 'box' | 'ellipsoid'
+    x: number
+    y: number
+    z: number
+    w: number
+    h: number
+    d: number
 
     /** The easing from the center to the edge */
-    readonly ease: EaseType
+    ease: EaseType
 }
 
 export const zoneDefaults = {
@@ -62,24 +62,28 @@ export function randomFromZone(zone: Zone, out: Vector3): void {
             out.set(zone.x, zone.y, zone.z).add(easeVec)
             break
         case 'ellipsoid': {
-            // pick a random angle
+            // pick a random direction on the unit sphere
             const u = random()
             const v = random()
             const theta = TWO_PI * u
             const phi = acos(2 * v - 1)
-            // radius, uniform distribution
-            const r = cbrt(getEase(zone.ease)(random())) // ensures uniform distribution in
+            // radius in [0,1], cbrt ensures uniform distribution by volume; apply easing radially
+            const r = cbrt(getEase(zone.ease)(random()))
 
-            // convert to Cartesian coordinates
+            // convert to Cartesian coordinates (unit sphere), then scale to ellipsoid half-extents
             const sinTheta = sin(theta)
             const cosTheta = cos(theta)
             const sinPhi = sin(phi)
             const cosPhi = cos(phi)
+            const halfW = 0.5 * zone.w
+            const halfH = 0.5 * zone.h
+            const halfD = 0.5 * zone.d
             out.set(
-                r * zone.w * sinPhi * cosTheta,
-                r * zone.h * sinPhi * sinTheta,
-                r * zone.d * cosPhi,
+                zone.x + r * halfW * sinPhi * cosTheta,
+                zone.y + r * halfH * sinPhi * sinTheta,
+                zone.z + r * halfD * cosPhi,
             )
+            break
         }
     }
 }

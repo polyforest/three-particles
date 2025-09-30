@@ -5,10 +5,10 @@
 import { isNonNil } from '../util'
 import { RangeModel } from './RangeModel'
 import {
+    parseEmitter,
     ParticleEmitterModel,
     ParticleEmitterModelJson,
     particleEmitterModelToJson,
-    parseEmitter,
 } from './ParticleEmitterModel'
 import { PartialDeep } from 'type-fest'
 import { Material, MaterialJSON, Texture, TextureJSON } from 'three'
@@ -79,21 +79,19 @@ export function parseParticleEffect(
         .filter(isNonNil)
         .map((emitter) => parseEmitter(emitter, allMaterials))
 
-    const effectModel: ParticleEffectModel = {
+    return {
         version: effectJson.version ?? particleEffectDefaults.version,
         emitters,
         materials: bundledMaterials,
         textures: bundledTextures,
-        toJSON: () => {
+        toJSON: function (this: ParticleEffectModel) {
             return particleEffectModelToJson(
-                effectModel,
+                this,
                 externalMaterials,
                 externalTextures,
             )
         },
     }
-
-    return effectModel
 }
 
 /**
