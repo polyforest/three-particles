@@ -4,23 +4,18 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
 console.log('Hello!')
 
-const camera = new THREE.PerspectiveCamera(
-    45,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000,
-)
-camera.position.set(0, 10, 20)
+const camera = new THREE.PerspectiveCamera()
+camera.position.set(0, 1, 2)
 
-camera.lookAt(new THREE.Vector3(0, 2, 0))
+camera.lookAt(new THREE.Vector3(0, 0.2, 0))
 
 const scene = new THREE.Scene()
 scene.background = new THREE.Color(0x111111)
-scene.fog = new THREE.Fog(0x111111, 20, 100)
+scene.fog = new THREE.Fog(0x111111, 1, 10)
 
 const clock = new THREE.Clock()
 
-const grid = new THREE.GridHelper(200, 40, 0x000000, 0xffffff)
+const grid = new THREE.GridHelper(20, 20, 0x000000, 0xffffff)
 grid.material.opacity = 0.2
 grid.material.transparent = true
 scene.add(grid)
