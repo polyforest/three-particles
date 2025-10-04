@@ -16,7 +16,7 @@ export class ParticleEmitterPoints
     readonly state: ParticleEmitterState
 
     constructor(model: ParticleEmitterModel) {
-        super()
+        super(undefined, model.material ?? undefined)
         this.state = new ParticleEmitterState(model)
         const n = model.count
 
@@ -33,8 +33,6 @@ export class ParticleEmitterPoints
 
         // // Set a default bounding sphere (optional):
         // this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 10)
-
-        if (model.material) this.material = model.material
     }
 
     /**

@@ -1,0 +1,158 @@
+{
+    "version": "0.3.0",
+    "materials": {
+        "points": {
+            "type": "MeshBasicMaterial",
+            "transparent": true,
+            "map": "radial",
+            "blending": 2,
+
+            "depthWrite": false,
+            "vertexColors": false
+        }
+    },
+    "emitters": [
+        {
+            "uuid": "flame",
+            "enabled": true,
+            "material": "points",
+            "loops": true,
+            "spawn": {
+                "type": "ellipsoid",
+                "w": 0.1,
+                "h": 0,
+                "d": 0.1
+            },
+            "duration": {
+                "duration": {
+                    "min": 4,
+                    "max": 6.5,
+                    "ease": "linear"
+                },
+                "delayBefore": {
+                    "min": 0,
+                    "max": 0,
+                    "ease": "linear"
+                },
+                "delayAfter": {
+                    "min": 0,
+                    "max": 0,
+                    "ease": "linear"
+                }
+            },
+            "count": 200,
+            "emissionRate": {
+                "low": {
+                    "min": 75,
+                    "max": 75,
+                    "ease": "linear"
+                },
+                "high": {
+                    "min": -20,
+                    "max": 15,
+                    "ease": "linear"
+                },
+                "property": "emissionRate",
+                "relative": true,
+                "timeline": [0, 0, 0.48, 1, 1, 0]
+            },
+            "particleLifeExpectancy": {
+                "low": {
+                    "min": 1.6,
+                    "max": 2,
+                    "ease": "linear"
+                },
+                "high": {
+                    "min": 0.8,
+                    "max": 1.6,
+                    "ease": "linear"
+                },
+                "property": "particleLifeExpectancy",
+                "relative": false,
+                "timeline": [0.7, 0.2, 1, 1]
+            },
+            "orientToForwardDirection": false,
+            "propertyTimelines": [
+                {
+                    "low": {
+                        "min": 0,
+                        "max": 0,
+                        "ease": "linear"
+                    },
+                    "high": {
+                        "min": 1,
+                        "max": 1,
+                        "ease": "linear"
+                    },
+                    "property": "scaleX",
+                    "relative": false,
+                    "timeline": [0.488, 1, 1, 0.472]
+                },
+                {
+                    "low": {
+                        "min": 0,
+                        "max": 0,
+                        "ease": "linear"
+                    },
+                    "high": {
+                        "min": 1,
+                        "max": 1,
+                        "ease": "linear"
+                    },
+                    "property": "scaleY",
+                    "relative": false,
+                    "timeline": [0.488, 1, 1, 0.472]
+                },
+                {
+                    "low": {
+                        "min": 2.356,
+                        "max": 0.785,
+                        "ease": "linear"
+                    },
+                    "high": {
+                        "min": 1.571,
+                        "max": 1.571,
+                        "ease": "linear"
+                    },
+                    "property": "forwardDirectionZ",
+                    "relative": false,
+                    "timeline": [0, 0, 0.409, 1]
+                },
+                {
+                    "low": {
+                        "min": 0,
+                        "max": 0,
+                        "ease": "linear"
+                    },
+                    "high": {
+                        "min": 1,
+                        "max": 1,
+                        "ease": "linear"
+                    },
+                    "property": "forwardVelocity",
+                    "relative": false,
+                    "timeline": [0, 1]
+                },
+                {
+                    "low": {
+                        "min": 0,
+                        "max": 0,
+                        "ease": "linear"
+                    },
+                    "high": {
+                        "min": 1,
+                        "max": 1,
+                        "ease": "linear"
+                    },
+                    "property": "colorA",
+                    "relative": false,
+                    "timeline": [0, 0, 0.171, 1, 0.802, 1, 1, 0]
+                },
+                {
+                    "property": "color",
+                    "timeline": [0, 0.94, 0.165, 0.028, 0.96, 0.51, 0.092, 0]
+                }
+            ]
+        }
+    ]
+}
