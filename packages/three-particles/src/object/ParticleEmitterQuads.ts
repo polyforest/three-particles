@@ -23,16 +23,17 @@ export class ParticleEmitterQuads
     readonly isParticleEmitterObject = true as const
     readonly state: ParticleEmitterState
 
-    private readonly _capacity: number
-    private readonly _dummy = new Object3D()
-    private readonly _quat = new Quaternion()
+    private readonly color = new Color()
+    private readonly capacity: number
+    private readonly obj = new Object3D()
+    private readonly quat = new Quaternion()
 
     constructor(model: ParticleEmitterModel) {
         const count = model.count
         // Use a simple unit plane. User-provided material is applied below.
         super(new PlaneGeometry(1, 1), model.material ?? undefined, count)
 
-        this._capacity = count
+        this.capacity = count
         this.state = new ParticleEmitterState(model)
 
         // Optionally, set frustumCulled false since particles may be spread.
@@ -42,30 +43,29 @@ export class ParticleEmitterQuads
     updateGeometry(): void {
         if (!this.state.model.enabled) return
 
-        const color = new Color()
         let index = 0
 
         for (const p of this.state.particles) {
             if (!p.active) continue
 
             // Position
-            this._dummy.position.copy(p.position)
+            this.obj.position.copy(p.position)
 
             // Rotation around Z (screen-space style). We'll rotate quad around local Z.
-            this._quat.setFromAxisAngle(VEC_Z, p.rotationFinal.z)
-            this._dummy.quaternion.copy(this._quat)
+            this.quat.setFromAxisAngle(VEC_Z, p.rotationFinal.z)
+            this.obj.quaternion.copy(this.quat)
 
-            this._dummy.scale.copy(p.scale)
+            this.obj.scale.copy(p.scale)
 
-            this._dummy.updateMatrix()
-            this.setMatrixAt(index, this._dummy.matrix)
+            this.obj.updateMatrix()
+            this.setMatrixAt(index, this.obj.matrix)
 
             // Instance color (RGB). Alpha is not supported per-instance on standard materials.
-            color.setRGB(p.tint.r, p.tint.g, p.tint.b)
-            this.setColorAt(index, color)
+            this.color.setRGB(p.tint.r, p.tint.g, p.tint.b)
+            this.setColorAt(index, this.color)
 
             index++
-            if (index >= this._capacity) break
+            if (index >= this.capacity) break
         }
 
         // Update how many instances to draw
