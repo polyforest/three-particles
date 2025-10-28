@@ -58,7 +58,11 @@ export type ParticleEffectModelJson = Omit<
 > & {
     emitters?: ParticleEmitterModelJson[]
     materials?: Record<string, MaterialJSON>
-    textures?: Record<string, TextureJSON>
+
+    /**
+     * Allow either TextureJSON blobs or string URLs/keys for textures
+     */
+    textures?: Record<string, TextureJSON | string>
 }
 
 /**
