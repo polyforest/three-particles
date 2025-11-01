@@ -1,5 +1,5 @@
 import { ParticleEmitterPoints } from './ParticleEmitterPoints'
-import { ParticleEmitterQuads } from './ParticleEmitterQuads'
+import { ParticleEmitterInstancedMesh } from './ParticleEmitterInstancedMesh'
 import { Group, PointsMaterial } from 'three'
 import {
     isParticleEmitterObject,
@@ -50,7 +50,7 @@ export class ParticleEffect extends Group {
             const usePoints = mat instanceof PointsMaterial
             const instance = usePoints
                 ? new ParticleEmitterPoints(emitter)
-                : new ParticleEmitterQuads(emitter)
+                : new ParticleEmitterInstancedMesh(emitter)
             this.add(instance)
         }
     }

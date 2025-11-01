@@ -13,10 +13,10 @@ import { ParticleEmitterModel } from '../model'
 const VEC_Z = new Vector3(0, 0, 1)
 
 /**
- * ParticleEmitterQuads renders particles as camera-facing quads (via instancing).
- * Supports non-uniform scale (scaleX/scaleY) and rotation around Z.
+ * ParticleEmitterInstancedMesh renders particles an instanced mesh
+ * Supports transformations per instance.
  */
-export class ParticleEmitterQuads
+export class ParticleEmitterInstancedMesh
     extends InstancedMesh
     implements ParticleEmitterObject
 {
