@@ -107,16 +107,16 @@
                 },
                 {
                     "low": {
-                        "min": 2.356,
-                        "max": 0.785,
+                        "min": -1,
+                        "max": 1,
                         "ease": "linear"
                     },
                     "high": {
-                        "min": 1.571,
-                        "max": 1.571,
+                        "min": 0,
+                        "max": 0,
                         "ease": "linear"
                     },
-                    "property": "forwardDirectionZ",
+                    "property": "orientationZ",
                     "relative": false,
                     "timeline": [0, 0, 0.409, 1]
                 },
@@ -131,7 +131,7 @@
                         "max": 1,
                         "ease": "linear"
                     },
-                    "property": "forwardVelocity",
+                    "property": "forwardVel",
                     "relative": false,
                     "timeline": [0, 1]
                 },

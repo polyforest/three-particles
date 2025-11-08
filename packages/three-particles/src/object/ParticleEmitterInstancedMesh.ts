@@ -51,10 +51,6 @@ export class ParticleEmitterInstancedMesh
             // Position
             this.obj.position.copy(p.position)
 
-            // Rotation around Z (screen-space style). We'll rotate quad around local Z.
-            this.quat.setFromAxisAngle(VEC_Z, p.rotationFinal.z)
-            this.obj.quaternion.copy(this.quat)
-
             this.obj.scale.copy(p.scale)
 
             this.obj.updateMatrix()

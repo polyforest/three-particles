@@ -47,7 +47,7 @@ describe('ParticleEmitterModel', () => {
                     loops: false,
                     count: 5,
                     spawn: { type: 'box', w: 1, h: 2, d: 3 },
-                    orientToForwardDirection: true,
+                    rotateToOrientation: true,
                 },
                 {},
             )
@@ -57,7 +57,7 @@ describe('ParticleEmitterModel', () => {
             expect(json.loops).toBe(false)
             expect(json.count).toBe(5)
             expect(json.spawn).toBeDefined()
-            expect(json.orientToForwardDirection).toBe(true)
+            expect(json.rotateToOrientation).toBe(true)
         })
 
         it('should convert material object to its id using provided materials record', () => {
