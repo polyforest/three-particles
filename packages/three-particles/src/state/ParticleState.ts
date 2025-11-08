@@ -1,8 +1,8 @@
-import { Vector3 } from 'three'
+import { Euler, Vector3 } from 'three'
 import { clamp } from 'lodash'
 import { ParticleEmitterModel, randomFromZone, TimelineModel } from '../model'
 import { PropertyValue } from './PropertyValue'
-import { getTimelineValues, HALF_PI } from '../util'
+import { closeTo, getTimelineValues } from '../util'
 
 const tmpVec = new Vector3()
 
@@ -18,15 +18,64 @@ export type ParticlePropertyUpdater = (
  * Properties of a particle that may be updated.
  */
 export interface ParticleProperties {
+    /**
+     * Current position of the particle in 3D space.
+     */
     readonly position: Vector3
+
+    /**
+     * Velocity, in units per second.
+     */
     readonly velocity: Vector3
+
+    /**
+     * Scale factor applied to the particle size in X, Y, and Z dimensions.
+     * A value of 1 represents the original size, values greater than 1 increase size,
+     * and values less than 1 decrease size.
+     */
     readonly scale: Vector3
+
+    /**
+     * Rotation around each axis in radians. Positive values rotate clockwise when looking
+     * along the axis toward the origin.
+     * - X: Pitch (rotation around X axis)
+     * - Y: Yaw (rotation around Y axis)
+     * - Z: Roll (rotation around Z axis)
+     */
     readonly rotation: Vector3
-    readonly rotationalVelocity: Vector3
-    readonly forwardDirection: Vector3
-    readonly forwardDirectionVelocity: Vector3
-    forwardVelocity: number
+
+    /**
+     * Rotational velocity, in radians per second.
+     */
+    readonly rotationVel: Vector3
+
+    /**
+     * Orientation angles in radians around each axis.
+     * Used for determining particle-facing direction.
+     *
+     * `forwardVel` will affect movement in this direction.
+     * This will affect rotation if rotateToOrientation is enabled on the emitter.
+     */
+    readonly orientation: Euler
+
+    /**
+     * Rate of change for orientation in radians per second.
+     */
+    readonly orientationVel: Vector3
+
+    /**
+     * Velocity in the direction the particle is facing, in units per second.
+     */
+    forwardVel: number
+
+    /**
+     * Color and opacity of the particle.
+     */
     readonly tint: RgbaColor
+
+    /**
+     * Reference point for particle transformations, typically in normalized coordinates (0-1).
+     */
     readonly origin: Vector3
 }
 
@@ -57,10 +106,23 @@ export class ParticleState implements ParticleProperties {
     readonly velocity = new Vector3()
     readonly scale = new Vector3(1, 1, 1)
     readonly rotation = new Vector3()
-    readonly rotationalVelocity = new Vector3()
-    readonly forwardDirection = new Vector3()
-    readonly forwardDirectionVelocity = new Vector3()
-    forwardVelocity = 0
+    readonly rotationVel = new Vector3()
+
+    /**
+     * The particle's orientation, represented as an Euler object representing
+     * rotations around each axis, in radians.
+     */
+    readonly orientation = new Euler()
+
+    /**
+     * The rate of change for orientation. In radians per second.
+     */
+    readonly orientationVel = new Vector3()
+
+    /**
+     * The forward velocity in the orientation direction, in meters per second.
+     */
+    forwardVel = 0
     readonly tint: RgbaColor = new RgbaColor(1, 1, 1, 1)
     readonly origin = new Vector3(0.5, 0.5, 0.5)
 
@@ -98,31 +160,36 @@ export class ParticleState implements ParticleProperties {
         }
 
         // Scale velocities by tickTime
-        this.position.add(tmpVec.copy(this.velocity).multiplyScalar(tickTime))
-        this.rotation.add(
-            tmpVec.copy(this.rotationalVelocity).multiplyScalar(tickTime),
-        )
-        this.forwardDirection.add(
-            tmpVec.copy(this.forwardDirectionVelocity).multiplyScalar(tickTime),
-        )
-        if (this.forwardVelocity !== 0) {
-            if (
-                this.forwardDirection.y !== 0 ||
-                this.forwardDirection.x !== 0
-            ) {
-                // TODO: 3D forward direction.
-            } else if (this.forwardDirection.z !== 0) {
-                const theta = this.forwardDirection.z
-                this.position.x +=
-                    Math.cos(theta) * this.forwardVelocity * tickTime
-                this.position.y +=
-                    Math.sin(theta) * this.forwardVelocity * tickTime
-            }
+        if (isVec3NotZero(this.velocity)) {
+            this.position.add(
+                tmpVec.copy(this.velocity).multiplyScalar(tickTime),
+            )
         }
 
-        if (this.model.orientToForwardDirection) {
-            this.rotationFinal.copy(this.rotation).add(this.forwardDirection)
-            this.rotationFinal.z += HALF_PI
+        if (isVec3NotZero(this.rotation)) {
+            this.rotation.add(
+                tmpVec.copy(this.rotationVel).multiplyScalar(tickTime),
+            )
+        }
+
+        if (isVec3NotZero(this.orientationVel)) {
+            // Integrate orientation (Euler angles) by adding scaled angular velocity per axis.
+            this.orientation.x += this.orientationVel.x * tickTime
+            this.orientation.y += this.orientationVel.y * tickTime
+            this.orientation.z += this.orientationVel.z * tickTime
+        }
+
+        if (!closeTo(this.forwardVel, 0)) {
+            // Move the particle forward along its orientation by forwardVel per second.
+            // Compute forward dir by rotating +Z with the current orientation Euler (XYZ order).
+            tmpVec.set(0, 1, 0).applyEuler(this.orientation)
+            this.position.addScaledVector(tmpVec, this.forwardVel * tickTime)
+        }
+
+        if (this.model.rotateToOrientation) {
+            this.rotationFinal.x = this.rotation.x + this.orientation.x
+            this.rotationFinal.y = this.rotation.y + this.orientation.y
+            this.rotationFinal.z = this.rotation.z + this.orientation.z
         } else {
             this.rotationFinal.copy(this.rotation)
         }
@@ -137,10 +204,10 @@ export class ParticleState implements ParticleProperties {
         this.velocity.set(0, 0, 0)
         this.scale.set(1, 1, 1)
         this.rotation.set(0, 0, 0)
-        this.rotationalVelocity.set(0, 0, 0)
-        this.forwardDirection.set(0, 0, 0)
-        this.forwardDirectionVelocity.set(0, 0, 0)
-        this.forwardVelocity = 0
+        this.rotationVel.set(0, 0, 0)
+        this.orientation.set(0, 0, 0)
+        this.orientationVel.set(0, 0, 0)
+        this.forwardVel = 0
         this.tint.set(1, 1, 1, 1)
         this.origin.set(0.5, 0.5, 0.5)
         this.imageIndex = 0
@@ -153,6 +220,7 @@ export class ParticleState implements ParticleProperties {
 
 export interface ParticlePropertyState {
     apply(particleAlpha: number, emitterAlpha: number): void
+
     reset(): void
 }
 
@@ -176,17 +244,18 @@ class FloatPropertyState implements ParticlePropertyState {
         private readonly timeline: TimelineModel,
     ) {
         this.value = new PropertyValue(timeline)
-        const prop = timeline.property
-        if (
-            !(prop in particlePropertyUpdaters) &&
-            !missingPropertiesWarned.has(prop)
-        ) {
-            missingPropertiesWarned.add(prop)
-            console.warn(
-                `Could not find property updater with the name ${prop}`,
-            )
+        const prop = timeline.property as ParticlePropertyKey
+        if (!(prop in particlePropertyUpdaters)) {
+            if (!missingPropertiesWarned.has(prop)) {
+                missingPropertiesWarned.add(prop)
+                console.warn(
+                    `Could not find property updater with the name ${prop}`,
+                )
+            }
+            this.updater = () => {}
+        } else {
+            this.updater = particlePropertyUpdaters[prop]
         }
-        this.updater = particlePropertyUpdaters[prop] ?? (() => {})
     }
 
     apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
@@ -241,17 +310,14 @@ class ColorPropertyState implements ParticlePropertyState {
  * A registry of timeline property keys (`TimelineModel.property`) to their respective update
  * functions.
  */
-export const particlePropertyUpdaters: Record<
-    string,
-    ParticlePropertyUpdater | undefined
-> = {
+export const particlePropertyUpdaters = {
     x: (target, value) => (target.position.x = value),
     y: (target, value) => (target.position.y = value),
     z: (target, value) => (target.position.z = value),
 
-    velocityX: (target, value) => (target.velocity.x = value),
-    velocityY: (target, value) => (target.velocity.y = value),
-    velocityZ: (target, value) => (target.velocity.z = value),
+    xVel: (target, value) => (target.velocity.x = value),
+    yVel: (target, value) => (target.velocity.y = value),
+    zVel: (target, value) => (target.velocity.z = value),
 
     originX: (target, value) => (target.origin.x = value),
     originY: (target, value) => (target.origin.y = value),
@@ -270,21 +336,19 @@ export const particlePropertyUpdaters: Record<
     rotationY: (target, value) => (target.rotation.y = value),
     rotationZ: (target, value) => (target.rotation.z = value),
 
-    rotationalVelocityX: (target, value) =>
-        (target.rotationalVelocity.x = value),
-    rotationalVelocityY: (target, value) =>
-        (target.rotationalVelocity.y = value),
-    rotationalVelocityZ: (target, value) =>
-        (target.rotationalVelocity.z = value),
+    rotationXVel: (target, value) => (target.rotationVel.x = value),
+    rotationYVel: (target, value) => (target.rotationVel.y = value),
+    rotationZVel: (target, value) => (target.rotationVel.z = value),
 
-    forwardDirectionX: (target, value) => (target.forwardDirection.x = value),
-    forwardDirectionY: (target, value) => (target.forwardDirection.y = value),
-    forwardDirectionZ: (target, value) => (target.forwardDirection.z = value),
+    orientationX: (target, value) => (target.orientation.x = value),
+    orientationY: (target, value) => (target.orientation.y = value),
+    orientationZ: (target, value) => (target.orientation.z = value),
 
-    forwardDirectionVelocityZ: (target, value) =>
-        (target.forwardDirectionVelocity.z = value),
+    orientationXVel: (target, value) => (target.orientationVel.x = value),
+    orientationYVel: (target, value) => (target.orientationVel.y = value),
+    orientationZVel: (target, value) => (target.orientationVel.z = value),
 
-    forwardVelocity: (target, value) => (target.forwardVelocity = value),
+    forwardVel: (target, value) => (target.forwardVel = value),
 
     colorR: (target, value) => (target.tint.r = value),
     colorG: (target, value) => (target.tint.g = value),
@@ -292,4 +356,13 @@ export const particlePropertyUpdaters: Record<
     colorA: (target, value) => (target.tint.a = value),
 
     // imageIndex: (target, value) => (target.imageIndex += Math.round(delta)),
+} as const satisfies Record<string, ParticlePropertyUpdater | undefined>
+
+export type ParticlePropertyKey = keyof typeof particlePropertyUpdaters
+
+/**
+ * Returns true if the given vector is not close to 0.
+ */
+function isVec3NotZero(vec: Vector3): boolean {
+    return vec.lengthSq() <= Number.EPSILON
 }

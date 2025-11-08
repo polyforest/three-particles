@@ -1,5 +1,3 @@
-export const HALF_PI = Math.PI * 0.5
-
 /**
  * Returns true if `x` is within `tolerance` of `y`.
  *

@@ -61,9 +61,9 @@ export interface ParticleEmitterModel {
     spawn: Zone
 
     /**
-     * If true, the forward direction affects the rotation.
+     * If true, the orientation affects the rotation.
      */
-    orientToForwardDirection: boolean
+    rotateToOrientation: boolean
 
     /**
      * Timelines relative to the particle life.
@@ -145,7 +145,7 @@ export const particleEmitterDefaults = {
         },
     },
     spawn: zoneDefaults,
-    orientToForwardDirection: false,
+    rotateToOrientation: false,
     propertyTimelines: [],
     material: null,
 } as const satisfies ParticleEmitterModel
@@ -188,9 +188,9 @@ export function parseEmitter(
         emissionRate,
         particleLifeExpectancy,
         spawn,
-        orientToForwardDirection:
-            emitterJson.orientToForwardDirection ??
-            particleEmitterDefaults.orientToForwardDirection,
+        rotateToOrientation:
+            emitterJson.rotateToOrientation ??
+            particleEmitterDefaults.rotateToOrientation,
         propertyTimelines,
         material,
     }
@@ -244,10 +244,10 @@ export function particleEmitterModelToJson(
     if (Object.keys(spawn).length) out.spawn = spawn
 
     if (
-        emitter.orientToForwardDirection !==
-        particleEmitterDefaults.orientToForwardDirection
+        emitter.rotateToOrientation !==
+        particleEmitterDefaults.rotateToOrientation
     )
-        out.orientToForwardDirection = emitter.orientToForwardDirection
+        out.rotateToOrientation = emitter.rotateToOrientation
 
     if (emitter.propertyTimelines.length)
         out.propertyTimelines = emitter.propertyTimelines.map((t) =>
