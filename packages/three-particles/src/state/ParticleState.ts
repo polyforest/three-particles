@@ -176,15 +176,17 @@ class FloatPropertyState implements ParticlePropertyState {
         private readonly timeline: TimelineModel,
     ) {
         this.value = new PropertyValue(timeline)
-        const prop = timeline.property
-        if (
-            !(prop in particlePropertyUpdaters) &&
-            !missingPropertiesWarned.has(prop)
-        ) {
-            missingPropertiesWarned.add(prop)
-            console.warn(
-                `Could not find property updater with the name ${prop}`,
-            )
+        const prop = timeline.property as ParticlePropertyKey
+        if (!(prop in particlePropertyUpdaters)) {
+            if (!missingPropertiesWarned.has(prop)) {
+                missingPropertiesWarned.add(prop)
+                console.warn(
+                    `Could not find property updater with the name ${prop}`,
+                )
+            }
+            this.updater = () => {}
+        } else {
+            this.updater = particlePropertyUpdaters[prop]
         }
         this.updater = particlePropertyUpdaters[prop] ?? (() => {})
     }
