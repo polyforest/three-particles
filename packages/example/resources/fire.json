@@ -1,160 +1,168 @@
 {
-    "version": "0.3.0",
-    "materials": {
-        "points": {
-            "type": "PointsMaterial",
-            "size": 0.3,
-            "sizeAttenuation": true,
-            "transparent": true,
-            "map": "radial",
-            "blending": 2,
-            "alphaTest": 0.01,
-            "depthWrite": false,
-            "vertexColors": true
+  "version": "0.3.0",
+  "emitters": [
+    {
+      "uuid": "flame",
+      "name": "flame",
+      "duration": {
+        "duration": {
+          "min": 4,
+          "max": 6.5
         }
-    },
-    "emitters": [
+      },
+      "count": 200,
+      "emissionRate": {
+        "property": "emissionRate",
+        "timeline": [
+          0,
+          0,
+          0.47999998927116394,
+          1,
+          1,
+          0
+        ],
+        "relative": true,
+        "low": {
+          "min": 75
+        },
+        "high": {
+          "min": -20,
+          "max": 15
+        }
+      },
+      "particleLifeExpectancy": {
+        "property": "particleLifeExpectancy",
+        "timeline": [
+          0.699999988079071,
+          0.20000000298023224,
+          1,
+          1
+        ],
+        "low": {
+          "min": 1.6,
+          "max": 2
+        },
+        "high": {
+          "min": 0.8,
+          "max": 1.6
+        }
+      },
+      "spawn": {
+        "type": "ellipsoid",
+        "w": 1,
+        "d": 1
+      },
+      "propertyTimelines": [
         {
-            "uuid": "flame",
-            "enabled": true,
-            "material": "points",
-            "loops": true,
-            "spawn": {
-                "type": "ellipsoid",
-                "w": 0.1,
-                "h": 0,
-                "d": 0.1
-            },
-            "duration": {
-                "duration": {
-                    "min": 4,
-                    "max": 6.5,
-                    "ease": "linear"
-                },
-                "delayBefore": {
-                    "min": 0,
-                    "max": 0,
-                    "ease": "linear"
-                },
-                "delayAfter": {
-                    "min": 0,
-                    "max": 0,
-                    "ease": "linear"
-                }
-            },
-            "count": 200,
-            "emissionRate": {
-                "low": {
-                    "min": 75,
-                    "max": 75,
-                    "ease": "linear"
-                },
-                "high": {
-                    "min": -20,
-                    "max": 15,
-                    "ease": "linear"
-                },
-                "property": "emissionRate",
-                "relative": true,
-                "timeline": [0, 0, 0.48, 1, 1, 0]
-            },
-            "particleLifeExpectancy": {
-                "low": {
-                    "min": 1.6,
-                    "max": 2,
-                    "ease": "linear"
-                },
-                "high": {
-                    "min": 0.8,
-                    "max": 1.6,
-                    "ease": "linear"
-                },
-                "property": "particleLifeExpectancy",
-                "relative": false,
-                "timeline": [0.7, 0.2, 1, 1]
-            },
-            "orientToForwardDirection": false,
-            "propertyTimelines": [
-                {
-                    "low": {
-                        "min": 0,
-                        "max": 0,
-                        "ease": "linear"
-                    },
-                    "high": {
-                        "min": 1,
-                        "max": 1,
-                        "ease": "linear"
-                    },
-                    "property": "scaleX",
-                    "relative": false,
-                    "timeline": [0.488, 1, 1, 0.472]
-                },
-                {
-                    "low": {
-                        "min": 0,
-                        "max": 0,
-                        "ease": "linear"
-                    },
-                    "high": {
-                        "min": 1,
-                        "max": 1,
-                        "ease": "linear"
-                    },
-                    "property": "scaleY",
-                    "relative": false,
-                    "timeline": [0.507, 1, 1, 0.5]
-                },
-                {
-                    "low": {
-                        "min": -1,
-                        "max": 1,
-                        "ease": "linear"
-                    },
-                    "high": {
-                        "min": 0,
-                        "max": 0,
-                        "ease": "linear"
-                    },
-                    "property": "orientationZ",
-                    "relative": false,
-                    "timeline": [0, 0, 0.409, 1]
-                },
-                {
-                    "low": {
-                        "min": 0,
-                        "max": 0,
-                        "ease": "linear"
-                    },
-                    "high": {
-                        "min": 1,
-                        "max": 1,
-                        "ease": "linear"
-                    },
-                    "property": "forwardVel",
-                    "relative": false,
-                    "timeline": [0, 1]
-                },
-                {
-                    "low": {
-                        "min": 0,
-                        "max": 0,
-                        "ease": "linear"
-                    },
-                    "high": {
-                        "min": 1,
-                        "max": 1,
-                        "ease": "linear"
-                    },
-                    "property": "colorA",
-                    "relative": false,
-                    "timeline": [0, 0, 0.171, 1, 0.802, 1, 1, 0]
-                },
-                {
-                    "property": "color",
-                    "timeline": [0, 0.94, 0.165, 0.028, 0.96, 0.51, 0.092, 0]
-                }
-            ]
+          "property": "scaleX",
+          "timeline": [
+            0.4880000054836273,
+            1,
+            1,
+            0.47200000286102295
+          ],
+          "high": {
+            "min": 1
+          }
+        },
+        {
+          "property": "scaleY",
+          "timeline": [
+            0.5070000290870667,
+            1,
+            1,
+            0.5
+          ],
+          "high": {
+            "min": 1
+          }
+        },
+        {
+          "property": "orientationZ",
+          "timeline": [
+            0,
+            1,
+            0.09038806706666946,
+            0.5047432780265808,
+            0.33501696586608887,
+            0.12139423191547394,
+            0.5705286264419556,
+            0
+          ],
+          "low": {
+            "min": -0.3,
+            "max": 0.3
+          },
+          "high": {
+            "min": -1,
+            "max": 1
+          }
+        },
+        {
+          "property": "forwardVel",
+          "timeline": [
+            0,
+            1
+          ],
+          "high": {
+            "min": 1
+          }
+        },
+        {
+          "property": "colorA",
+          "timeline": [
+            0,
+            0,
+            0.17100000381469727,
+            1,
+            0.8019999861717224,
+            1,
+            1,
+            0
+          ],
+          "high": {
+            "min": 1
+          }
+        },
+        {
+          "property": "color",
+          "timeline": [
+            0,
+            0.9399999976158142,
+            0.16500000655651093,
+            0.02800000086426735,
+            1,
+            0.5099999904632568,
+            0.09200000017881393,
+            0
+          ],
+          "high": {
+            "min": 1
+          }
         }
-    ]
+      ],
+      "material": "points"
+    }
+  ],
+  "materials": {
+    "points": {
+      "metadata": {
+        "version": 4.7,
+        "type": "Material",
+        "generator": "Material.toJSON"
+      },
+      "uuid": "623db468-8d1b-4ce3-a8e0-cebf27588d4f",
+      "type": "PointsMaterial",
+      "color": 16777215,
+      "map": "radial",
+      "size": 0.3,
+      "sizeAttenuation": true,
+      "blending": 2,
+      "vertexColors": true,
+      "transparent": true,
+      "blendColor": 0,
+      "depthWrite": false,
+      "alphaTest": 0.01
+    }
+  }
 }

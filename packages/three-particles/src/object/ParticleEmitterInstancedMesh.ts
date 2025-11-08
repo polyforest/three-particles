@@ -1,16 +1,7 @@
-import {
-    Color,
-    InstancedMesh,
-    Object3D,
-    PlaneGeometry,
-    Quaternion,
-    Vector3,
-} from 'three'
+import { Color, InstancedMesh, Object3D, PlaneGeometry } from 'three'
 import { ParticleEmitterState } from '../state'
 import { ParticleEmitterObject } from './ParticleEmitterObject'
 import { ParticleEmitterModel } from '../model'
-
-const VEC_Z = new Vector3(0, 0, 1)
 
 /**
  * ParticleEmitterInstancedMesh renders particles an instanced mesh
@@ -26,7 +17,6 @@ export class ParticleEmitterInstancedMesh
     private readonly color = new Color()
     private readonly capacity: number
     private readonly obj = new Object3D()
-    private readonly quat = new Quaternion()
 
     constructor(model: ParticleEmitterModel) {
         const count = model.count

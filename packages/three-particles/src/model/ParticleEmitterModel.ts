@@ -65,7 +65,6 @@ export interface ParticleEmitterModel {
      */
     rotateToOrientation: boolean
 
-
     /**
      * Timelines relative to the particle life.
      */

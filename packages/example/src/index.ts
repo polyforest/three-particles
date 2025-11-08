@@ -10,6 +10,7 @@ import {
 } from 'three'
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { addAxesHelper } from './axesHelper'
 
 console.log('Hello!')
 
@@ -28,6 +29,8 @@ const grid = new GridHelper(20, 20, 0x000000, 0xffffff)
 grid.material.opacity = 0.2
 grid.material.transparent = true
 scene.add(grid)
+
+addAxesHelper(scene)
 
 const canvas = document.querySelector('#mainCanvas') as HTMLCanvasElement
 

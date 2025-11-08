@@ -1,11 +1,10 @@
-import { Vector3, Euler } from 'three'
+import { Euler, Vector3 } from 'three'
 import { clamp } from 'lodash'
 import { ParticleEmitterModel, randomFromZone, TimelineModel } from '../model'
 import { PropertyValue } from './PropertyValue'
 import { closeTo, getTimelineValues } from '../util'
 
 const tmpVec = new Vector3()
-const tmpEuler = new Euler()
 
 /**
  * Updates the particle state.
