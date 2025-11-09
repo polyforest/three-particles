@@ -1,9 +1,15 @@
 import {
+    AmbientLight,
+    BoxGeometry,
     Clock,
     Color,
+    DirectionalLight,
     Fog,
     GridHelper,
+    Mesh,
+    MeshStandardMaterial,
     PerspectiveCamera,
+    PlaneGeometry,
     Scene,
     Vector3,
     WebGLRenderer,
@@ -11,6 +17,7 @@ import {
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { addAxesHelper } from './axesHelper'
+import { AdditiveBlending } from 'three/src/constants'
 
 console.log('Hello!')
 
@@ -39,6 +46,31 @@ const renderer = new WebGLRenderer({
     antialias: true,
 })
 renderer.setClearColor(0x191919)
+renderer.shadowMap.enabled = true
+
+// Lighting
+const dirLight = new DirectionalLight(0xffffff, 2)
+dirLight.position.set(3, 4, 2)
+dirLight.castShadow = true
+// Tweak shadow quality and camera bounds to cover our scene area
+const s = 5
+dirLight.shadow.camera.left = -s
+dirLight.shadow.camera.right = s
+dirLight.shadow.camera.top = s
+dirLight.shadow.camera.bottom = -s
+dirLight.shadow.mapSize.set(1024, 1024)
+scene.add(dirLight)
+scene.add(new AmbientLight(0xffffff, 0.2))
+
+// Ground to receive shadows
+const ground = new Mesh(
+    new PlaneGeometry(20, 20),
+    new MeshStandardMaterial({ color: 0x303030 }),
+)
+ground.rotation.x = -Math.PI / 2
+ground.position.y = -0.001
+ground.receiveShadow = true
+scene.add(ground)
 
 const controls = new OrbitControls(camera, renderer.domElement)
 
@@ -57,8 +89,20 @@ function onResize() {
 // Load the particle effect.
 let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
+
+// Provide external material and geometry for the effect
+loader.setMaterials({
+    mesh: new MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 0,
+        roughness: 1,
+        blending: AdditiveBlending,
+    }),
+})
+loader.setGeometries({ cube: new BoxGeometry(0.1, 0.1, 0.1) })
+
 loader
-    .loadAsync('./fire.json')
+    .loadAsync('./mesh.json')
     .then((model) => {
         particleEffect = new ParticleEffect(model)
         scene.add(particleEffect)

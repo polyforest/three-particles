@@ -11,7 +11,14 @@ import {
     particleEmitterModelToJson,
 } from './ParticleEmitterModel'
 import { PartialDeep } from 'type-fest'
-import { Material, MaterialJSON, Texture, TextureJSON } from 'three'
+import {
+    BufferGeometry,
+    BufferGeometryJSON,
+    Material,
+    MaterialJSON,
+    Texture,
+    TextureJSON,
+} from 'three'
 
 /**
  * A model describing the duration and delay padding for an emitter.
@@ -41,6 +48,7 @@ export interface ParticleEffectModel {
     emitters: ParticleEmitterModel[]
     materials: Record<string, Material>
     textures: Record<string, Texture>
+    geometries: Record<string, BufferGeometry>
     toJSON(): ParticleEffectModelJson
 }
 
@@ -54,46 +62,84 @@ export const particleEffectDefaults = {
 
 export type ParticleEffectModelJson = Omit<
     PartialDeep<ParticleEffectModel, { recurseIntoArrays: true }>,
-    'emitters' | 'materials'
+    'emitters' | 'materials' | 'geometries'
 > & {
     emitters?: ParticleEmitterModelJson[]
-    materials?: Record<string, MaterialJSON>
 
     /**
-     * Allow either TextureJSON blobs or string URLs/keys for textures
+     * Optional materials bundled with this effect.
+     * Allow either MaterialJSON blobs or string URLs.
+     * External materials can be set on the ParticleEffectLoader.
+     */
+    materials?: Record<string, MaterialJSON | string>
+
+    /**
+     * Optional Textures bundled with this effect.
+     * Allow either TextureJSON blobs or string URLs.
+     * External textures can be set on the ParticleEffectLoader.
      */
     textures?: Record<string, TextureJSON | string>
+
+    /**
+     * Optional geometries bundled with this effect.
+     * Values may be URLs or simple shape descriptors.
+     * Allow either BufferGeometryJSON blobs or string URLs.
+     * External geometries can be set on the ParticleEffectLoader.
+     */
+    geometries?: Record<string, BufferGeometryJSON | string>
 }
 
 /**
  * Returns a new ParticleEffectModel with defaults applied.
  */
-export function parseParticleEffect(
-    effectJson: ParticleEffectModelJson,
-    bundledMaterials: Record<string, Material>,
-    externalMaterials: Record<string, Material>,
-    bundledTextures: Record<string, Texture>,
-    externalTextures: Record<string, Texture>,
-): ParticleEffectModel {
+export function parseParticleEffect({
+    effectJson,
+    bundledMaterials,
+    externalMaterials,
+    bundledTextures,
+    externalTextures,
+    bundledGeometries,
+    externalGeometries,
+}: {
+    effectJson: ParticleEffectModelJson
+    bundledMaterials: Record<string, Material>
+    externalMaterials: Record<string, Material>
+    bundledTextures: Record<string, Texture>
+    externalTextures: Record<string, Texture>
+    bundledGeometries: Record<string, BufferGeometry>
+    externalGeometries: Record<string, BufferGeometry>
+}): ParticleEffectModel {
     const allMaterials = {
         ...externalMaterials,
         ...bundledMaterials,
     }
+    const allGeometries = {
+        ...externalGeometries,
+        ...bundledGeometries,
+    }
     const emitters = (effectJson.emitters ?? [])
         .filter(isNonNil)
-        .map((emitter) => parseEmitter(emitter, allMaterials))
+        .map((emitter) =>
+            parseEmitter({
+                emitterJson: emitter,
+                materials: allMaterials,
+                geometries: allGeometries,
+            }),
+        )
 
     return {
         version: effectJson.version ?? particleEffectDefaults.version,
         emitters,
         materials: bundledMaterials,
         textures: bundledTextures,
+        geometries: bundledGeometries,
         toJSON: function (this: ParticleEffectModel) {
-            return particleEffectModelToJson(
-                this,
+            return particleEffectModelToJson({
+                effect: this,
                 externalMaterials,
                 externalTextures,
-            )
+                externalGeometries,
+            })
         },
     }
 }
@@ -101,20 +147,30 @@ export function parseParticleEffect(
 /**
  * Returns a compact representation of a ParticleEffectModel with default values removed.
  */
-export function particleEffectModelToJson(
-    effect: ParticleEffectModel,
-    externalMaterials: Record<string, Material>,
-    externalTextures: Record<string, Texture>,
-): ParticleEffectModelJson {
+export function particleEffectModelToJson({
+    effect,
+    externalMaterials,
+    externalTextures,
+    externalGeometries,
+}: {
+    effect: ParticleEffectModel
+    externalMaterials: Record<string, Material>
+    externalTextures: Record<string, Texture>
+    externalGeometries: Record<string, BufferGeometry>
+}): ParticleEffectModelJson {
     const out: ParticleEffectModelJson = {}
     const allMaterials = {
         ...externalMaterials,
         ...effect.materials,
     }
+    const allGeometries = {
+        ...externalGeometries,
+        ...effect.geometries,
+    }
     out.version = effect.version
     if (effect.emitters.length)
         out.emitters = effect.emitters.map((e) =>
-            particleEmitterModelToJson(e, allMaterials),
+            particleEmitterModelToJson(e, allMaterials, allGeometries),
         )
 
     const materialEntries = Object.entries(effect.materials)
@@ -125,6 +181,17 @@ export function particleEffectModelToJson(
             materialsJson[id] = materialToJson(mat, textureUuidMap)
         }
         if (Object.keys(materialsJson).length) out.materials = materialsJson
+    }
+
+    // Serialize bundled geometries (do not include external geometries)
+    const geometryEntries = Object.entries(effect.geometries)
+    if (geometryEntries.length) {
+        const geometriesJson: Record<string, BufferGeometryJSON> = {}
+        for (const [id, geom] of geometryEntries) {
+            // Use three.js BufferGeometry.toJSON to serialize
+            geometriesJson[id] = geom.toJSON() as unknown as BufferGeometryJSON
+        }
+        if (Object.keys(geometriesJson).length) out.geometries = geometriesJson
     }
 
     return out

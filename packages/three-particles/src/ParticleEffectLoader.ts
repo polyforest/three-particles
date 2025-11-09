@@ -1,10 +1,12 @@
 import {
+    BufferGeometryLoader,
     FileLoader,
     Loader,
     Material,
     MaterialLoader,
     Texture,
     TextureLoader,
+    BufferGeometry,
 } from 'three'
 import { parseTextureJson } from './parseTextureJson'
 import {
@@ -23,21 +25,26 @@ import { getDefaultRadial } from './materialDefaults'
 export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
     public readonly materialLoader: MaterialLoader
     public readonly textureLoader: TextureLoader
+    public readonly geometryLoader: BufferGeometryLoader
 
     public materials: Record<string, Material> = {}
     public textures: Record<string, Texture> = {}
+    public geometries: Record<string, BufferGeometry> = {}
 
     constructor(
         manager?: LoadingManager,
         deps?: {
             readonly materialLoader?: MaterialLoader
             readonly textureLoader?: TextureLoader
+            readonly geometryLoader?: BufferGeometryLoader
         },
     ) {
         super(manager)
         this.materialLoader =
             deps?.materialLoader ?? new MaterialLoader(manager)
         this.textureLoader = deps?.textureLoader ?? new TextureLoader(manager)
+        this.geometryLoader =
+            deps?.geometryLoader ?? new BufferGeometryLoader(manager)
 
         // Provide a sensible default texture map so basic effects work out of the box.
         // Users can override via setTextures(), and JSON-bundled textures will be merged.
@@ -52,10 +59,15 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         this.textures = textures
     }
 
+    setGeometries(geometries: Record<string, BufferGeometry>) {
+        this.geometries = geometries
+    }
+
     setPath(path: string): this {
         super.setPath(path)
         this.materialLoader.setPath(path)
         this.textureLoader.setPath(path)
+        this.geometryLoader.setPath(path)
         return this
     }
 
@@ -120,12 +132,10 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         }
 
         // Make textures available to MaterialLoader for resolving map/alphaMap/etc.
-        const externalTextures = this.textures
-        const allTextures = { ...externalTextures, ...bundledTextures }
         const mLoader = this.materialLoader
-        mLoader.setTextures(allTextures)
+        mLoader.setTextures({ ...this.textures, ...bundledTextures })
 
-        // 2) Load bundled materials
+        // Load bundled materials
         const bundledMaterials: Record<string, Material> = {}
         if (json.materials) {
             for (const [key, material] of Object.entries(json.materials)) {
@@ -136,12 +146,26 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
             }
         }
 
-        return parseParticleEffect(
-            json,
-            bundledMaterials,
-            this.materials,
-            bundledTextures,
-            externalTextures,
-        )
+        // Load bundled geometries
+        const bundledGeometries: Record<string, BufferGeometry> = {}
+        if (json.geometries) {
+            const gLoader = this.geometryLoader
+            for (const [key, geom] of Object.entries(json.geometries)) {
+                bundledGeometries[key] =
+                    typeof geom === 'string'
+                        ? await gLoader.loadAsync(geom)
+                        : gLoader.parse(geom)
+            }
+        }
+
+        return parseParticleEffect({
+            effectJson: json,
+            bundledMaterials: bundledMaterials,
+            externalMaterials: this.materials,
+            bundledTextures: bundledTextures,
+            externalTextures: this.textures,
+            bundledGeometries: bundledGeometries,
+            externalGeometries: this.geometries,
+        })
     }
 }
