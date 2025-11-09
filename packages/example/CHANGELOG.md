@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.8.0](https://github.com/polyforest/three-particles/compare/@polyforest/three-particles-example@0.7.4...@polyforest/three-particles-example@0.8.0) (2025-11-08)
+
+### Features
+
+- mesh material example ([2c1f5a1](https://github.com/polyforest/three-particles/commit/2c1f5a13be64d3b5ddd69085e852a78faa746e00))
+
 ## [0.7.4](https://github.com/polyforest/three-particles/compare/@polyforest/three-particles-example@0.7.3...@polyforest/three-particles-example@0.7.4) (2025-09-30)
 
 **Note:** Version bump only for package @polyforest/three-particles-example

@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.11.0](https://github.com/polyforest/three-particles/compare/three-particles@0.10.1...three-particles@0.11.0) (2025-11-08)
+
+### Bug Fixes
+
+- fix missing property check ([621cd11](https://github.com/polyforest/three-particles/commit/621cd1132aa9b64ec2c5f94afdc5e948fd324271))
+
+### Features
+
+- mesh material example ([2c1f5a1](https://github.com/polyforest/three-particles/commit/2c1f5a13be64d3b5ddd69085e852a78faa746e00))
+- support bundled textures ([508c6c7](https://github.com/polyforest/three-particles/commit/508c6c7d5080f147f4b63f8307cc91e92fedd9af))
+
 ## [0.10.1](https://github.com/polyforest/three-particles/compare/three-particles@0.10.0...three-particles@0.10.1) (2025-09-30)
 
 ### Bug Fixes
