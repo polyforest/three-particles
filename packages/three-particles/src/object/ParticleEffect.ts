@@ -60,8 +60,7 @@ export class ParticleEffect extends Group {
      */
     update(dT: number): void {
         this.forEachEmitter((instance) => {
-            instance.state.update(dT)
-            instance.updateGeometry()
+            instance.update(dT)
         })
     }
 
@@ -69,21 +68,21 @@ export class ParticleEffect extends Group {
      * Rewinds all emitters.
      */
     rewind(): void {
-        this.forEachEmitter((instance) => instance.state.rewind())
+        this.forEachEmitter((instance) => instance.rewind())
     }
 
     /**
      * Stops all emitters
      */
     stop(allowCompletion: boolean): void {
-        this.forEachEmitter((instance) => instance.state.stop(allowCompletion))
+        this.forEachEmitter((instance) => instance.stop(allowCompletion))
     }
 
     /**
      * Resets all emitters.
      */
     reset(): void {
-        this.forEachEmitter((instance) => instance.state.reset())
+        this.forEachEmitter((instance) => instance.reset())
     }
 
     clone(): this {

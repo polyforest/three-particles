@@ -12,7 +12,7 @@ export class ParticleEmitterInstancedMesh
     implements ParticleEmitterObject
 {
     readonly isParticleEmitterObject = true as const
-    readonly state: ParticleEmitterState
+    private readonly state: ParticleEmitterState
 
     private readonly color = new Color()
     private readonly capacity: number
@@ -33,7 +33,9 @@ export class ParticleEmitterInstancedMesh
         this.frustumCulled = false
     }
 
-    updateGeometry(): void {
+    update(dT: number): void {
+        // progress simulation
+        this.state.update(dT)
         if (!this.state.model.enabled) return
 
         let index = 0
@@ -61,5 +63,17 @@ export class ParticleEmitterInstancedMesh
         this.count = index
         this.instanceMatrix.needsUpdate = true
         if (this.instanceColor) this.instanceColor.needsUpdate = true
+    }
+
+    rewind(): void {
+        this.state.rewind()
+    }
+
+    stop(allowCompletion: boolean): void {
+        this.state.stop(allowCompletion)
+    }
+
+    reset(): void {
+        this.state.reset()
     }
 }

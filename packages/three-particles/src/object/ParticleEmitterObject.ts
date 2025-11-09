@@ -1,11 +1,10 @@
-import { ParticleEmitterState } from '../state'
-
 export interface ParticleEmitterObject {
     readonly isParticleEmitterObject: true
 
-    readonly state: ParticleEmitterState
-
-    updateGeometry(): void
+    update(dT: number): void
+    rewind(): void
+    stop(allowCompletion: boolean): void
+    reset(): void
 }
 
 export function isParticleEmitterObject(
