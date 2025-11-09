@@ -20,11 +20,14 @@ export class ParticleEmitterInstancedMesh
 
     constructor(model: ParticleEmitterModel) {
         const count = model.count
-        // Use a simple unit plane. User-provided material is applied below.
         super(model.geometry ?? undefined, model.material ?? undefined, count)
 
         this.capacity = count
         this.state = new ParticleEmitterState(model)
+
+        // Enable shadows by default so lit materials work in demos.
+        this.castShadow = true
+        this.receiveShadow = true
 
         // Optionally, set frustumCulled false since particles may be spread.
         this.frustumCulled = false
