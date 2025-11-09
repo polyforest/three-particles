@@ -364,5 +364,5 @@ export type ParticlePropertyKey = keyof typeof particlePropertyUpdaters
  * Returns true if the given vector is not close to 0.
  */
 function isVec3NotZero(vec: Vector3): boolean {
-    return vec.lengthSq() <= Number.EPSILON
+    return vec.lengthSq() > Number.EPSILON
 }
