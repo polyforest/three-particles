@@ -3,6 +3,13 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.9.0](https://github.com/polyforest/three-particles/compare/@polyforest/three-particles-example@0.8.0...@polyforest/three-particles-example@0.9.0) (2025-11-09)
+
+### Features
+
+- add support for bundled materials and geometries [wip] ([59b655f](https://github.com/polyforest/three-particles/commit/59b655f4a9394280ba1b932d513d1024c8982c07))
+- instanced mesh wip ([2dd7052](https://github.com/polyforest/three-particles/commit/2dd705292532b1346cc023ba0d6ae4cd24873be3))
+
 # [0.8.0](https://github.com/polyforest/three-particles/compare/@polyforest/three-particles-example@0.7.4...@polyforest/three-particles-example@0.8.0) (2025-11-08)
 
 ### Features
