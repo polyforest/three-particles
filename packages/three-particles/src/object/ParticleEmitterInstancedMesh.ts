@@ -1,4 +1,4 @@
-import { Color, InstancedMesh, Object3D, PlaneGeometry } from 'three'
+import { Color, InstancedMesh, Object3D } from 'three'
 import { ParticleEmitterState } from '../state'
 import { ParticleEmitterObject } from './ParticleEmitterObject'
 import { ParticleEmitterModel } from '../model'
@@ -21,7 +21,7 @@ export class ParticleEmitterInstancedMesh
     constructor(model: ParticleEmitterModel) {
         const count = model.count
         // Use a simple unit plane. User-provided material is applied below.
-        super(new PlaneGeometry(1, 1), model.material ?? undefined, count)
+        super(model.geometry ?? undefined, model.material ?? undefined, count)
 
         this.capacity = count
         this.state = new ParticleEmitterState(model)

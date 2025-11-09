@@ -8,7 +8,11 @@ import {
 describe('ParticleEmitterModel', () => {
     describe('parseEmitter', () => {
         it('should set count', () => {
-            const emitter = parseEmitter({}, {})
+            const emitter = parseEmitter({
+                emitterJson: {},
+                materials: {},
+                geometries: {},
+            })
             expect(emitter.count).toBeDefined()
         })
 
@@ -18,7 +22,11 @@ describe('ParticleEmitterModel', () => {
                 emissionRate: {},
                 propertyTimelines: [{}],
             }
-            const parsed = parseEmitter(emitter, {})
+            const parsed = parseEmitter({
+                emitterJson: emitter,
+                materials: {},
+                geometries: {},
+            })
             expect(parsed.emissionRate.high).toBeDefined()
             expect(parsed.emissionRate.low).toBeDefined()
             expect(parsed.emissionRate.high.ease).toBeDefined()
@@ -31,7 +39,11 @@ describe('ParticleEmitterModel', () => {
 
     describe('particleEmitterModelToJson', () => {
         it('should omit top-level defaults', () => {
-            const emitter = parseEmitter({}, {})
+            const emitter = parseEmitter({
+                emitterJson: {},
+                materials: {},
+                geometries: {},
+            })
             const json = particleEmitterModelToJson(emitter, {})
             expect(json.name).toBeUndefined()
             expect(json.enabled).toBeUndefined()
@@ -40,8 +52,8 @@ describe('ParticleEmitterModel', () => {
         })
 
         it('should include non-default fields', () => {
-            const emitter = parseEmitter(
-                {
+            const emitter = parseEmitter({
+                emitterJson: {
                     name: 'Test',
                     enabled: false,
                     loops: false,
@@ -49,8 +61,10 @@ describe('ParticleEmitterModel', () => {
                     spawn: { type: 'box', w: 1, h: 2, d: 3 },
                     rotateToOrientation: true,
                 },
-                {},
-            )
+                materials: {},
+
+                geometries: {},
+            })
             const json = particleEmitterModelToJson(emitter, {})
             expect(json.name).toBe('Test')
             expect(json.enabled).toBe(false)
@@ -64,7 +78,11 @@ describe('ParticleEmitterModel', () => {
             const matA = new PointsMaterial()
             const matB = new PointsMaterial()
             const materials = { a: matA, b: matB }
-            const emitter = parseEmitter({ material: matA }, materials)
+            const emitter = parseEmitter({
+                emitterJson: { material: matA },
+                materials,
+                geometries: {},
+            })
             const json = particleEmitterModelToJson(emitter, materials)
             expect(json.material).toBe('a')
         })
@@ -73,7 +91,11 @@ describe('ParticleEmitterModel', () => {
             const matA = new PointsMaterial()
             const matB = new PointsMaterial()
             const materials = { a: matA, b: matB }
-            const emitter = parseEmitter({ material: [matA, 'b'] }, materials)
+            const emitter = parseEmitter({
+                emitterJson: { material: [matA, 'b'] },
+                materials,
+                geometries: {},
+            })
             const json = particleEmitterModelToJson(emitter, materials)
             expect(Array.isArray(json.material)).toBe(true)
             expect(json.material).toEqual(['a', 'b'])
@@ -90,7 +112,11 @@ describe('ParticleEmitterModel', () => {
 
             it('should omit material and warn', () => {
                 const mat = new PointsMaterial()
-                const emitter = parseEmitter({ material: mat }, {})
+                const emitter = parseEmitter({
+                    emitterJson: { material: mat },
+                    materials: {},
+                    geometries: {},
+                })
                 const json = particleEmitterModelToJson(emitter, {})
                 expect(json.material).toBeUndefined()
                 expect(console.warn).toHaveBeenCalled()
@@ -101,8 +127,16 @@ describe('ParticleEmitterModel', () => {
 
 describe('parseEmitter defaults deep clone', () => {
     it('should deep clone emissionRate and particleLifeExpectancy when using defaults', () => {
-        const a = parseEmitter({}, {})
-        const b = parseEmitter({}, {})
+        const a = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
+        const b = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
         // Top-level objects should not be the same as defaults or each other
         expect(a.emissionRate).not.toBe(particleEmitterDefaults.emissionRate)
         expect(b.emissionRate).not.toBe(particleEmitterDefaults.emissionRate)
@@ -126,8 +160,16 @@ describe('parseEmitter defaults deep clone', () => {
     })
 
     it('should deep clone duration segments when using defaults', () => {
-        const a = parseEmitter({}, {})
-        const b = parseEmitter({}, {})
+        const a = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
+        const b = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
 
         expect(a.duration).not.toBe(particleEmitterDefaults.duration)
         expect(b.duration).not.toBe(particleEmitterDefaults.duration)
@@ -142,8 +184,16 @@ describe('parseEmitter defaults deep clone', () => {
     })
 
     it('should deep clone spawn when using defaults', () => {
-        const a = parseEmitter({}, {})
-        const b = parseEmitter({}, {})
+        const a = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
+        const b = parseEmitter({
+            emitterJson: {},
+            materials: {},
+            geometries: {},
+        })
         expect(a.spawn).not.toBe(b.spawn)
     })
 })

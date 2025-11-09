@@ -16,7 +16,7 @@ export class ParticleEmitterPoints
     readonly state: ParticleEmitterState
 
     constructor(model: ParticleEmitterModel) {
-        super(undefined, model.material ?? undefined)
+        super(model.geometry ?? undefined, model.material ?? undefined)
         this.state = new ParticleEmitterState(model)
         const n = model.count
 

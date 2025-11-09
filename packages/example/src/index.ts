@@ -7,6 +7,8 @@ import {
     Scene,
     Vector3,
     WebGLRenderer,
+    MeshBasicMaterial,
+    BoxGeometry,
 } from 'three'
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
@@ -57,8 +59,15 @@ function onResize() {
 // Load the particle effect.
 let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
+
+// Provide external material and geometry for the effect
+loader.setMaterials({
+    mesh: new MeshBasicMaterial({ color: 0xffffff, vertexColors: true }),
+})
+loader.setGeometries({ cube: new BoxGeometry(0.1, 0.1, 0.1) })
+
 loader
-    .loadAsync('./fire.json')
+    .loadAsync('./mesh.json')
     .then((model) => {
         particleEffect = new ParticleEffect(model)
         scene.add(particleEffect)

@@ -1,5 +1,5 @@
 import { EmitterDurationModel } from './ParticleEffectModel'
-import { Material, MathUtils } from 'three'
+import { BufferGeometry, Material, MathUtils } from 'three'
 import {
     parseTimeline,
     timelineDefaults,
@@ -74,6 +74,11 @@ export interface ParticleEmitterModel {
      * The material(s) to use for this emitter.
      */
     material: Material | Material[] | null
+
+    /**
+     * The Geometry to use for this emitter.
+     */
+    geometry: BufferGeometry | null
 }
 
 /**
@@ -82,7 +87,11 @@ export interface ParticleEmitterModel {
  */
 export type ParticleEmitterModelJson = Omit<
     PartialDeep<ParticleEmitterModel, { recurseIntoArrays: true }>,
-    'material' | 'propertyTimelines' | 'emissionRate' | 'particleLifeExpectancy'
+    | 'material'
+    | 'propertyTimelines'
+    | 'emissionRate'
+    | 'particleLifeExpectancy'
+    | 'geometry'
 > & {
     emissionRate?: TimelineModelJson
     particleLifeExpectancy?: TimelineModelJson
@@ -93,6 +102,7 @@ export type ParticleEmitterModelJson = Omit<
         | Material[]
         | (string | Material)[]
         | null
+    geometry?: string | BufferGeometry | null
     propertyTimelines?: TimelineModelJson[]
 }
 
@@ -148,15 +158,21 @@ export const particleEmitterDefaults = {
     rotateToOrientation: false,
     propertyTimelines: [],
     material: null,
+    geometry: null,
 } as const satisfies ParticleEmitterModel
 
 /**
  * Returns a new ParticleEmitterModel with defaults applied.
  */
-export function parseEmitter(
-    emitterJson: ParticleEmitterModelJson,
-    materials: Record<string, Material>,
-): ParticleEmitterModel {
+export function parseEmitter({
+    emitterJson,
+    materials,
+    geometries,
+}: {
+    emitterJson: ParticleEmitterModelJson
+    materials: Record<string, Material>
+    geometries?: Record<string, BufferGeometry>
+}): ParticleEmitterModel {
     const id = emitterJson.uuid ?? MathUtils.generateUUID()
     const spawn = parseZone(
         emitterJson.spawn ?? (cloneDeep(zoneDefaults) as Zone),
@@ -177,6 +193,7 @@ export function parseEmitter(
         .map((t) => parseTimeline(t))
 
     const material = toMaterials(emitterJson.material, materials)
+    const geometry = toGeometry(emitterJson.geometry, geometries ?? {})
 
     return {
         uuid: id,
@@ -193,6 +210,7 @@ export function parseEmitter(
             particleEmitterDefaults.rotateToOrientation,
         propertyTimelines,
         material,
+        geometry,
     }
 }
 
@@ -218,6 +236,7 @@ export function parseEmitterDuration(
 export function particleEmitterModelToJson(
     emitter: ParticleEmitterModel,
     materials: Record<string, Material | undefined>,
+    geometries: Record<string, BufferGeometry | undefined> = {},
 ): Partial<ParticleEmitterModelJson> {
     const out: ParticleEmitterModelJson = {
         uuid: emitter.uuid,
@@ -259,6 +278,11 @@ export function particleEmitterModelToJson(
         if (mat != null && (!Array.isArray(mat) || mat.length > 0)) {
             out.material = mat
         }
+    }
+
+    if (emitter.geometry != null) {
+        const geoId = toGeometryId(emitter.geometry, geometries)
+        if (geoId != null) out.geometry = geoId
     }
 
     return out
@@ -346,5 +370,35 @@ export function toMaterialId(
         if (material === mat) return id
     }
     console.warn('Missing material id for provided Material')
+    return null
+}
+
+/** Geometry helpers **/
+export function toGeometry(
+    geometryId: Maybe<BufferGeometry | string>,
+    geometries: Record<string, BufferGeometry | undefined>,
+): BufferGeometry | null {
+    if (!geometryId) return null
+    if (typeof geometryId === 'string') {
+        const geom = geometries[geometryId]
+        if (!geom) {
+            console.warn(`Missing geometry: ${geometryId}`)
+            return null
+        }
+        return geom
+    }
+    return geometryId
+}
+
+export function toGeometryId(
+    geometry: Maybe<BufferGeometry | string>,
+    geometries: Record<string, BufferGeometry | undefined>,
+): string | null {
+    if (geometry == null) return null
+    if (typeof geometry === 'string') return geometry
+    for (const [id, g] of Object.entries(geometries)) {
+        if (g === geometry) return id
+    }
+    console.warn('Missing geometry id for provided BufferGeometry')
     return null
 }

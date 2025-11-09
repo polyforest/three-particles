@@ -1,0 +1,107 @@
+{
+    "version": "0.3.0",
+    "emitters": [
+        {
+            "uuid": "flame",
+            "name": "flame",
+            "geometry": "cube",
+            "material": "mesh",
+            "duration": {
+                "duration": {
+                    "min": 4,
+                    "max": 6.5
+                }
+            },
+            "count": 200,
+            "emissionRate": {
+                "property": "emissionRate",
+                "timeline": [0, 0, 0.47999998927116394, 1, 1, 0],
+                "relative": true,
+                "low": {
+                    "min": 75
+                },
+                "high": {
+                    "min": -20,
+                    "max": 15
+                }
+            },
+            "particleLifeExpectancy": {
+                "property": "particleLifeExpectancy",
+                "timeline": [0.699999988079071, 0.20000000298023224, 1, 1],
+                "low": {
+                    "min": 1.6,
+                    "max": 2
+                },
+                "high": {
+                    "min": 0.8,
+                    "max": 1.6
+                }
+            },
+            "spawn": {
+                "type": "ellipsoid",
+                "w": 1,
+                "d": 1
+            },
+            "propertyTimelines": [
+                {
+                    "property": "scaleX",
+                    "timeline": [0.4880000054836273, 1, 1, 0.47200000286102295],
+                    "high": {
+                        "min": 1
+                    }
+                },
+                {
+                    "property": "scaleY",
+                    "timeline": [0.5070000290870667, 1, 1, 0.5],
+                    "high": {
+                        "min": 1
+                    }
+                },
+                {
+                    "property": "orientationZ",
+                    "timeline": [
+                        0, 1, 0.09038806706666946, 0.5047432780265808,
+                        0.33501696586608887, 0.12139423191547394,
+                        0.5705286264419556, 0
+                    ],
+                    "low": {
+                        "min": -0.3,
+                        "max": 0.3
+                    },
+                    "high": {
+                        "min": -1,
+                        "max": 1
+                    }
+                },
+                {
+                    "property": "forwardVel",
+                    "timeline": [0, 1],
+                    "high": {
+                        "min": 1
+                    }
+                },
+                {
+                    "property": "colorA",
+                    "timeline": [
+                        0, 0, 0.17100000381469727, 1, 0.8019999861717224, 1, 1,
+                        0
+                    ],
+                    "high": {
+                        "min": 1
+                    }
+                },
+                {
+                    "property": "color",
+                    "timeline": [
+                        0, 0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 1, 0.5099999904632568,
+                        0.09200000017881393, 0
+                    ],
+                    "high": {
+                        "min": 1
+                    }
+                }
+            ]
+        }
+    ]
+}
