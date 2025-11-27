@@ -166,7 +166,7 @@ export class ParticleState implements ParticleProperties {
             )
         }
 
-        if (isVec3NotZero(this.rotation)) {
+        if (isVec3NotZero(this.rotationVel)) {
             this.rotation.add(
                 tmpVec.copy(this.rotationVel).multiplyScalar(tickTime),
             )
@@ -230,10 +230,12 @@ export function createParticlePropertyState(
 ): ParticlePropertyState {
     return timeline.property === 'color'
         ? new ColorPropertyState(particleProps.tint, timeline)
-        : new FloatPropertyState(particleProps, timeline)
+        : new FloatPropertyState(
+              particleProps,
+              timeline,
+              getParticlePropertyUpdater(timeline.property),
+          )
 }
-
-const missingPropertiesWarned = new Set<string>()
 
 class FloatPropertyState implements ParticlePropertyState {
     private readonly value: PropertyValue
@@ -242,20 +244,10 @@ class FloatPropertyState implements ParticlePropertyState {
     constructor(
         private readonly particleProps: ParticleProperties,
         private readonly timeline: TimelineModel,
+        updater: ParticlePropertyUpdater,
     ) {
         this.value = new PropertyValue(timeline)
-        const prop = timeline.property as ParticlePropertyKey
-        if (!(prop in particlePropertyUpdaters)) {
-            if (!missingPropertiesWarned.has(prop)) {
-                missingPropertiesWarned.add(prop)
-                console.warn(
-                    `Could not find property updater with the name ${prop}`,
-                )
-            }
-            this.updater = () => {}
-        } else {
-            this.updater = particlePropertyUpdaters[prop]
-        }
+        this.updater = updater
     }
 
     apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
@@ -359,6 +351,24 @@ export const particlePropertyUpdaters = {
 } as const satisfies Record<string, ParticlePropertyUpdater | undefined>
 
 export type ParticlePropertyKey = keyof typeof particlePropertyUpdaters
+
+const missingPropertiesWarned = new Set<string>()
+
+export function getParticlePropertyUpdater(
+    propertyKey: string,
+): ParticlePropertyUpdater {
+    const prop = propertyKey as ParticlePropertyKey
+    if (!(prop in particlePropertyUpdaters)) {
+        if (!missingPropertiesWarned.has(prop)) {
+            missingPropertiesWarned.add(prop)
+            console.warn(
+                `Could not find property updater with the name ${prop}`,
+            )
+        }
+        return () => {}
+    }
+    return particlePropertyUpdaters[prop]
+}
 
 /**
  * Returns true if the given vector is not close to 0.
