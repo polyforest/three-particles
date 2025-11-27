@@ -1,5 +1,6 @@
 import {
     AmbientLight,
+    AxesHelper,
     BoxGeometry,
     Clock,
     Color,
@@ -16,7 +17,6 @@ import {
 } from 'three'
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { addAxesHelper } from './axesHelper'
 import { AdditiveBlending } from 'three/src/constants'
 
 console.log('Hello!')
@@ -37,7 +37,7 @@ grid.material.opacity = 0.2
 grid.material.transparent = true
 scene.add(grid)
 
-addAxesHelper(scene)
+scene.add(new AxesHelper(3))
 
 const canvas = document.querySelector('#mainCanvas') as HTMLCanvasElement
 
