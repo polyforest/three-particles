@@ -42,7 +42,7 @@ export interface ParticleProperties {
      * - Y: Yaw (rotation around Y axis)
      * - Z: Roll (rotation around Z axis)
      */
-    readonly rotation: Vector3
+    readonly rotation: Euler
 
     /**
      * Rotational velocity, in radians per second.
@@ -105,7 +105,7 @@ export class ParticleState implements ParticleProperties {
     readonly position = new Vector3()
     readonly velocity = new Vector3()
     readonly scale = new Vector3(1, 1, 1)
-    readonly rotation = new Vector3()
+    readonly rotation = new Euler()
     readonly rotationVel = new Vector3()
 
     /**
@@ -127,9 +127,11 @@ export class ParticleState implements ParticleProperties {
     readonly origin = new Vector3(0.5, 0.5, 0.5)
 
     /**
-     * If orientToForwardDirection is true, the final rotation will be rotation forwardDirection
+     * The final rotation to apply to the rendered particle.
+     * If rotateToOrientation is true on the emitter, this is rotation + orientation; 
+     * otherwise equals rotation.
      */
-    readonly rotationFinal = new Vector3()
+    readonly rotationFinal = new Euler()
 
     imageIndex = 0
 
@@ -167,9 +169,9 @@ export class ParticleState implements ParticleProperties {
         }
 
         if (isVec3NotZero(this.rotationVel)) {
-            this.rotation.add(
-                tmpVec.copy(this.rotationVel).multiplyScalar(tickTime),
-            )
+            this.rotation.x += this.rotationVel.x * tickTime
+            this.rotation.y += this.rotationVel.y * tickTime
+            this.rotation.z += this.rotationVel.z * tickTime
         }
 
         if (isVec3NotZero(this.orientationVel)) {

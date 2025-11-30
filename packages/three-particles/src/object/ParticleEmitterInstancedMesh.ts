@@ -46,6 +46,10 @@ export class ParticleEmitterInstancedMesh
             // Position
             this.obj.position.copy(p.position)
 
+            // Rotation
+            this.obj.rotation.copy(p.rotationFinal)
+
+            // Scale
             this.obj.scale.copy(p.scale)
 
             this.obj.updateMatrix()

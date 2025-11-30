@@ -65,7 +65,7 @@ function makeProps(): ParticleProperties {
         position: new Vector3(),
         velocity: new Vector3(),
         scale: new Vector3(1, 1, 1),
-        rotation: new Vector3(),
+        rotation: new Euler(),
         rotationVel: new Vector3(),
         orientation: new Euler(),
         orientationVel: new Vector3(),
