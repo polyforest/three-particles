@@ -178,8 +178,6 @@ describe('ParticleState', () => {
     })
 })
 
-
-
 describe('ParticleState rotation integration', () => {
     it('integrates rotationVel even when initial rotation is zero', () => {
         const emitter = emitterWithTimelines([
@@ -195,7 +193,6 @@ describe('ParticleState rotation integration', () => {
         expect(p.rotation.z).toBeCloseTo(1)
     })
 })
-
 
 describe('getParticlePropertyUpdater', () => {
     it('returns working updater for known keys', () => {

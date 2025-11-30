@@ -128,7 +128,7 @@ export class ParticleState implements ParticleProperties {
 
     /**
      * The final rotation to apply to the rendered particle.
-     * If rotateToOrientation is true on the emitter, this is rotation + orientation; 
+     * If rotateToOrientation is true on the emitter, this is rotation + orientation;
      * otherwise equals rotation.
      */
     readonly rotationFinal = new Euler()
