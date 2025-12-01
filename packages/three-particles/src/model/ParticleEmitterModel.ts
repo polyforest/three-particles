@@ -170,7 +170,7 @@ export function parseEmitter({
     geometries,
 }: {
     emitterJson: ParticleEmitterModelJson
-    materials: Record<string, Material>
+    materials?: Record<string, Material>
     geometries?: Record<string, BufferGeometry>
 }): ParticleEmitterModel {
     const id = emitterJson.uuid ?? MathUtils.generateUUID()
@@ -192,7 +192,7 @@ export function parseEmitter({
         .filter(isNonNil)
         .map((t) => parseTimeline(t))
 
-    const material = toMaterials(emitterJson.material, materials)
+    const material = toMaterials(emitterJson.material, materials ?? {})
     const geometry = toGeometry(emitterJson.geometry, geometries ?? {})
 
     return {
