@@ -1,6 +1,6 @@
 import {
     AmbientLight,
-    BoxGeometry,
+    AxesHelper,
     Clock,
     Color,
     DirectionalLight,
@@ -16,8 +16,6 @@ import {
 } from 'three'
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
-import { addAxesHelper } from './axesHelper'
-import { AdditiveBlending } from 'three/src/constants'
 
 console.log('Hello!')
 
@@ -37,7 +35,7 @@ grid.material.opacity = 0.2
 grid.material.transparent = true
 scene.add(grid)
 
-addAxesHelper(scene)
+scene.add(new AxesHelper(3))
 
 const canvas = document.querySelector('#mainCanvas') as HTMLCanvasElement
 
@@ -89,17 +87,6 @@ function onResize() {
 // Load the particle effect.
 let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
-
-// Provide external material and geometry for the effect
-loader.setMaterials({
-    mesh: new MeshStandardMaterial({
-        color: 0xffffff,
-        metalness: 0,
-        roughness: 1,
-        blending: AdditiveBlending,
-    }),
-})
-loader.setGeometries({ cube: new BoxGeometry(0.1, 0.1, 0.1) })
 
 loader
     .loadAsync('./mesh.json')

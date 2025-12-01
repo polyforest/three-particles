@@ -13,7 +13,7 @@ export class ParticleEmitterPoints
     implements ParticleEmitterObject
 {
     readonly isParticleEmitterObject = true
-    readonly state: ParticleEmitterState
+    private readonly state: ParticleEmitterState
 
     constructor(model: ParticleEmitterModel) {
         super(model.geometry ?? undefined, model.material ?? undefined)
@@ -35,13 +35,11 @@ export class ParticleEmitterPoints
         // this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 10)
     }
 
-    /**
-     * Updates this emitter's buffer geometry.
-     * Typically invoked by the particle effect that owns this emitter.
-     */
-    updateGeometry(): void {
+    update(dT: number): void {
+        // Progress internal particle simulation
+        this.state.update(dT)
+        // Update geometry buffers from state
         if (!this.state.model.enabled) return
-        // Access the typed array for position data:
         const posArr = this.geometry.attributes.position.array as Float32Array
         const colorArr = this.geometry.attributes.color.array as Float32Array
 
@@ -66,5 +64,17 @@ export class ParticleEmitterPoints
         this.geometry.setDrawRange(0, this.state.activeCount)
         this.geometry.attributes.position.needsUpdate = true
         this.geometry.attributes.color.needsUpdate = true
+    }
+
+    rewind(): void {
+        this.state.rewind()
+    }
+
+    stop(allowCompletion: boolean): void {
+        this.state.stop(allowCompletion)
+    }
+
+    reset(): void {
+        this.state.reset()
     }
 }

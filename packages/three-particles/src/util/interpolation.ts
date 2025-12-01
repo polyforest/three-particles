@@ -11,10 +11,21 @@ export function getTimelineValue(
     timeline: ArrayLike<number>,
     time: number,
 ): number {
+    const len = timeline.length
+    if (len === 0) return 0
+
     const stride = 2
+    const lastTimeIndex = len - stride
+    const firstTime = timeline[0]
+    const lastTime = timeline[lastTimeIndex]
+
+    // Clamp before/after range
+    if (time <= firstTime) return timeline[1]
+    if (time >= lastTime) return timeline[lastTimeIndex + 1]
+
     let indexB = getInsertionIndex(timeline, time, stride)
     const indexA = Math.max(0, indexB - stride)
-    if (indexB === timeline.length) indexB -= stride
+    if (indexB === len) indexB -= stride
     const timeA = timeline[indexA]
     const timeB = timeline[indexB]
 
@@ -37,14 +48,30 @@ export function getTimelineValues(
     time: number,
     out: Float32Array,
 ): void {
-    if (timeline.length === 0) {
+    const len = timeline.length
+    if (len === 0) {
         out.fill(0, 0, numComponents)
         return
     }
     const stride = numComponents + 1
+    const lastTimeIndex = len - stride
+    const firstTime = timeline[0]
+    const lastTime = timeline[lastTimeIndex]
+
+    // Clamp before/after range
+    if (time <= firstTime) {
+        for (let i = 0; i < numComponents; i++) out[i] = timeline[1 + i]
+        return
+    }
+    if (time >= lastTime) {
+        for (let i = 0; i < numComponents; i++)
+            out[i] = timeline[lastTimeIndex + 1 + i]
+        return
+    }
+
     let indexB = getInsertionIndex(timeline, time, stride)
     const indexA = Math.max(0, indexB - stride)
-    if (indexB === timeline.length) indexB -= stride
+    if (indexB === len) indexB -= stride
     const timeA = timeline[indexA]
     const timeB = timeline[indexB]
 
@@ -88,9 +115,12 @@ export function getIndexClosestToTime(
     numComponents: number,
     time: number,
 ): number {
+    const len = timeline.length
+    if (len === 0) return -1
     const stride = numComponents + 1
-    const a = getInsertionIndex(timeline, time, stride)
+    let a = getInsertionIndex(timeline, time, stride)
     if (a <= 0) return 0
+    if (a >= len) a = len - stride
     const b = a - stride
     const diffA = Math.abs(time - timeline[a])
     const diffB = Math.abs(time - timeline[b])

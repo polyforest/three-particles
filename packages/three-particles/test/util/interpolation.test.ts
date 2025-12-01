@@ -66,4 +66,51 @@ describe('util/interpolation', () => {
             expect(getIndexCloseToTime(tl, 1, 1.1, 0.05)).toBe(-1)
         })
     })
+
+    it('getIndexClosestToTime: returns last key index when time is after the final key', () => {
+        // stride = 2 (numComponents=1)
+        const tl = new Float32Array([0, 0, 1, 10, 2, 20])
+        const idx = getIndexClosestToTime(tl, 1, 10)
+        // last time index should be 4
+        expect(idx).toBe(4)
+    })
+
+    it('getIndexClosestToTime: returns 0 when time is before the first key', () => {
+        const tl = new Float32Array([0, 0, 1, 10, 2, 20])
+        const idx = getIndexClosestToTime(tl, 1, -5)
+        expect(idx).toBe(0)
+    })
+
+    it('getIndexClosestToTime: returns -1 for empty timeline', () => {
+        const tl = new Float32Array([])
+        const idx = getIndexClosestToTime(tl, 1, 0.5)
+        expect(idx).toBe(-1)
+    })
+
+    it('getIndexCloseToTime: returns -1 for empty timeline', () => {
+        const tl = new Float32Array([])
+        const idx = getIndexCloseToTime(tl, 1, 0.1, 0.05)
+        expect(idx).toBe(-1)
+    })
+
+    it('getTimelineValue: returns 0 for empty timeline', () => {
+        const v = getTimelineValue(new Float32Array([]), 0.5)
+        expect(v).toBe(0)
+    })
+
+    it('getTimelineValue: clamps before first and after last keys', () => {
+        const tl = new Float32Array([0, 0, 1, 10, 2, 20])
+        expect(getTimelineValue(tl, -10)).toBe(0)
+        expect(getTimelineValue(tl, 10)).toBe(20)
+    })
+
+    it('getTimelineValues: clamps before first and after last keys', () => {
+        // numComponents = 3
+        const tl = new Float32Array([0, 0, 10, 20, 2, 20, 30, 40])
+        const out = new Float32Array(3)
+        getTimelineValues(tl, 3, -1, out)
+        expect(Array.from(out)).toEqual([0, 10, 20])
+        getTimelineValues(tl, 3, 5, out)
+        expect(Array.from(out)).toEqual([20, 30, 40])
+    })
 })

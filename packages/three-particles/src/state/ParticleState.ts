@@ -42,7 +42,7 @@ export interface ParticleProperties {
      * - Y: Yaw (rotation around Y axis)
      * - Z: Roll (rotation around Z axis)
      */
-    readonly rotation: Vector3
+    readonly rotation: Euler
 
     /**
      * Rotational velocity, in radians per second.
@@ -105,7 +105,7 @@ export class ParticleState implements ParticleProperties {
     readonly position = new Vector3()
     readonly velocity = new Vector3()
     readonly scale = new Vector3(1, 1, 1)
-    readonly rotation = new Vector3()
+    readonly rotation = new Euler()
     readonly rotationVel = new Vector3()
 
     /**
@@ -127,9 +127,11 @@ export class ParticleState implements ParticleProperties {
     readonly origin = new Vector3(0.5, 0.5, 0.5)
 
     /**
-     * If orientToForwardDirection is true, the final rotation will be rotation forwardDirection
+     * The final rotation to apply to the rendered particle.
+     * If rotateToOrientation is true on the emitter, this is rotation + orientation;
+     * otherwise equals rotation.
      */
-    readonly rotationFinal = new Vector3()
+    readonly rotationFinal = new Euler()
 
     imageIndex = 0
 
@@ -166,10 +168,10 @@ export class ParticleState implements ParticleProperties {
             )
         }
 
-        if (isVec3NotZero(this.rotation)) {
-            this.rotation.add(
-                tmpVec.copy(this.rotationVel).multiplyScalar(tickTime),
-            )
+        if (isVec3NotZero(this.rotationVel)) {
+            this.rotation.x += this.rotationVel.x * tickTime
+            this.rotation.y += this.rotationVel.y * tickTime
+            this.rotation.z += this.rotationVel.z * tickTime
         }
 
         if (isVec3NotZero(this.orientationVel)) {
@@ -230,10 +232,12 @@ export function createParticlePropertyState(
 ): ParticlePropertyState {
     return timeline.property === 'color'
         ? new ColorPropertyState(particleProps.tint, timeline)
-        : new FloatPropertyState(particleProps, timeline)
+        : new FloatPropertyState(
+              particleProps,
+              timeline,
+              getParticlePropertyUpdater(timeline.property),
+          )
 }
-
-const missingPropertiesWarned = new Set<string>()
 
 class FloatPropertyState implements ParticlePropertyState {
     private readonly value: PropertyValue
@@ -242,20 +246,10 @@ class FloatPropertyState implements ParticlePropertyState {
     constructor(
         private readonly particleProps: ParticleProperties,
         private readonly timeline: TimelineModel,
+        updater: ParticlePropertyUpdater,
     ) {
         this.value = new PropertyValue(timeline)
-        const prop = timeline.property as ParticlePropertyKey
-        if (!(prop in particlePropertyUpdaters)) {
-            if (!missingPropertiesWarned.has(prop)) {
-                missingPropertiesWarned.add(prop)
-                console.warn(
-                    `Could not find property updater with the name ${prop}`,
-                )
-            }
-            this.updater = () => {}
-        } else {
-            this.updater = particlePropertyUpdaters[prop]
-        }
+        this.updater = updater
     }
 
     apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
@@ -359,6 +353,24 @@ export const particlePropertyUpdaters = {
 } as const satisfies Record<string, ParticlePropertyUpdater | undefined>
 
 export type ParticlePropertyKey = keyof typeof particlePropertyUpdaters
+
+const missingPropertiesWarned = new Set<string>()
+
+export function getParticlePropertyUpdater(
+    propertyKey: string,
+): ParticlePropertyUpdater {
+    const prop = propertyKey as ParticlePropertyKey
+    if (!(prop in particlePropertyUpdaters)) {
+        if (!missingPropertiesWarned.has(prop)) {
+            missingPropertiesWarned.add(prop)
+            console.warn(
+                `Could not find property updater with the name ${prop}`,
+            )
+        }
+        return () => {}
+    }
+    return particlePropertyUpdaters[prop]
+}
 
 /**
  * Returns true if the given vector is not close to 0.
