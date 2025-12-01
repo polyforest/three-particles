@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.13.0](https://github.com/polyforest/three-particles/compare/three-particles@0.12.0...three-particles@0.13.0) (2025-12-01)
+
+### Features
+
+- **InstancedMesh:** add rotation for instanced mesh ([6000d62](https://github.com/polyforest/three-particles/commit/6000d62fae447a9846fe2b66d797e1f64370c285))
+
 # [0.12.0](https://github.com/polyforest/three-particles/compare/three-particles@0.11.0...three-particles@0.12.0) (2025-11-09)
 
 ### Bug Fixes
