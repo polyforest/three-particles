@@ -15,9 +15,19 @@ import { parseTextureJson } from '../src/parseTextureJson'
 
 class FakeTextureLoader extends TextureLoader {
     public lastUrl: string | null = null
-    load(url: string): Texture {
+
+    // Match the current TextureLoader.load(...) signature so TypeScript is happy
+    // while still keeping the test synchronous and deterministic.
+    override load<T extends Texture>(
+        url: string,
+        onLoad?: (texture: T) => void,
+        _onProgress?: (event: ProgressEvent<EventTarget>) => void,
+        _onError?: (event: ErrorEvent) => void,
+    ): T {
         this.lastUrl = url
-        return new Texture()
+        const tex = new Texture() as T
+        if (onLoad) onLoad(tex)
+        return tex
     }
 }
 
