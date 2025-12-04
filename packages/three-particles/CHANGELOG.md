@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.14.1](https://github.com/polyforest/three-particles/compare/three-particles@0.14.0...three-particles@0.14.1) (2025-12-04)
+
+**Note:** Version bump only for package three-particles
+
 # [0.14.0](https://github.com/polyforest/three-particles/compare/three-particles@0.13.0...three-particles@0.14.0) (2025-12-04)
 
 ### Features
