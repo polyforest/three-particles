@@ -89,12 +89,6 @@ function onResize() {
 let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
 
-// Bind the "diamond" texture key used in fire.json to the local diamond.png file.
-const textureLoader = new TextureLoader()
-loader.setTextures({
-    diamond: textureLoader.load('./diamond.png'),
-})
-
 loader
     .loadAsync('./fire.json')
     .then((model) => {
