@@ -11,6 +11,7 @@ import {
     PerspectiveCamera,
     PlaneGeometry,
     Scene,
+    TextureLoader,
     Vector3,
     WebGLRenderer,
 } from 'three'
@@ -88,8 +89,14 @@ function onResize() {
 let particleEffect: ParticleEffect | null = null
 const loader = new ParticleEffectLoader()
 
+// Bind the "diamond" texture key used in fire.json to the local diamond.png file.
+const textureLoader = new TextureLoader()
+loader.setTextures({
+    diamond: textureLoader.load('./diamond.png'),
+})
+
 loader
-    .loadAsync('./mesh.json')
+    .loadAsync('./fire.json')
     .then((model) => {
         particleEffect = new ParticleEffect(model)
         scene.add(particleEffect)
