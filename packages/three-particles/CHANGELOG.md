@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.14.0](https://github.com/polyforest/three-particles/compare/three-particles@0.13.0...three-particles@0.14.0) (2025-12-04)
+
+### Features
+
+- add z rotation support for emitter points ([4605702](https://github.com/polyforest/three-particles/commit/4605702f077fa5d567c1dbfc98c209b0adb1a713))
+
 # [0.13.0](https://github.com/polyforest/three-particles/compare/three-particles@0.12.0...three-particles@0.13.0) (2025-12-01)
 
 ### Features
