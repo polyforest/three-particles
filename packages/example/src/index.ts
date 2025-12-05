@@ -28,8 +28,6 @@ const scene = new Scene()
 scene.background = new Color(0x111111)
 scene.fog = new Fog(0x111111, 1, 10)
 
-const clock = new Clock()
-
 const grid = new GridHelper(20, 20, 0x000000, 0xffffff)
 grid.material.opacity = 0.2
 grid.material.transparent = true
@@ -96,6 +94,7 @@ loader
     })
     .catch(console.error)
 
+const clock = new Clock()
 function render() {
     const dT = Math.min(clock.getDelta(), 0.1)
     controls.update()

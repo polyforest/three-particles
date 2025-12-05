@@ -56,7 +56,6 @@ node_modules/
 .env
 
 dist/
-/www/
 /generated-types/
 /jsdocs/
 /act/
