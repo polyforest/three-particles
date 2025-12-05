@@ -18,9 +18,9 @@ export function parseTextureJson(
     if (json.uuid) t.uuid = json.uuid
 
     // transforms
-    if (json.repeat) t.repeat.set(json.repeat[0], json.repeat[1])
-    if (json.offset) t.offset.set(json.offset[0], json.offset[1])
-    if (json.center) t.center.set(json.center[0], json.center[1])
+    if (json.repeat) t.repeat.fromArray(json.repeat)
+    if (json.offset) t.offset.fromArray(json.offset)
+    if (json.center) t.center.fromArray(json.center)
     if (typeof json.rotation === 'number') t.rotation = json.rotation
 
     // addressing / wrapping
