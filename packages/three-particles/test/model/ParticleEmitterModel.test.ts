@@ -74,28 +74,39 @@ describe('ParticleEmitterModel', () => {
             expect(json.rotateToOrientation).toBe(true)
         })
 
-        it('should convert material object to its id using provided materials record', () => {
+        it('should convert a single material on the model to its id using provided materials record', () => {
             const matA = new PointsMaterial()
             const matB = new PointsMaterial()
             const materials = { a: matA, b: matB }
+
+            // JSON uses ids only; materials are resolved when parsing.
             const emitter = parseEmitter({
-                emitterJson: { material: matA },
+                emitterJson: { material: 'a' },
                 materials,
                 geometries: {},
             })
+
             const json = particleEmitterModelToJson(emitter, materials)
             expect(json.material).toBe('a')
         })
 
-        it('should convert array of materials/ids to array of ids', () => {
+        it('should convert array of materials on the model to array of ids', () => {
             const matA = new PointsMaterial()
             const matB = new PointsMaterial()
             const materials = { a: matA, b: matB }
+
+            // Parse from ids-only JSON, then ensure a Material array on the
+            // model is converted back to ids.
             const emitter = parseEmitter({
-                emitterJson: { material: [matA, 'b'] },
+                emitterJson: { material: ['a', 'b'] },
                 materials,
                 geometries: {},
             })
+
+            // Simulate runtime modification where the emitter now holds
+            // actual Materials.
+            emitter.material = [matA, matB]
+
             const json = particleEmitterModelToJson(emitter, materials)
             expect(Array.isArray(json.material)).toBe(true)
             expect(json.material).toEqual(['a', 'b'])
@@ -110,13 +121,17 @@ describe('ParticleEmitterModel', () => {
                 jest.restoreAllMocks()
             })
 
-            it('should omit material and warn', () => {
+            it('should omit material without an id and warn', () => {
                 const mat = new PointsMaterial()
                 const emitter = parseEmitter({
-                    emitterJson: { material: mat },
+                    emitterJson: {},
                     materials: {},
                     geometries: {},
                 })
+
+                // Assign a material that has no corresponding id in the map.
+                emitter.material = mat
+
                 const json = particleEmitterModelToJson(emitter, {})
                 expect(json.material).toBeUndefined()
                 expect(console.warn).toHaveBeenCalled()
