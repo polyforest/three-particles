@@ -32,5 +32,5 @@ jobs:
         run: npm ci
         if: hashFiles('package-lock.json') != ''
 
-      - name: Run tests
-        run: npm test
+      - name: Run build, lint, and test
+        run: npm run validate

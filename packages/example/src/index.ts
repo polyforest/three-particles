@@ -11,7 +11,6 @@ import {
     PerspectiveCamera,
     PlaneGeometry,
     Scene,
-    TextureLoader,
     Vector3,
     WebGLRenderer,
 } from 'three'
