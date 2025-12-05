@@ -62,7 +62,7 @@ export const particleEffectDefaults = {
 
 export type ParticleEffectModelJson = Omit<
     PartialDeep<ParticleEffectModel, { recurseIntoArrays: true }>,
-    'emitters' | 'materials' | 'geometries'
+    'emitters' | 'materials' | 'geometries' | 'textures'
 > & {
     emitters?: ParticleEmitterModelJson[]
 
@@ -78,7 +78,7 @@ export type ParticleEffectModelJson = Omit<
      * Allow either TextureJSON blobs or string URLs.
      * External textures can be set on the ParticleEffectLoader.
      */
-    textures?: Record<string, TextureJSON | string>
+    textures?: Record<string, Partial<TextureJSON> | string>
 
     /**
      * Optional geometries bundled with this effect.
@@ -126,7 +126,6 @@ export function parseParticleEffect({
                 geometries: allGeometries,
             }),
         )
-
     return {
         version: effectJson.version ?? particleEffectDefaults.version,
         emitters,
@@ -173,14 +172,30 @@ export function particleEffectModelToJson({
             particleEmitterModelToJson(e, allMaterials, allGeometries),
         )
 
+    // Build a texture UUID map from both external and bundled textures so
+    // material JSON can replace UUID references with texture keys.
+    const textureUuidMap = createTextureUuidMap({
+        ...externalTextures,
+        ...effect.textures,
+    })
+
     const materialEntries = Object.entries(effect.materials)
     if (materialEntries.length) {
         const materialsJson: Record<string, MaterialJSON> = {}
-        const textureUuidMap = createTextureUuidMap(externalTextures)
         for (const [id, mat] of materialEntries) {
             materialsJson[id] = materialToJson(mat, textureUuidMap)
         }
-        if (Object.keys(materialsJson).length) out.materials = materialsJson
+        out.materials = materialsJson
+    }
+
+    // Serialize bundled textures (do not include external textures)
+    const textureEntries = Object.entries(effect.textures)
+    if (textureEntries.length) {
+        const texturesJson: Record<string, Partial<TextureJSON>> = {}
+        for (const [id, tex] of textureEntries) {
+            texturesJson[id] = tex.toJSON()
+        }
+        out.textures = texturesJson
     }
 
     // Serialize bundled geometries (do not include external geometries)
@@ -189,9 +204,9 @@ export function particleEffectModelToJson({
         const geometriesJson: Record<string, BufferGeometryJSON> = {}
         for (const [id, geom] of geometryEntries) {
             // Use three.js BufferGeometry.toJSON to serialize
-            geometriesJson[id] = geom.toJSON() as unknown as BufferGeometryJSON
+            geometriesJson[id] = geom.toJSON()
         }
-        if (Object.keys(geometriesJson).length) out.geometries = geometriesJson
+        out.geometries = geometriesJson
     }
 
     return out
