@@ -7,11 +7,11 @@ import {
     TimelineModelJson,
     timelineModelToJson,
 } from './TimelineModel'
-import { rangeDefaults, rangeModelToJson, parseRange } from './RangeModel'
+import { parseRange, rangeDefaults, rangeModelToJson } from './RangeModel'
 import cloneDeep from 'lodash/cloneDeep'
 import { PartialDeep } from 'type-fest'
 import { isNonNil } from '../util/object'
-import { Maybe } from '../util/type'
+import { Maybe, MaybeArray } from '../util/type'
 import { parseZone, Zone, zoneDefaults, zoneToJson } from './Zone'
 
 /**
@@ -95,14 +95,8 @@ export type ParticleEmitterModelJson = Omit<
 > & {
     emissionRate?: TimelineModelJson
     particleLifeExpectancy?: TimelineModelJson
-    material?:
-        | string
-        | string[]
-        | Material
-        | Material[]
-        | (string | Material)[]
-        | null
-    geometry?: string | BufferGeometry | null
+    material?: MaybeArray<string>
+    geometry?: string
     propertyTimelines?: TimelineModelJson[]
 }
 
@@ -306,36 +300,17 @@ export function durationToJson(
  * Keeps Material objects as is.
  */
 export function toMaterials(
-    materialIds: Maybe<
-        Material | Material[] | string | string[] | (string | Material)[]
-    >,
+    materialIds: Maybe<MaybeArray<string>>,
     materials: Record<string, Material | undefined>,
 ): Material[] | Material | null {
     if (!materialIds) return null
     if (Array.isArray(materialIds)) {
-        return materialIds.map((m) => toMaterial(m, materials)).filter(isNonNil)
+        return materialIds
+            .map((materialId) => materials[materialId])
+            .filter(isNonNil)
     } else {
-        return toMaterial(materialIds, materials)
+        return materials[materialIds] ?? null
     }
-}
-
-/**
- * Maps a material id to ots respective material.
- * If the material id is a Material, returns as is.
- */
-export function toMaterial(
-    materialId: Maybe<Material | string>,
-    materials: Record<string, Material | undefined>,
-): Material | null {
-    if (typeof materialId === 'string') {
-        const material = materials[materialId]
-        if (!material) {
-            console.warn(`Missing material: ${materialId}`)
-            return null
-        }
-        return material
-    }
-    return materialId ?? null
 }
 
 /**
@@ -343,7 +318,7 @@ export function toMaterial(
  * Keeps string id(s) as-is.
  */
 export function toMaterialIds(
-    mats: Maybe<Material | Material[] | string | string[]>,
+    mats: Maybe<MaybeArray<Material | string>>,
     materials: Record<string, Material | undefined>,
 ): string | string[] | null {
     if (!mats) return null
