@@ -40,9 +40,6 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GH_PAT }}
 
-            - name: Build
-              run: npm run www
-
             - name: Publish to NPMJS
               uses: JS-DevTools/npm-publish@v3
               with:
