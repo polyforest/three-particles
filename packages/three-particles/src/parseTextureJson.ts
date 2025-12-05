@@ -1,6 +1,7 @@
-import { Texture, TextureLoader, TextureJSON } from 'three'
+import { Texture, TextureJSON, TextureLoader } from 'three'
 import { Wrapping } from 'three/src/constants'
 import { cloneDeep } from 'lodash'
+import { PartialDeep, ReadonlyDeep } from 'type-fest'
 
 /**
  * Parse a THREE.TextureJSON object by loading its image and applying fields.
@@ -8,7 +9,7 @@ import { cloneDeep } from 'lodash'
  * consider integrating THREE.ObjectLoader in the future.
  */
 export function parseTextureJson(
-    json: Partial<TextureJSON>,
+    json: ReadonlyDeep<PartialDeep<TextureJSON>>,
     textureLoader: TextureLoader,
 ): Texture {
     const t = json.image ? textureLoader.load(json.image) : new Texture()
@@ -28,17 +29,17 @@ export function parseTextureJson(
         t.wrapS = json.wrap[0] as Wrapping
         t.wrapT = json.wrap[1] as Wrapping
     }
-    if (json.mapping !== undefined) t.mapping = json.mapping
+    if (json.mapping != null) t.mapping = json.mapping
 
     // sampling / filtering
-    if (json.magFilter !== undefined) t.magFilter = json.magFilter
-    if (json.minFilter !== undefined) t.minFilter = json.minFilter
-    if (typeof json.anisotropy === 'number') t.anisotropy = json.anisotropy
+    if (json.magFilter != null) t.magFilter = json.magFilter
+    if (json.minFilter != null) t.minFilter = json.minFilter
+    if (json.anisotropy != null) t.anisotropy = json.anisotropy
 
     // format / type / color space
-    if (json.format !== undefined) t.format = json.format
-    if (json.type !== undefined) t.type = json.type
-    if (json.colorSpace !== undefined) t.colorSpace = json.colorSpace
+    if (json.format != null) t.format = json.format
+    if (json.type != null) t.type = json.type
+    if (json.colorSpace != null) t.colorSpace = json.colorSpace
 
     // mipmaps and flags
     if (typeof json.flipY === 'boolean') t.flipY = json.flipY

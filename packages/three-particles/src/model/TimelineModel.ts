@@ -1,6 +1,6 @@
-import { RangeModel, rangeModelToJson, parseRange } from './RangeModel'
+import { parseRange, RangeModel, RangeModelJson } from './RangeModel'
 import cloneDeep from 'lodash/cloneDeep'
-import type { PartialDeep } from 'type-fest'
+import { ReadonlyDeep } from 'type-fest'
 
 /**
  * Describes a property timeline.
@@ -42,7 +42,7 @@ export interface TimelineModel {
  */
 export const timelineDefaults = {
     property: '',
-    timeline: new Float32Array(),
+    timeline: [],
     useEmitterDuration: false,
     relative: false,
     low: {
@@ -55,60 +55,35 @@ export const timelineDefaults = {
         max: 1,
         ease: 'linear',
     },
-} as const satisfies TimelineModel
+} as const satisfies TimelineModelJson
 
-export type TimelineModelJson = Omit<PartialDeep<TimelineModel>, 'timeline'> & {
-    timeline?: Float32Array | number[]
+export type TimelineModelJson = Omit<
+    Partial<TimelineModel>,
+    'timeline' | 'low' | 'high'
+> & {
+    property?: string
+    timeline?: number[]
+    low?: RangeModelJson
+    high?: RangeModelJson
 }
 
 /**
  * Returns a new TimelineModel with defaults applied.
  */
-export function parseTimeline(timeline: TimelineModelJson): TimelineModel {
+export function parseTimeline(
+    timeline: ReadonlyDeep<TimelineModelJson>,
+): TimelineModel {
     const low = parseRange(timeline.low ?? cloneDeep(timelineDefaults.low))
     const high = parseRange(
         timeline.high ?? timeline.low ?? cloneDeep(timelineDefaults.high),
     )
-    const tl: Float32Array = Array.isArray(timeline.timeline)
-        ? new Float32Array(timeline.timeline)
-        : timeline.timeline instanceof Float32Array
-          ? timeline.timeline
-          : new Float32Array()
     return {
-        property: timeline.property ?? timelineDefaults.property,
-        timeline: tl,
+        property: timeline.property ?? '',
+        timeline: new Float32Array(timeline.timeline ?? []),
         useEmitterDuration:
             timeline.useEmitterDuration ?? timelineDefaults.useEmitterDuration,
         relative: timeline.relative ?? timelineDefaults.relative,
         low,
         high,
     }
-}
-
-/**
- * Returns a compact representation of a TimelineModel with default values removed.
- */
-export function timelineModelToJson(
-    timeline: TimelineModel,
-): TimelineModelJson {
-    const out: TimelineModelJson = {}
-
-    if (timeline.property !== timelineDefaults.property)
-        out.property = timeline.property
-
-    if (timeline.timeline.length > 0)
-        out.timeline = Array.from(timeline.timeline)
-
-    if (timeline.useEmitterDuration)
-        out.useEmitterDuration = timeline.useEmitterDuration
-
-    if (timeline.relative) out.relative = timeline.relative
-
-    const low = rangeModelToJson(timeline.low)
-    if (Object.keys(low).length) out.low = low
-
-    const high = rangeModelToJson(timeline.high)
-    if (Object.keys(high).length) out.high = high
-
-    return out
 }

@@ -19,7 +19,7 @@ function emitterWithTimelines(
     }[],
     rotateToOrientation = false,
 ) {
-    const json: ParticleEmitterModelJson = {
+    const json: Partial<ParticleEmitterModelJson> = {
         uuid: 'test',
         name: 'e',
         enabled: true,
@@ -51,7 +51,7 @@ function emitterWithTimelines(
         rotateToOrientation,
         propertyTimelines: timelines.map((t) => ({
             property: t.property,
-            timeline: new Float32Array(t.timeline),
+            timeline: t.timeline,
             useEmitterDuration: !!t.useEmitterDuration,
         })),
         material: null,

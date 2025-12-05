@@ -1,18 +1,20 @@
-import { EmitterDurationModel } from './ParticleEffectModel'
+import {
+    EmitterDurationModel,
+    EmitterDurationModelJson,
+} from './ParticleEffectModel'
 import { BufferGeometry, Material, MathUtils } from 'three'
 import {
     parseTimeline,
     timelineDefaults,
     TimelineModel,
     TimelineModelJson,
-    timelineModelToJson,
 } from './TimelineModel'
-import { parseRange, rangeDefaults, rangeModelToJson } from './RangeModel'
+import { parseRange, rangeDefaults } from './RangeModel'
 import cloneDeep from 'lodash/cloneDeep'
-import { PartialDeep } from 'type-fest'
+import { PartialDeep, ReadonlyDeep } from 'type-fest'
 import { isNonNil } from '../util/object'
 import { Maybe, MaybeArray } from '../util/type'
-import { parseZone, Zone, zoneDefaults, zoneToJson } from './Zone'
+import { parseZone, Zone, zoneDefaults, ZoneJson } from './Zone'
 
 /**
  * Data for a particle emitter.
@@ -23,7 +25,7 @@ export interface ParticleEmitterModel {
     /**
      * The friendly name of the emitter.
      */
-    name: string
+    name: string | null
 
     /**
      * True if the emitter should be used.
@@ -71,14 +73,14 @@ export interface ParticleEmitterModel {
     propertyTimelines: TimelineModel[]
 
     /**
-     * The material(s) to use for this emitter.
-     */
-    material: Material | Material[] | null
-
-    /**
      * The Geometry to use for this emitter.
      */
     geometry: BufferGeometry | null
+
+    /**
+     * The material(s) to use for this emitter.
+     */
+    material: Material | Material[] | null
 }
 
 /**
@@ -86,26 +88,30 @@ export interface ParticleEmitterModel {
  * parseEmitter
  */
 export type ParticleEmitterModelJson = Omit<
-    PartialDeep<ParticleEmitterModel, { recurseIntoArrays: true }>,
-    | 'material'
-    | 'propertyTimelines'
+    Partial<ParticleEmitterModel>,
+    | 'duration'
     | 'emissionRate'
     | 'particleLifeExpectancy'
+    | 'spawn'
+    | 'propertyTimelines'
     | 'geometry'
+    | 'material'
 > & {
+    duration?: EmitterDurationModelJson
     emissionRate?: TimelineModelJson
     particleLifeExpectancy?: TimelineModelJson
-    material?: MaybeArray<string>
-    geometry?: string
+    spawn?: ZoneJson
     propertyTimelines?: TimelineModelJson[]
+    geometry?: string | null
+    material?: MaybeArray<string> | null
 }
 
 /**
  * Default ParticleEmitterModel values.
  */
-export const particleEmitterDefaults = {
+export const particleEmitterModelDefaults = {
     uuid: '',
-    name: '',
+    name: null,
     enabled: true,
     count: 100,
     loops: true,
@@ -151,9 +157,7 @@ export const particleEmitterDefaults = {
     spawn: zoneDefaults,
     rotateToOrientation: false,
     propertyTimelines: [],
-    material: null,
-    geometry: null,
-} as const satisfies ParticleEmitterModel
+} as const satisfies ParticleEmitterModelJson
 
 /**
  * Returns a new ParticleEmitterModel with defaults applied.
@@ -163,7 +167,7 @@ export function parseEmitter({
     materials,
     geometries,
 }: {
-    emitterJson: ParticleEmitterModelJson
+    emitterJson: ReadonlyDeep<ParticleEmitterModelJson>
     materials?: Record<string, Material>
     geometries?: Record<string, BufferGeometry>
 }): ParticleEmitterModel {
@@ -172,15 +176,16 @@ export function parseEmitter({
         emitterJson.spawn ?? (cloneDeep(zoneDefaults) as Zone),
     )
     const duration = parseEmitterDuration(
-        emitterJson.duration ?? cloneDeep(particleEmitterDefaults.duration),
+        emitterJson.duration ??
+            cloneDeep(particleEmitterModelDefaults.duration),
     )
     const emissionRate = parseTimeline(
         emitterJson.emissionRate ??
-            cloneDeep(particleEmitterDefaults.emissionRate),
+            cloneDeep(particleEmitterModelDefaults.emissionRate),
     )
     const particleLifeExpectancy = parseTimeline(
         emitterJson.particleLifeExpectancy ??
-            cloneDeep(particleEmitterDefaults.particleLifeExpectancy),
+            cloneDeep(particleEmitterModelDefaults.particleLifeExpectancy),
     )
     const propertyTimelines = (emitterJson.propertyTimelines ?? [])
         .filter(isNonNil)
@@ -191,17 +196,17 @@ export function parseEmitter({
 
     return {
         uuid: id,
-        name: emitterJson.name ?? particleEmitterDefaults.name,
-        enabled: emitterJson.enabled ?? particleEmitterDefaults.enabled,
-        loops: emitterJson.loops ?? particleEmitterDefaults.loops,
+        name: emitterJson.name ?? particleEmitterModelDefaults.name,
+        enabled: emitterJson.enabled ?? particleEmitterModelDefaults.enabled,
+        loops: emitterJson.loops ?? particleEmitterModelDefaults.loops,
         duration,
-        count: emitterJson.count ?? particleEmitterDefaults.count,
+        count: emitterJson.count ?? particleEmitterModelDefaults.count,
         emissionRate,
         particleLifeExpectancy,
         spawn,
         rotateToOrientation:
             emitterJson.rotateToOrientation ??
-            particleEmitterDefaults.rotateToOrientation,
+            particleEmitterModelDefaults.rotateToOrientation,
         propertyTimelines,
         material,
         geometry,
@@ -214,85 +219,18 @@ export function parseEmitterDuration(
     const d = durationJson ?? {}
     return {
         duration: parseRange(
-            d.duration ?? cloneDeep(particleEmitterDefaults.duration.duration),
+            d.duration ??
+                cloneDeep(particleEmitterModelDefaults.duration.duration),
         ),
         delayBefore: parseRange(
             d.delayBefore ??
-                cloneDeep(particleEmitterDefaults.duration.delayBefore),
+                cloneDeep(particleEmitterModelDefaults.duration.delayBefore),
         ),
         delayAfter: parseRange(
             d.delayAfter ??
-                cloneDeep(particleEmitterDefaults.duration.delayAfter),
+                cloneDeep(particleEmitterModelDefaults.duration.delayAfter),
         ),
     }
-}
-
-export function particleEmitterModelToJson(
-    emitter: ParticleEmitterModel,
-    materials: Record<string, Material | undefined>,
-    geometries: Record<string, BufferGeometry | undefined> = {},
-): Partial<ParticleEmitterModelJson> {
-    const out: ParticleEmitterModelJson = {
-        uuid: emitter.uuid,
-    }
-    if (emitter.name !== particleEmitterDefaults.name) out.name = emitter.name
-    if (emitter.enabled !== particleEmitterDefaults.enabled)
-        out.enabled = emitter.enabled
-    if (emitter.loops !== particleEmitterDefaults.loops)
-        out.loops = emitter.loops
-
-    const duration = durationToJson(emitter.duration)
-    if (Object.keys(duration).length) out.duration = duration
-
-    if (emitter.count !== particleEmitterDefaults.count)
-        out.count = emitter.count
-
-    const emissionRate = timelineModelToJson(emitter.emissionRate)
-    if (Object.keys(emissionRate).length) out.emissionRate = emissionRate
-
-    const life = timelineModelToJson(emitter.particleLifeExpectancy)
-    if (Object.keys(life).length) out.particleLifeExpectancy = life
-
-    const spawn = zoneToJson(emitter.spawn)
-    if (Object.keys(spawn).length) out.spawn = spawn
-
-    if (
-        emitter.rotateToOrientation !==
-        particleEmitterDefaults.rotateToOrientation
-    )
-        out.rotateToOrientation = emitter.rotateToOrientation
-
-    if (emitter.propertyTimelines.length)
-        out.propertyTimelines = emitter.propertyTimelines.map((t) =>
-            timelineModelToJson(t),
-        )
-
-    if (emitter.material != null) {
-        const mat = toMaterialIds(emitter.material, materials)
-        if (mat != null && (!Array.isArray(mat) || mat.length > 0)) {
-            out.material = mat
-        }
-    }
-
-    if (emitter.geometry != null) {
-        const geoId = toGeometryId(emitter.geometry, geometries)
-        if (geoId != null) out.geometry = geoId
-    }
-
-    return out
-}
-
-export function durationToJson(
-    duration: EmitterDurationModel,
-): Partial<EmitterDurationModel> {
-    const out: any = {}
-    const dur = rangeModelToJson(duration.duration)
-    if (Object.keys(dur).length) out.duration = dur
-    const before = rangeModelToJson(duration.delayBefore)
-    if (Object.keys(before).length) out.delayBefore = before
-    const after = rangeModelToJson(duration.delayAfter)
-    if (Object.keys(after).length) out.delayAfter = after
-    return out
 }
 
 /**
@@ -300,80 +238,31 @@ export function durationToJson(
  * Keeps Material objects as is.
  */
 export function toMaterials(
-    materialIds: Maybe<MaybeArray<string>>,
+    materialIds: Maybe<string | readonly string[]>,
     materials: Record<string, Material | undefined>,
 ): Material[] | Material | null {
     if (!materialIds) return null
-    if (Array.isArray(materialIds)) {
+    if (typeof materialIds === 'string') {
+        return materials[materialIds] ?? null
+    } else {
         return materialIds
             .map((materialId) => materials[materialId])
             .filter(isNonNil)
-    } else {
-        return materials[materialIds] ?? null
     }
 }
 
 /**
- * Reverse of toMaterials: maps Material object(s) to their id(s).
- * Keeps string id(s) as-is.
+ * Converts an input identifier or geometry object into a BufferGeometry instance.
  */
-export function toMaterialIds(
-    mats: Maybe<MaybeArray<Material | string>>,
-    materials: Record<string, Material | undefined>,
-): string | string[] | null {
-    if (!mats) return null
-    if (Array.isArray(mats)) {
-        const out: string[] = []
-        for (const m of mats) {
-            const id = toMaterialId(m, materials)
-            if (id != null) out.push(id)
-        }
-        return out
-    } else {
-        return toMaterialId(mats, materials)
-    }
-}
-
-export function toMaterialId(
-    mat: Maybe<Material | string>,
-    materials: Record<string, Material | undefined>,
-): string | null {
-    if (mat == null) return null
-    if (typeof mat === 'string') return mat
-    // find key whose value strictly equals the material
-    for (const [id, material] of Object.entries(materials)) {
-        if (material === mat) return id
-    }
-    console.warn('Missing material id for provided Material')
-    return null
-}
-
-/** Geometry helpers **/
 export function toGeometry(
-    geometryId: Maybe<BufferGeometry | string>,
+    geometryId: Maybe<string>,
     geometries: Record<string, BufferGeometry | undefined>,
 ): BufferGeometry | null {
     if (!geometryId) return null
-    if (typeof geometryId === 'string') {
-        const geom = geometries[geometryId]
-        if (!geom) {
-            console.warn(`Missing geometry: ${geometryId}`)
-            return null
-        }
-        return geom
+    const geom = geometries[geometryId] ?? null
+    if (!geom) {
+        console.warn(`Missing geometry: ${geometryId}`)
+        return null
     }
-    return geometryId
-}
-
-export function toGeometryId(
-    geometry: Maybe<BufferGeometry | string>,
-    geometries: Record<string, BufferGeometry | undefined>,
-): string | null {
-    if (geometry == null) return null
-    if (typeof geometry === 'string') return geometry
-    for (const [id, g] of Object.entries(geometries)) {
-        if (g === geometry) return id
-    }
-    console.warn('Missing geometry id for provided BufferGeometry')
-    return null
+    return geom
 }

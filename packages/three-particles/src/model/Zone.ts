@@ -17,6 +17,8 @@ export interface Zone {
     ease: EaseType
 }
 
+export type ZoneJson = Partial<Zone>
+
 export const zoneDefaults = {
     type: 'point',
     x: 0,

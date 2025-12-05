@@ -1,4 +1,5 @@
 import {
+    BufferGeometry,
     BufferGeometryLoader,
     FileLoader,
     Loader,
@@ -6,18 +7,18 @@ import {
     MaterialLoader,
     Texture,
     TextureLoader,
-    BufferGeometry,
 } from 'three'
 import { parseTextureJson } from './parseTextureJson'
 import {
-    ParticleEffectModelJson,
     parseParticleEffect,
     ParticleEffectModel,
+    ParticleEffectModelJson,
 } from './model'
 import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { decodeText } from './util'
 import { cloneDeep } from 'lodash'
 import { getDefaultRadial } from './materialDefaults'
+import { ReadonlyDeep } from 'type-fest'
 
 /**
  * Loads a JSON file describing a particle effect.
@@ -112,7 +113,7 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
      * @return {ParticleEffect} The parsed ParticleEffect object.
      */
     async parseAsync(
-        json: ParticleEffectModelJson,
+        json: ReadonlyDeep<ParticleEffectModelJson>,
     ): Promise<ParticleEffectModel> {
         json = cloneDeep(json)
 
@@ -163,7 +164,6 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
             bundledMaterials: bundledMaterials,
             externalMaterials: this.materials,
             bundledTextures: bundledTextures,
-            externalTextures: this.textures,
             bundledGeometries: bundledGeometries,
             externalGeometries: this.geometries,
         })
