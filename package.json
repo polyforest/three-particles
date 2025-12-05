@@ -31,6 +31,7 @@
         "prewww": "lerna run build",
         "www": "tsx ./buildSrc/build.ts",
         "test": "lerna run test",
+        "validate": "lerna run build && lerna run lint && lerna run test",
         "serve": "npm run www && http-server www"
     },
     "repository": {
