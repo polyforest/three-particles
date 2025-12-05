@@ -1,60 +1,60 @@
 name: Publish release
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  release:
-    runs-on: ubuntu-latest
+    release:
+        runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-      id-token: write
+        permissions:
+            contents: write
+            id-token: write
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          token: ${{ secrets.GH_PAT }}
-          fetch-depth: 0 # important for lerna to detect tags
-      - name: Configure Git
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+              with:
+                  token: ${{ secrets.GH_PAT }}
+                  fetch-depth: 0 # important for lerna to detect tags
+            - name: Configure Git
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-          registry-url: 'https://registry.npmjs.org/'
-          always-auth: true
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+                  registry-url: 'https://registry.npmjs.org/'
+                  always-auth: true
 
-      - name: Install dependencies
-        run: npm ci
+            - name: Install dependencies
+              run: npm ci
 
-      - name: Create versions & changelogs
-        run: npx lerna version --no-private --create-release github --yes
-        env:
-          GH_TOKEN: ${{ secrets.GH_PAT }}
+            - name: Create versions & changelogs
+              run: npx lerna version --no-private --create-release github --yes
+              env:
+                  GH_TOKEN: ${{ secrets.GH_PAT }}
 
-      - name: Build
-        run: npm run www
+            - name: Build
+              run: npm run www
 
-      - name: Publish to NPMJS
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          token: ${{ secrets.NPM_TOKEN }}
-          package: ./packages/three-particles
+            - name: Publish to NPMJS
+              uses: JS-DevTools/npm-publish@v3
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  package: ./packages/three-particles
 
-      - name: Deploy JS to GitHub Pages
-        uses: JamesIves/github-pages-deploy-action@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: gh-pages
-          folder: www
-          clean: true
-          single-commit: true
-          commit-message: 'ci: update www'
+            - name: Deploy JS to GitHub Pages
+              uses: JamesIves/github-pages-deploy-action@v4
+              with:
+                  token: ${{ secrets.GITHUB_TOKEN }}
+                  branch: gh-pages
+                  folder: www
+                  clean: true
+                  single-commit: true
+                  commit-message: 'ci: update www'

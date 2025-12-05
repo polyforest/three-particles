@@ -24,8 +24,10 @@
     "scripts": {
         "clean": "rimraf www && lerna run clean",
         "@eslint/js": "^9.22.0",
-        "lint": "lerna run lint",
-        "lint:write": "lerna run lint:write",
+        "lint": "npm run prettier:check && eslint .",
+        "lint:write": "npm run prettier:write && eslint . --fix",
+        "prettier:check": "prettier . --check",
+        "prettier:write": "prettier . --write",
         "build": "lerna run build",
         "watch": "lerna run watch --parallel",
         "prewww": "lerna run build",
