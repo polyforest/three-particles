@@ -1,36 +1,36 @@
 name: CI
 
 on:
-  push:
-    branches-ignore:
-      - 'main' # main is protected
-      - 'gh-pages'
+    push:
+        branches-ignore:
+            - 'main' # main is protected
+            - 'gh-pages'
 
 permissions:
-  contents: read
+    contents: read
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        node-version: [22.x]
+    build:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                node-version: [22.x]
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: npm
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
 
-      - name: Install dependencies
-        run: npm ci
-        if: hashFiles('package-lock.json') != ''
+            - name: Install dependencies
+              run: npm ci
+              if: hashFiles('package-lock.json') != ''
 
-      - name: Run build, lint, and test
-        run: npm run validate
+            - name: Run build, lint, and test
+              run: npm run validate
