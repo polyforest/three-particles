@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.15.0](https://github.com/polyforest/three-particles/compare/three-particles@0.14.1...three-particles@0.15.0) (2025-12-05)
+
+### Features
+
+- add texture serialization ([7b4e655](https://github.com/polyforest/three-particles/commit/7b4e655f269b7de157ce3b8b5204884b2f87a207))
+
 ## [0.14.1](https://github.com/polyforest/three-particles/compare/three-particles@0.14.0...three-particles@0.14.1) (2025-12-04)
 
 **Note:** Version bump only for package three-particles

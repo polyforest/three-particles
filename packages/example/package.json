@@ -1,6 +1,6 @@
 {
     "name": "@polyforest/three-particles-example",
-    "version": "0.10.1",
+    "version": "0.11.0",
     "private": true,
     "scripts": {
         "clean": "rimraf dist",
@@ -15,7 +15,7 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "three-particles": "^0.14.1"
+        "three-particles": "^0.15.0"
     },
     "devDependencies": {
         "@types/fs-extra": "^11.0.4",
