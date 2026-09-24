@@ -41,6 +41,11 @@ export class ParticleEmitterPoints
 
         this.configureMaterialForRotation()
 
+        // Particles may spread beyond the geometry's bounding sphere, which this
+        // emitter never updates; default culling would hide live particles when
+        // the origin sits offscreen. Mirrors ParticleEmitterInstancedMesh.
+        this.frustumCulled = false
+
         // // Set a default bounding sphere (optional):
         // this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 10)
     }
