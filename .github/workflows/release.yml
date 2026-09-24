@@ -120,6 +120,15 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
+            # The publish step packs ./packages/three-particles from this
+            # checkout. Without a build there is no dist/, so the tarball
+            # ships neither main (dist/index.js) nor types (dist/types) —
+            # exactly what three-particles@0.15.2 published (20:55 release,
+            # tarball listing has zero dist/ entries).
+            - name: Build workspaces (emit dist/ for the packed tarball)
+              if: steps.rel.outputs.release == 'true'
+              run: npm run build
+
             # Belt and braces: pin the CLI to npm's trusted-publishing minimum
             # regardless of what the Node 24.x point release bundles.
             - name: Upgrade npm CLI for OIDC trusted publishing
