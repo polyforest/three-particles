@@ -151,8 +151,9 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         // awaited, effect B's setTextures replaces the shared map, so A's
         // material resolves against B's textures. Instantiating from the
         // injected loader's own class preserves custom MaterialLoader subclasses.
-        const MaterialLoaderOf = this.materialLoader
-            .constructor as new (manager?: LoadingManager) => MaterialLoader
+        const MaterialLoaderOf = this.materialLoader.constructor as new (
+            manager?: LoadingManager,
+        ) => MaterialLoader
         const mLoader = new MaterialLoaderOf(this.manager)
         mLoader.setPath(this.materialLoader.path)
         mLoader.setTextures({ ...this.textures, ...bundledTextures })

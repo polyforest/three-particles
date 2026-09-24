@@ -1,4 +1,4 @@
-import { BufferAttribute, BufferGeometry } from 'three'
+import { BufferGeometry } from 'three'
 import {
     parseEmitter,
     type ParticleEmitterModelJson,
