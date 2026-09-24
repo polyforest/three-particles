@@ -183,7 +183,7 @@ export class ParticleState implements ParticleProperties {
 
         if (!closeTo(this.forwardVel, 0)) {
             // Move the particle forward along its orientation by forwardVel per second.
-            // Compute forward dir by rotating +Z with the current orientation Euler (XYZ order).
+            // Compute forward dir by rotating +Y with the current orientation Euler (XYZ order).
             tmpVec.set(0, 1, 0).applyEuler(this.orientation)
             this.position.addScaledVector(tmpVec, this.forwardVel * tickTime)
         }
@@ -363,7 +363,10 @@ export function getParticlePropertyUpdater(
     propertyKey: string,
 ): ParticlePropertyUpdater {
     const prop = propertyKey as ParticlePropertyKey
-    if (!(prop in particlePropertyUpdaters)) {
+    // Own-property check: an `in` check lets prototype keys like 'valueOf' or
+    // 'toString' resolve to Object.prototype members instead of warning as
+    // unknown properties.
+    if (!Object.prototype.hasOwnProperty.call(particlePropertyUpdaters, prop)) {
         if (!missingPropertiesWarned.has(prop)) {
             missingPropertiesWarned.add(prop)
             console.warn(

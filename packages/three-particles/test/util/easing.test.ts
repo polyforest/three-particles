@@ -1,4 +1,4 @@
-import { easings, getEase } from '../../src/util/easing'
+import { easings, getEase, makeBounce } from '../../src/util/easing'
 
 describe('easing', () => {
     describe('getEase', () => {
@@ -51,6 +51,36 @@ describe('easing', () => {
         it('should ', () => {
             expect(easings.circOut(0)).toEqual(0)
             expect(easings.circOut(1)).toEqual(1)
+        })
+    })
+
+    describe('getEase prototype keys (TP-8)', () => {
+        it('throws on Object.prototype-named ids instead of resolving them', () => {
+            for (const id of ['toString', 'valueOf', 'constructor']) {
+                expect(() =>
+                    getEase(
+                        // @ts-expect-error Expect error
+                        id,
+                    ),
+                ).toThrow(`${id}' was not found`)
+            }
+        })
+    })
+
+    describe('makeBounce endpoint guard (TP-11)', () => {
+        it('returns 1, not NaN, when float error puts x past the last segment', () => {
+            const bounce = makeBounce(2, 0.14)
+            expect(bounce(1 - 2 ** -53)).toBe(1)
+        })
+
+        it('still interpolates and clamps normally', () => {
+            const bounce = makeBounce(2, 0.14)
+            expect(bounce(0)).toBe(0)
+            expect(bounce(1)).toBe(1)
+            const mid = bounce(0.5)
+            expect(Number.isNaN(mid)).toBe(false)
+            expect(mid).toBeGreaterThan(0)
+            expect(mid).toBeLessThan(1)
         })
     })
 })

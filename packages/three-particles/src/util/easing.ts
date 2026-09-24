@@ -43,7 +43,12 @@ export function makeBounce(bounces: number, restitution: number): EasingFun {
 
     return (x: number) => {
         if (x <= 0) return 0
-        if (x >= 1) return 1
+
+        // The normalized segment sums can land just short of 1 from float
+        // error, which would push x into a segment past the last one (segLen
+        // of undefined -> NaN). Treat anything at or past the final boundary
+        // as done.
+        if (x >= tEnds[segCount - 1] || x >= 1) return 1
 
         // find segment index
         let idx = 0
@@ -133,6 +138,24 @@ export type EaseType = keyof typeof easings
  * @returns An `Easer` function.
  */
 export function getEase(type: EaseType): EasingFun {
-    if (!(type in easings)) throw new Error(`Easing '${type}' was not found.`)
+    // Own-property check: an `in` check lets prototype keys like 'toString'
+    // resolve to garbage instead of throwing.
+    if (!Object.prototype.hasOwnProperty.call(easings, type))
+        throw new Error(`Easing '${type}' was not found.`)
     return easings[type]
+}
+
+/**
+ * Throws if the given id is not a known easing identifier.
+ *
+ * Parse sites call this so a malformed ease id fails at parse time with the
+ * offending value, instead of throwing inside the render loop (or silently
+ * resolving an Object.prototype key such as 'toString').
+ */
+export function validateEaseId(ease: string, context: string): void {
+    if (!Object.prototype.hasOwnProperty.call(easings, ease)) {
+        throw new Error(
+            `Invalid ease id '${ease}' in ${context}: unknown easing. Use a base easing (linear, quad, cubic, quart, quint, sine, circ, back, elastic, bounce) with an optional In/Out/InOut suffix.`,
+        )
+    }
 }

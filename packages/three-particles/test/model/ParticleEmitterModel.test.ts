@@ -1,3 +1,4 @@
+import { PointsMaterial } from 'three'
 import {
     parseEmitter,
     particleEmitterModelDefaults,
@@ -12,6 +13,48 @@ describe('ParticleEmitterModel', () => {
                 geometries: {},
             })
             expect(emitter.count).toBeDefined()
+        })
+
+        it('rejects material arrays with more than one entry at parse (TP-10)', () => {
+            const matA = new PointsMaterial()
+            const matB = new PointsMaterial()
+            expect(() =>
+                parseEmitter({
+                    emitterJson: { material: ['a', 'b'] },
+                    materials: { a: matA, b: matB },
+                    geometries: {},
+                }),
+            ).toThrow(/only one material per emitter is supported/)
+        })
+
+        it('rejects multi-id arrays even when some ids are unknown (TP-10)', () => {
+            const matA = new PointsMaterial()
+            // 'missing' resolves to nothing and is filtered; two materials
+            // remain, which render would silently reduce to material[0].
+            expect(() =>
+                parseEmitter({
+                    emitterJson: { material: ['a', 'missing', 'b'] },
+                    materials: { a: matA, b: new PointsMaterial() },
+                    geometries: {},
+                }),
+            ).toThrow(/only one material per emitter is supported/)
+        })
+
+        it('keeps single-material emitters unchanged (TP-10)', () => {
+            const matA = new PointsMaterial()
+            const fromString = parseEmitter({
+                emitterJson: { material: 'a' },
+                materials: { a: matA },
+                geometries: {},
+            })
+            expect(fromString.material).toBe(matA)
+
+            const fromSingleEntryArray = parseEmitter({
+                emitterJson: { material: ['a'] },
+                materials: { a: matA },
+                geometries: {},
+            })
+            expect(fromSingleEntryArray.material).toEqual([matA])
         })
 
         it('should parse child objects', () => {

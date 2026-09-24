@@ -192,6 +192,13 @@ export function parseEmitter({
         .map((t) => parseTimeline(t))
 
     const material = toMaterials(emitterJson.material, materials ?? {})
+    if (Array.isArray(material) && material.length > 1) {
+        // Render only uses the first entry of a multi-material array, so the
+        // rest would be silently unused. Fail at parse time instead.
+        throw new Error(
+            `Invalid material for emitter '${id}': ${material.length} materials were specified, but only one material per emitter is supported; entries past the first would be silently unused.`,
+        )
+    }
     const geometry = toGeometry(emitterJson.geometry, geometries ?? {})
 
     return {
