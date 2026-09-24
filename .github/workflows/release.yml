@@ -56,6 +56,7 @@ jobs:
 
         permissions:
             contents: write
+            id-token: write
 
         steps:
             # Release publish conditions: a merge-commit subject starting with
@@ -101,25 +102,38 @@ jobs:
                   echo "Checking out release-marker commit ${MARKER_SHA}"
                   git checkout "$MARKER_SHA"
 
+            # Tokenless npm publishing via OIDC: Node 24 bundles an npm 11.x
+            # CLI — npm >= 11.5.1 is the trusted-publishing minimum, and Node
+            # 22 only ships npm 10.x. `registry-url`/`always-auth` are
+            # deliberately omitted: with no NODE_AUTH_TOKEN they write an
+            # empty `_authToken` into .npmrc that can shadow the OIDC
+            # credential.
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: 22
+                  node-version: 24
                   cache: npm
-                  registry-url: 'https://registry.npmjs.org/'
-                  always-auth: true
 
             - name: Install dependencies
               run: npm ci
+
+            # Belt and braces: pin the CLI to npm's trusted-publishing minimum
+            # regardless of what the Node 24.x point release bundles.
+            - name: Upgrade npm CLI for OIDC trusted publishing
+              if: steps.rel.outputs.release == 'true'
+              run: npm install -g npm@^11.5.1
 
             # Only release-PR merges (or forced retries) publish, via three
             # explicit idempotent steps. lerna 9's combined
             # `publish from-package` path is NOT used: live run 36053533514
             # proved it prefers OIDC id-token identity over NODE_AUTH_TOKEN,
             # which fails E404 for a package without a Trusted Publisher on
-            # npmjs.com. The split below uses the proven pre-#47 mechanism:
-            # explicit tag (GITHUB_TOKEN), JS-DevTools/npm-publish
-            # (NPM_TOKEN), and `gh release create` (GITHUB_TOKEN).
+            # npmjs.com. The npm step below is tokenless: the npm CLI
+            # (>= 11.5.1) presents this workflow's OIDC id-token directly —
+            # no lerna, no NPM_TOKEN — and npm generates the provenance
+            # attestations automatically. Requires the package's Trusted
+            # Publisher on npmjs.com to point at polyforest/three-particles
+            # and this workflow file.
             - name: Tag the release-marker commit
               if: steps.rel.outputs.release == 'true'
               run: |
@@ -132,12 +146,15 @@ jobs:
                       echo "Pushed annotated tag three-particles@${VERSION} at $(git rev-parse --short HEAD)"
                   fi
 
-            - name: Publish to npm
+            - name: Publish to npm (tokenless OIDC)
               if: steps.rel.outputs.release == 'true'
-              uses: JS-DevTools/npm-publish@v3
-              with:
-                  token: ${{ secrets.NPM_TOKEN }}
-                  package: ./packages/three-particles
+              run: |
+                  VERSION=$(node -p "require('./packages/three-particles/package.json').version")
+                  if npm view "three-particles@${VERSION}" version >/dev/null 2>&1; then
+                      echo "three-particles@${VERSION} already on the registry — skipping"
+                  else
+                      npm publish ./packages/three-particles --provenance --access public
+                  fi
 
             - name: Create the GitHub release
               if: steps.rel.outputs.release == 'true'

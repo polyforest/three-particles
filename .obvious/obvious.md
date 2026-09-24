@@ -54,9 +54,19 @@ publish.
   instead of colliding.
 - If the repo's "Allow auto-merge" setting is off, the release PR parks for
   manual merge — merging it by hand is the designed fallback, not a failure.
-- npm auth is `NPM_TOKEN` via setup-node's npmrc (`NODE_AUTH_TOKEN`); a 401/403
-  at publish means the token expired — mint a new one in npm, then re-run the
-  release job. No PATs, no branch-protection bypasses.
+- npm publishing is **tokenless** via OIDC trusted publishing: the `release`
+  job runs Node 24 (npm >= 11.5.1) with `id-token: write` and no
+  `NODE_AUTH_TOKEN`/`registry-url`, and publishes with plain
+  `npm publish --provenance` — not lerna's publish path, which prefers the
+  workflow's OIDC identity over `NPM_TOKEN` and fails E404 without a Trusted
+  Publisher (#54). The package's **Trusted Publisher** on npmjs.com must point
+  at `polyforest/three-particles` and workflow file `release.yml`. A 403/404
+  at publish usually means the npm-side Trusted Publisher config is missing or
+  mismatches the workflow filename. Retry a failed publish from the Actions
+  tab — **Publish release → Run workflow** on `main` with `force` checked
+  (`workflow_dispatch`); re-running the original failed run replays the
+  workflow file from that commit and will not pick up fixes. No npm tokens, no
+  PATs, no branch-protection bypasses.
 
 ## Codebase map
 
