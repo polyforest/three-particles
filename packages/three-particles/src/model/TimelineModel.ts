@@ -68,6 +68,34 @@ export type TimelineModelJson = Omit<
 }
 
 /**
+ * Timeline JSON is a flat keyframe array: `[time, value, ...]` pairs for float
+ * properties, `[time, r, g, b, ...]` for `color`. Consumers
+ * (`getTimelineValue`/`getTimelineValues`) assume that stride and sorted
+ * keyframes; accepting incomplete or unsorted input here surfaces later as NaN
+ * values or mis-clamped interpolation, far from the malformed JSON.
+ */
+function validateTimelineEntries(
+    property: string,
+    entries: readonly number[],
+): void {
+    // Color timelines carry r/g/b per keyframe (ColorPropertyState, stride 4);
+    // every other property is a single value per keyframe (stride 2).
+    const stride = property === 'color' ? 4 : 2
+    if (entries.length % stride !== 0) {
+        throw new Error(
+            `Invalid timeline for property '${property}': expected a multiple of ${stride} entries (time/value keyframes), got ${entries.length}; the entry at index ${entries.length - 1} has no complete keyframe.`,
+        )
+    }
+    for (let i = stride; i < entries.length; i += stride) {
+        if (entries[i] <= entries[i - stride]) {
+            throw new Error(
+                `Invalid timeline for property '${property}': times must be strictly increasing, but the time at index ${i} (${entries[i]}) is not greater than the time at index ${i - stride} (${entries[i - stride]}).`,
+            )
+        }
+    }
+}
+
+/**
  * Returns a new TimelineModel with defaults applied.
  */
 export function parseTimeline(
@@ -77,9 +105,12 @@ export function parseTimeline(
     const high = parseRange(
         timeline.high ?? timeline.low ?? cloneDeep(timelineDefaults.high),
     )
+    const property = timeline.property ?? ''
+    const entries = timeline.timeline ?? []
+    validateTimelineEntries(property, entries)
     return {
-        property: timeline.property ?? '',
-        timeline: new Float32Array(timeline.timeline ?? []),
+        property,
+        timeline: new Float32Array(entries),
         useEmitterDuration:
             timeline.useEmitterDuration ?? timelineDefaults.useEmitterDuration,
         relative: timeline.relative ?? timelineDefaults.relative,
