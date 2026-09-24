@@ -363,7 +363,10 @@ export function getParticlePropertyUpdater(
     propertyKey: string,
 ): ParticlePropertyUpdater {
     const prop = propertyKey as ParticlePropertyKey
-    if (!(prop in particlePropertyUpdaters)) {
+    // Own-property check: an `in` check lets prototype keys like 'valueOf' or
+    // 'toString' resolve to Object.prototype members instead of warning as
+    // unknown properties.
+    if (!Object.prototype.hasOwnProperty.call(particlePropertyUpdaters, prop)) {
         if (!missingPropertiesWarned.has(prop)) {
             missingPropertiesWarned.add(prop)
             console.warn(
