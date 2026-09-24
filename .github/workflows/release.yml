@@ -50,6 +50,17 @@ jobs:
             id-token: write
 
         steps:
+            - name: Detect release-marker merge commit
+              id: rel
+              env:
+                  HEAD_MSG: ${{ github.event.head_commit.message }}
+              run: |
+                  if [[ "$HEAD_MSG" == 'chore(release): publish'* ]]; then
+                      echo "release=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "release=false" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
@@ -71,16 +82,19 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            - name: Create versions & changelogs
-              run: npx lerna version --no-private --create-release github --yes
+            # Only release-PR merges publish: the merge commit carries the
+            # bumped version, and lerna's from-package strategy publishes
+            # exactly the packages whose version is missing from the registry,
+            # then creates the annotated git tag at this merge commit (pushed
+            # via --follow-tags) and the GitHub release — verified against
+            # lerna 9.0.3's publish pipeline. Regular merges skip straight to
+            # the Pages deploy below without publishing.
+            - name: Tag, GitHub release, and npm publish (release-PR merges only)
+              if: steps.rel.outputs.release == 'true'
+              run: npx lerna publish from-package --yes --create-release github
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Publish to NPMJS
-              uses: JS-DevTools/npm-publish@v3
-              with:
-                  token: ${{ secrets.NPM_TOKEN }}
-                  package: ./packages/three-particles
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             # www/ is hand-maintained static content (the example page loads
             # the published package from unpkg), so it is deployed as committed.

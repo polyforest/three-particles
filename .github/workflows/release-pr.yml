@@ -1,0 +1,130 @@
+name: Release PR
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch:
+
+permissions:
+    contents: write
+    pull-requests: write
+
+concurrency:
+    group: release-pr-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    release-pr:
+        runs-on: ubuntu-latest
+
+        steps:
+            # A release-marker merge commit (the squashed release PR) must not
+            # open another release PR — that is the loop guard.
+            - name: Detect release-marker merge commit
+              id: rel
+              env:
+                  HEAD_MSG: ${{ github.event.head_commit.message }}
+              run: |
+                  if [[ "$HEAD_MSG" == 'chore(release): publish'* ]]; then
+                      echo "release=true" >> "$GITHUB_OUTPUT"
+                      echo "Release-marker merge commit — skipping release-PR creation"
+                  else
+                      echo "release=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Checkout repository
+              if: steps.rel.outputs.release != 'true'
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0 # full history and tags — lerna resolves the last release tag
+
+            - name: Configure Git
+              if: steps.rel.outputs.release != 'true'
+              run: |
+                  git config --global user.name "github-actions[bot]"
+                  git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Setup Node.js
+              if: steps.rel.outputs.release != 'true'
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Install dependencies
+              if: steps.rel.outputs.release != 'true'
+              run: npm ci
+
+            # `lerna changed` exits 1 with "No changed packages found" when
+            # nothing is due; any other non-zero exit is a real failure and
+            # keeps the run red.
+            - name: Bail when nothing is due since the latest three-particles tag
+              if: steps.rel.outputs.release != 'true'
+              id: due
+              run: |
+                  set +e
+                  OUT=$(npx lerna changed 2>&1)
+                  RC=$?
+                  set -e
+                  echo "$OUT"
+                  if [ "$RC" -eq 0 ] && echo "$OUT" | grep -qx 'three-particles'; then
+                      echo "due=true" >> "$GITHUB_OUTPUT"
+                  elif [ "$RC" -eq 1 ] && echo "$OUT" | grep -q 'No changed packages found'; then
+                      echo "due=false" >> "$GITHUB_OUTPUT"
+                      echo "Nothing to release since the latest three-particles@ tag"
+                  else
+                      echo "lerna changed failed unexpectedly" >&2
+                      exit 1
+                  fi
+
+            # --no-git-tag-version bumps package.json and the changelog in the
+            # working tree without committing or tagging: the version commit is
+            # made below on the release branch, and the release tag is born at
+            # publish time on the merge commit, not here.
+            - name: Bump version and push the release branch
+              if: steps.rel.outputs.release != 'true' && steps.due.outputs.due == 'true'
+              id: bump
+              run: |
+                  npx lerna version --no-push --no-git-tag-version --yes --no-private
+                  VERSION=$(node -p "require('./packages/three-particles/package.json').version")
+                  if git diff --quiet; then
+                      echo "lerna produced no version changes" >&2
+                      exit 1
+                  fi
+                  git checkout -b "release/v${VERSION}"
+                  git add -A
+                  git commit -m "chore(release): publish v${VERSION}"
+                  git push --force-with-lease -u origin "release/v${VERSION}"
+                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+
+            # An existing release PR for the same version is updated by the
+            # branch push above (--force-with-lease), so a re-run updates the
+            # PR instead of colliding with it.
+            - name: Open or update the release PR
+              if: steps.rel.outputs.release != 'true' && steps.due.outputs.due == 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  VERSION: ${{ steps.bump.outputs.version }}
+              run: |
+                  if [ -n "$(gh pr list --head "release/v${VERSION}" --json url --jq '.[0].url')" ]; then
+                      echo "Release PR for release/v${VERSION} already exists — branch push updated it"
+                  else
+                      gh pr create --base main --head "release/v${VERSION}" \
+                          --title "chore(release): publish v${VERSION}" \
+                          --body "Automated version bump to three-particles@v${VERSION}. Merging tags and publishes."
+                  fi
+
+            # Requires the repo's "Allow auto-merge" setting; if it is off the
+            # PR parks for manual merge instead of failing the run.
+            - name: Enable auto-merge (squash)
+              if: steps.rel.outputs.release != 'true' && steps.due.outputs.due == 'true'
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  VERSION: ${{ steps.bump.outputs.version }}
+              run: |
+                  if gh pr merge --auto --squash "release/v${VERSION}"; then
+                      echo "Auto-merge enabled — the release PR merges when the required checks pass"
+                  else
+                      echo "::warning::Could not enable auto-merge (repo 'Allow auto-merge' setting may be disabled, or it is already armed). The release PR stays open for manual merge."
+                  fi

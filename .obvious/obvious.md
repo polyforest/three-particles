@@ -36,6 +36,28 @@ requires the library's type declarations to exist — run
 `npx tsc -p packages/three-particles` first if `dist/types/5.8` is missing
 (the esbuild `build` script does not emit them).
 
+## Releases (release-PR flow)
+
+Releases are hands-off. Every push to `main` runs `.github/workflows/release-pr.yml`:
+when `npx lerna changed` reports the library is ahead of its latest
+`three-particles@` tag, it bumps `packages/three-particles` (package.json,
+CHANGELOG, lockfile) on a `release/vX.Y.Z` branch and opens a release PR titled
+`chore(release): publish vX.Y.Z` with auto-merge (squash). The PR runs the same
+required build checks as any PR. When the merge commit's message starts with
+`chore(release): publish`, `release.yml` publishes (`npx lerna publish
+from-package --yes --create-release github`: npm publish, annotated tag at the
+merge commit, GitHub release) and deploys `www/` to Pages. Regular merges never
+publish.
+
+- Versioning is lerna **independent** — tag format `three-particles@X.Y.Z`.
+- Re-runs update the same `release/vX.Y.Z` branch/PR (`--force-with-lease`)
+  instead of colliding.
+- If the repo's "Allow auto-merge" setting is off, the release PR parks for
+  manual merge — merging it by hand is the designed fallback, not a failure.
+- npm auth is `NPM_TOKEN` via setup-node's npmrc (`NODE_AUTH_TOKEN`); a 401/403
+  at publish means the token expired — mint a new one in npm, then re-run the
+  release job. No PATs, no branch-protection bypasses.
+
 ## Codebase map
 
 See [codebase-map.md](./codebase-map.md).
