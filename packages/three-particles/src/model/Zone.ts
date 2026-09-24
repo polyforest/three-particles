@@ -87,5 +87,11 @@ export function randomFromZone(zone: Zone, out: Vector3): void {
             )
             break
         }
+        default: {
+            // All union members are cased above, so TS narrows zone.type to
+            // never here; widen it to string for the error message.
+            const unknownType: string = zone.type
+            throw new Error(`Unknown spawn zone type: '${unknownType}'`)
+        }
     }
 }
