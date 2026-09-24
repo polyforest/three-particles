@@ -281,6 +281,9 @@ class ColorPropertyState implements ParticlePropertyState {
     }
 
     apply(particleAlpha: number, emitterAlpha: number): void {
+        // Mirror FloatPropertyState: an empty timeline must not zero-fill the
+        // tint to black every frame.
+        if (this.timeline.timeline.length === 0) return
         this.previous.set(this.value)
         const time = this.timeline.useEmitterDuration
             ? emitterAlpha

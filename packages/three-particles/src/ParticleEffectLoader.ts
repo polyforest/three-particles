@@ -95,7 +95,19 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         loader.load(
             url,
             (text: string | ArrayBuffer) => {
-                this.parseAsync(JSON.parse(decodeText(text)))
+                let json: ReadonlyDeep<ParticleEffectModelJson>
+                try {
+                    json = JSON.parse(decodeText(text))
+                } catch (error) {
+                    // A malformed response must fail on the same path as any
+                    // other load error: onError fires (rejecting loadAsync) and
+                    // the manager records the failure; FileLoader's finally
+                    // supplies itemEnd.
+                    onError?.(error)
+                    this.manager.itemError(url)
+                    return
+                }
+                this.parseAsync(json)
                     .then(onLoad)
                     .catch((error) => onError?.(error))
             },
