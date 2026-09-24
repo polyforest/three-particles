@@ -9,7 +9,7 @@
     },
     "scripts": {
         "test": "jest",
-        "build": "tsx buildSrc/build.ts",
+        "build": "tsx buildSrc/build.ts && tsc -p tsconfig.json",
         "watch": "tsx buildSrc/build.ts -w"
     },
     "files": [
