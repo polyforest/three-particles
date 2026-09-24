@@ -87,6 +87,10 @@ jobs:
               id: bump
               run: |
                   npx lerna version --no-push --no-git-tag-version --yes --no-private
+                  # Lerna's changelog writer emits `*` bullets and stray blank
+                  # lines that fail `prettier --check` on the release PR;
+                  # normalize the generated file to the repo's format first.
+                  npx prettier --write packages/three-particles/CHANGELOG.md
                   VERSION=$(node -p "require('./packages/three-particles/package.json').version")
                   if git diff --quiet; then
                       echo "lerna produced no version changes" >&2
