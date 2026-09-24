@@ -14,7 +14,7 @@ Learned during onboarding onboarding run 2026-09-24.
       `npm ci` fails with EACCES. Fix with
       `sudo chown -R user:user node_modules` and re-run.
 2. **Emit type declarations:** `npx tsc -p packages/three-particles`
-   → writes `packages/three-particles/dist/types/5.8`. The esbuild-based
+   → writes `packages/three-particles/dist/types/6.0`. The esbuild-based
    `npm run build` does NOT generate these, and ESLint's type-checked rules
    on `packages/example/src/index.ts` fail ("'error' type") until they exist.
 3. **Build:** `npm run build` (esbuild bundle for the lib, Vite build for the

@@ -1,5 +1,4 @@
-import { Texture, TextureJSON, TextureLoader } from 'three'
-import { Wrapping } from 'three/src/constants'
+import { Texture, TextureJSON, TextureLoader, Wrapping } from 'three'
 import { cloneDeep } from 'lodash'
 import { PartialDeep, ReadonlyDeep } from 'type-fest'
 

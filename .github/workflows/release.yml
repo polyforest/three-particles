@@ -34,7 +34,7 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            # Emit the library's type declarations (dist/types/5.8): the
+            # Emit the library's type declarations (dist/types/6.0): the
             # example app's type-checked lint fails without them. Explicit
             # here so the gate does not rely on the build stage's side effects
             # (the package build also emits them since #46).
@@ -170,11 +170,11 @@ jobs:
                       echo "::error::packages/three-particles/dist/index.js is missing — refusing to publish an unusable package" >&2
                       exit 1
                   fi
-                  if [[ -z "$(find packages/three-particles/dist/types/5.8 -name '*.d.ts' -print -quit 2>/dev/null)" ]]; then
-                      echo "::error::no dist/types/5.8/**/*.d.ts declarations found — refusing to publish an unusable package" >&2
+                  if [[ -z "$(find packages/three-particles/dist/types/6.0 -name '*.d.ts' -print -quit 2>/dev/null)" ]]; then
+                      echo "::error::no dist/types/6.0/**/*.d.ts declarations found — refusing to publish an unusable package" >&2
                       exit 1
                   fi
-                  echo "Publish content OK: dist/index.js + $(find packages/three-particles/dist/types/5.8 -name '*.d.ts' | wc -l) declaration files"
+                  echo "Publish content OK: dist/index.js + $(find packages/three-particles/dist/types/6.0 -name '*.d.ts' | wc -l) declaration files"
 
             - name: Publish to npm (tokenless OIDC)
               if: steps.rel.outputs.release == 'true'

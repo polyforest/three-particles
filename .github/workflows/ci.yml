@@ -28,7 +28,7 @@ jobs:
               run: npm ci
               if: hashFiles('package-lock.json') != ''
 
-            # Emit the library's type declarations (dist/types/5.8): eslint's
+            # Emit the library's type declarations (dist/types/6.0): eslint's
             # type-checked rules on the example app fail against a
             # declaration-less package. This job runs standalone (build has its
             # own matrix), so declarations are emitted here directly.

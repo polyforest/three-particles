@@ -16,7 +16,7 @@ the published `three-particles` library and a private Vite example app.
 | Command                               | What it does                                                        |
 | ------------------------------------- | ------------------------------------------------------------------- |
 | `npm ci`                              | Install dependencies (uses package-lock.json)                       |
-| `npx tsc -p packages/three-particles` | Emit type declarations to `packages/three-particles/dist/types/5.8` |
+| `npx tsc -p packages/three-particles` | Emit type declarations to `packages/three-particles/dist/types/6.0` |
 | `npm run build`                       | Build both packages (lerna; esbuild bundle + Vite build)            |
 | `npm run lint`                        | Prettier check + ESLint (type-checked rules)                        |
 | `npm test`                            | Jest unit tests for the library (lerna)                             |
@@ -33,7 +33,7 @@ cd packages/example && npx vite --host
 Serves on **http://localhost:5173/** (parsed from Vite startup output). The page
 loads the "THREE.js Particles Fire Example" canvas. Note: lint of the example
 requires the library's type declarations to exist — run
-`npx tsc -p packages/three-particles` first if `dist/types/5.8` is missing
+`npx tsc -p packages/three-particles` first if `dist/types/6.0` is missing
 (the esbuild `build` script does not emit them).
 
 ## Releases (release-PR flow)
@@ -46,7 +46,7 @@ CHANGELOG, lockfile) on a `release/vX.Y.Z` branch and opens a release PR titled
 required build checks as any PR. When the merge commit's message starts with
 `chore(release): publish`, `release.yml` builds `packages/three-particles`
 (esbuild bundle + tsc declarations), guards the publish content (`dist/index.js`
-and `dist/types/5.8` declarations must exist — 0.15.2 shipped without `dist/`
+and `dist/types/6.0` declarations must exist — 0.15.2 shipped without `dist/`
 and is unusable; npm versions are immutable, so a bad publish can only be
 superseded), pushes the annotated `three-particles@X.Y.Z` tag, publishes
 tokenless via OIDC, creates the GitHub release, and deploys `www/` to Pages.
