@@ -43,7 +43,12 @@ export function makeBounce(bounces: number, restitution: number): EasingFun {
 
     return (x: number) => {
         if (x <= 0) return 0
-        if (x >= 1) return 1
+
+        // The normalized segment sums can land just short of 1 from float
+        // error, which would push x into a segment past the last one (segLen
+        // of undefined -> NaN). Treat anything at or past the final boundary
+        // as done.
+        if (x >= tEnds[segCount - 1] || x >= 1) return 1
 
         // find segment index
         let idx = 0
