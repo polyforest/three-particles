@@ -172,9 +172,7 @@ export function parseEmitter({
     geometries?: Record<string, BufferGeometry>
 }): ParticleEmitterModel {
     const id = emitterJson.uuid ?? MathUtils.generateUUID()
-    const spawn = parseZone(
-        emitterJson.spawn ?? (cloneDeep(zoneDefaults) as Zone),
-    )
+    const spawn = parseZone(emitterJson.spawn ?? cloneDeep(zoneDefaults))
     const duration = parseEmitterDuration(
         emitterJson.duration ??
             cloneDeep(particleEmitterModelDefaults.duration),

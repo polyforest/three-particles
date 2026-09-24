@@ -3,6 +3,7 @@ import {
     BufferGeometryLoader,
     FileLoader,
     Loader,
+    LoadingManager,
     Material,
     MaterialLoader,
     Texture,
@@ -14,7 +15,6 @@ import {
     ParticleEffectModel,
     ParticleEffectModelJson,
 } from './model'
-import { LoadingManager } from 'three/src/loaders/LoadingManager'
 import { decodeText } from './util'
 import { cloneDeep } from 'lodash'
 import { getDefaultRadial } from './materialDefaults'

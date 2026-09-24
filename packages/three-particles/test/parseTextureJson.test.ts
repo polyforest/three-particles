@@ -39,24 +39,24 @@ describe('parseTextureJson', () => {
             name: 'myTex',
             uuid: '1234-5678',
             image: 'data:image/png;base64,XXXX',
-            mapping: UVMapping as any,
+            mapping: UVMapping,
             repeat: [2, 3] as [number, number],
             offset: [0.25, 0.5] as [number, number],
             center: [0.1, 0.2] as [number, number],
             rotation: Math.PI / 4,
             wrap: [RepeatWrapping as any, MirroredRepeatWrapping as any] as any,
-            format: RGBAFormat as any,
-            type: FloatType as any,
-            colorSpace: SRGBColorSpace as any,
-            magFilter: NearestFilter as any,
-            minFilter: LinearMipmapLinearFilter as any,
+            format: RGBAFormat,
+            type: FloatType,
+            colorSpace: SRGBColorSpace,
+            magFilter: NearestFilter,
+            minFilter: LinearMipmapLinearFilter,
             anisotropy: 8,
             flipY: true,
             generateMipmaps: false,
             userData: { nested: { value: 42 } },
         } satisfies Partial<TextureJSON>
 
-        const tex = parseTextureJson(json as any, loader)
+        const tex = parseTextureJson(json, loader)
 
         expect(loader.lastUrl).toBe(json.image)
         expect(tex.name).toBe('myTex')
@@ -98,7 +98,7 @@ describe('parseTextureJson', () => {
             name: 'noImage',
             flipY: false,
         }
-        const tex = parseTextureJson(json as any, loader)
+        const tex = parseTextureJson(json, loader)
 
         // no image should not trigger loader
         expect(loader.lastUrl).toBeNull()

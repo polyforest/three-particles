@@ -2,7 +2,7 @@
 
 | Path                                    | Purpose                                                                                                                  |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `packages/three-particles`              | Published npm library — particle engine for THREE.js (`main: dist/index.js`, types in `dist/types/5.8`)                  |
+| `packages/three-particles`              | Published npm library — particle engine for THREE.js (`main: dist/index.js`, types in `dist/types/6.0`)                  |
 | `packages/three-particles/src/index.ts` | Public API entry point                                                                                                   |
 | `packages/three-particles/src/model`    | Data models: ParticleEffectModel, ParticleEmitterModel, RangeModel, TimelineModel, Zone                                  |
 | `packages/three-particles/src/object`   | THREE.js scene objects: ParticleEffect, ParticleEmitterPoints, ParticleEmitterInstancedMesh, ParticleEmitterObject       |
