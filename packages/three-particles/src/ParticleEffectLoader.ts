@@ -145,7 +145,17 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         }
 
         // Make textures available to MaterialLoader for resolving map/alphaMap/etc.
-        const mLoader = this.materialLoader
+        // Each invocation gets its own MaterialLoader: the texture map is
+        // per-parse state, and sharing one loader races concurrent parseAsync
+        // calls — while effect A's string-referenced material fetch is still
+        // awaited, effect B's setTextures replaces the shared map, so A's
+        // material resolves against B's textures. Instantiating from the
+        // injected loader's own class preserves custom MaterialLoader subclasses.
+        const MaterialLoaderOf = this.materialLoader.constructor as new (
+            manager?: LoadingManager,
+        ) => MaterialLoader
+        const mLoader = new MaterialLoaderOf(this.manager)
+        mLoader.setPath(this.materialLoader.path)
         mLoader.setTextures({ ...this.textures, ...bundledTextures })
 
         // Load bundled materials

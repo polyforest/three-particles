@@ -16,7 +16,13 @@ export class ParticleEmitterPoints
     private readonly state: ParticleEmitterState
 
     constructor(model: ParticleEmitterModel) {
-        super(model.geometry ?? undefined, model.material ?? undefined)
+        // Registry-resolved geometries are shared by every emitter that
+        // references the same id, but this constructor writes per-emitter
+        // position/color/rotation buffers and a drawRange into `this.geometry`.
+        // Clone the shared instance so two emitters on one geometry id stay
+        // independent; with no geometry given, Points allocates one that is
+        // already emitter-owned.
+        super(model.geometry?.clone() ?? undefined, model.material ?? undefined)
         this.state = new ParticleEmitterState(model)
         const n = model.count
 
