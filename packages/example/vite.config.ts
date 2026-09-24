@@ -12,8 +12,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            'three-particles': resolve(__dirname, '../three-particles/dist'),
-            '/src': resolve(__dirname, 'src'),
+            'three-particles': resolve(import.meta.dirname, '../three-particles/dist'),
+            '/src': resolve(import.meta.dirname, 'src'),
         },
     },
     server: {
