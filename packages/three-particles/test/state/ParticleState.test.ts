@@ -176,6 +176,22 @@ describe('ParticleState', () => {
         expect(p.tint.g).toBeCloseTo(0)
         expect(p.tint.b).toBeCloseTo(0)
     })
+
+    it('keeps the configured tint when a color timeline is empty (TP-2)', () => {
+        const emitter = emitterWithTimelines([
+            { property: 'color', timeline: [] },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // An empty color timeline must not zero-fill the tint to black every
+        // frame; the empty-timeline guard mirrors the float-property path.
+        p.update(0.5, 0)
+        expect(p.tint.r).toBeCloseTo(1)
+        expect(p.tint.g).toBeCloseTo(1)
+        expect(p.tint.b).toBeCloseTo(1)
+    })
 })
 
 describe('ParticleState rotation integration', () => {
