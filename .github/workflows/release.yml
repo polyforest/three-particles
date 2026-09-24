@@ -166,15 +166,18 @@ jobs:
             - name: Guard publish content
               if: steps.rel.outputs.release == 'true'
               run: |
+                  # Declaration dir comes from the manifest's "types" field, so
+                  # the next TS-major rename is a manifest-level change.
+                  TYPES_DIR=$(node -p "require('./packages/three-particles/package.json').types")
                   if [[ ! -f packages/three-particles/dist/index.js ]]; then
                       echo "::error::packages/three-particles/dist/index.js is missing — refusing to publish an unusable package" >&2
                       exit 1
                   fi
-                  if [[ -z "$(find packages/three-particles/dist/types/6.0 -name '*.d.ts' -print -quit 2>/dev/null)" ]]; then
-                      echo "::error::no dist/types/6.0/**/*.d.ts declarations found — refusing to publish an unusable package" >&2
+                  if [[ -z "$(find "packages/three-particles/$TYPES_DIR" -name '*.d.ts' -print -quit 2>/dev/null)" ]]; then
+                      echo "::error::no packages/three-particles/$TYPES_DIR/**/*.d.ts declarations found — refusing to publish an unusable package" >&2
                       exit 1
                   fi
-                  echo "Publish content OK: dist/index.js + $(find packages/three-particles/dist/types/6.0 -name '*.d.ts' | wc -l) declaration files"
+                  echo "Publish content OK: dist/index.js + $(find "packages/three-particles/$TYPES_DIR" -name '*.d.ts' | wc -l) declaration files"
 
             - name: Publish to npm (tokenless OIDC)
               if: steps.rel.outputs.release == 'true'
