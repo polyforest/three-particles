@@ -1,7 +1,6 @@
 import {
     AmbientLight,
     AxesHelper,
-    Clock,
     Color,
     DirectionalLight,
     Fog,
@@ -11,6 +10,7 @@ import {
     PerspectiveCamera,
     PlaneGeometry,
     Scene,
+    Timer,
     Vector3,
     WebGLRenderer,
 } from 'three'
@@ -94,13 +94,15 @@ loader
     })
     .catch(console.error)
 
-const clock = new Clock()
-function render() {
-    const dT = Math.min(clock.getDelta(), 0.1)
+// Timer replaces the r183-deprecated Clock. update() advances its internal
+// state once per frame; getDelta() then reports the frame delta in seconds.
+const timer = new Timer()
+function render(time: DOMHighResTimeStamp) {
+    timer.update(time)
+    const dT = Math.min(timer.getDelta(), 0.1)
     controls.update()
     particleEffect?.update(dT)
     renderer.render(scene, camera)
 }
 
-clock.start()
 renderer.setAnimationLoop(render)
