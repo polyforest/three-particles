@@ -5,11 +5,39 @@ on:
         branches-ignore:
             - 'main' # main is protected
             - 'gh-pages'
+    pull_request:
 
 permissions:
     contents: read
 
 jobs:
+    lint:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22.x
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+              if: hashFiles('package-lock.json') != ''
+
+            # Emit the library's type declarations (dist/types/5.8): eslint's
+            # type-checked rules on the example app fail against a
+            # declaration-less package. This job runs standalone (build has its
+            # own matrix), so declarations are emitted here directly.
+            - name: Generate library type declarations
+              run: npx tsc -p packages/three-particles
+
+            - name: Run prettier and eslint
+              run: npm run lint
+
     build:
         runs-on: ${{ matrix.os }}
         strategy:
@@ -32,5 +60,32 @@ jobs:
               run: npm ci
               if: hashFiles('package-lock.json') != ''
 
-            - name: Run build, lint, and test
-              run: npm run validate
+            - name: Run build
+              run: npm run build
+
+    test:
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+                node-version: [22.x]
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+              if: hashFiles('package-lock.json') != ''
+
+            # ts-jest compiles sources directly and does not consume build
+            # output, so test runs independently of the build job.
+            - name: Run tests
+              run: npm test

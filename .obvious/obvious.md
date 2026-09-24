@@ -13,16 +13,16 @@ the published `three-particles` library and a private Vite example app.
 
 ## Commands (from repo root)
 
-| Command | What it does |
-|---|---|
-| `npm ci` | Install dependencies (uses package-lock.json) |
+| Command                               | What it does                                                        |
+| ------------------------------------- | ------------------------------------------------------------------- |
+| `npm ci`                              | Install dependencies (uses package-lock.json)                       |
 | `npx tsc -p packages/three-particles` | Emit type declarations to `packages/three-particles/dist/types/5.8` |
-| `npm run build` | Build both packages (lerna; esbuild bundle + Vite build) |
-| `npm run lint` | Prettier check + ESLint (type-checked rules) |
-| `npm test` | Jest unit tests for the library (lerna) |
-| `npm run validate` | build + lint + test (same as CI) |
-| `npm run serve` | Serve the built `www/` output with http-server |
-| `npm run watch` | Parallel watch builds |
+| `npm run build`                       | Build both packages (lerna; esbuild bundle + Vite build)            |
+| `npm run lint`                        | Prettier check + ESLint (type-checked rules)                        |
+| `npm test`                            | Jest unit tests for the library (lerna)                             |
+| `npm run validate`                    | build + lint + test (same as CI)                                    |
+| `npm run serve`                       | Serve the built `www/` output with http-server                      |
+| `npm run watch`                       | Parallel watch builds                                               |
 
 ### Dev server (example app)
 
