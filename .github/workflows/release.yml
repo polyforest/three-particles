@@ -6,7 +6,43 @@ on:
             - main
 
 jobs:
+    validate:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 22
+                  cache: npm
+
+            - name: Install dependencies
+              run: npm ci
+
+            # Emit the library's type declarations (dist/types/5.8): the
+            # example app's type-checked lint fails without them. Explicit
+            # here so the gate does not rely on the build stage's side effects
+            # (the package build also emits them since #46).
+            - name: Generate library type declarations
+              run: npx tsc -p packages/three-particles
+
+            - name: Run build and test
+              run: npm run validate
+
+            # lerna's `validate` chain reports "No packages found with the
+            # lifecycle script 'lint'" — no workspace defines one — so the
+            # repo-wide prettier/eslint gate has to run explicitly.
+            - name: Run prettier and eslint
+              run: npm run lint
+
     release:
+        needs: validate
         runs-on: ubuntu-latest
 
         permissions:
@@ -17,7 +53,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v4
               with:
-                  token: ${{ secrets.GH_PAT }}
+                  token: ${{ secrets.GITHUB_TOKEN }}
                   fetch-depth: 0 # important for lerna to detect tags
             - name: Configure Git
               run: |
@@ -38,7 +74,7 @@ jobs:
             - name: Create versions & changelogs
               run: npx lerna version --no-private --create-release github --yes
               env:
-                  GH_TOKEN: ${{ secrets.GH_PAT }}
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
             - name: Publish to NPMJS
               uses: JS-DevTools/npm-publish@v3
@@ -46,6 +82,8 @@ jobs:
                   token: ${{ secrets.NPM_TOKEN }}
                   package: ./packages/three-particles
 
+            # www/ is hand-maintained static content (the example page loads
+            # the published package from unpkg), so it is deployed as committed.
             - name: Deploy JS to GitHub Pages
               uses: JamesIves/github-pages-deploy-action@v4
               with:
