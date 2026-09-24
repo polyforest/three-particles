@@ -44,6 +44,6 @@
         "packages/*"
     ],
     "dependencies": {
-        "three": "^0.181.2"
+        "three": "^0.186.1"
     }
 }
