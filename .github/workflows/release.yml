@@ -130,7 +130,7 @@ jobs:
               run: npm run build
 
             # Belt and braces: pin the CLI to npm's trusted-publishing minimum
-            # regardless of what the Node 24.x point release bundles.
+            # regardless of what the Node 22 point release bundles.
             - name: Upgrade npm CLI for OIDC trusted publishing
               if: steps.rel.outputs.release == 'true'
               run: npm install -g npm@^11.5.1
@@ -157,6 +157,24 @@ jobs:
                       git push origin "three-particles@${VERSION}"
                       echo "Pushed annotated tag three-particles@${VERSION} at $(git rev-parse --short HEAD)"
                   fi
+
+            # Refuse to ship an unusable package: this guard would have caught
+            # 0.15.2 AND 0.16.0 (both published without dist/ — 29 files each,
+            # runs 36057992468 and 36060773466) before they reached the
+            # registry — npm versions are immutable, so a bad publish cannot
+            # be fixed in place, only superseded.
+            - name: Guard publish content
+              if: steps.rel.outputs.release == 'true'
+              run: |
+                  if [[ ! -f packages/three-particles/dist/index.js ]]; then
+                      echo "::error::packages/three-particles/dist/index.js is missing — refusing to publish an unusable package" >&2
+                      exit 1
+                  fi
+                  if [[ -z "$(find packages/three-particles/dist/types/5.8 -name '*.d.ts' -print -quit 2>/dev/null)" ]]; then
+                      echo "::error::no dist/types/5.8/**/*.d.ts declarations found — refusing to publish an unusable package" >&2
+                      exit 1
+                  fi
+                  echo "Publish content OK: dist/index.js + $(find packages/three-particles/dist/types/5.8 -name '*.d.ts' | wc -l) declaration files"
 
             - name: Publish to npm (tokenless OIDC)
               if: steps.rel.outputs.release == 'true'

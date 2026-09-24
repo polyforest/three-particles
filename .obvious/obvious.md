@@ -44,10 +44,13 @@ when `npx lerna changed` reports the library is ahead of its latest
 CHANGELOG, lockfile) on a `release/vX.Y.Z` branch and opens a release PR titled
 `chore(release): publish vX.Y.Z` with auto-merge (squash). The PR runs the same
 required build checks as any PR. When the merge commit's message starts with
-`chore(release): publish`, `release.yml` publishes (`npx lerna publish
-from-package --yes --create-release github`: npm publish, annotated tag at the
-merge commit, GitHub release) and deploys `www/` to Pages. Regular merges never
-publish.
+`chore(release): publish`, `release.yml` builds `packages/three-particles`
+(esbuild bundle + tsc declarations), guards the publish content (`dist/index.js`
+and `dist/types/5.8` declarations must exist — 0.15.2 shipped without `dist/`
+and is unusable; npm versions are immutable, so a bad publish can only be
+superseded), pushes the annotated `three-particles@X.Y.Z` tag, publishes
+tokenless via OIDC, creates the GitHub release, and deploys `www/` to Pages.
+Regular merges never publish.
 
 - Versioning is lerna **independent** — tag format `three-particles@X.Y.Z`.
 - Re-runs update the same `release/vX.Y.Z` branch/PR (`--force-with-lease`)
@@ -55,7 +58,10 @@ publish.
 - If the repo's "Allow auto-merge" setting is off, the release PR parks for
   manual merge — merging it by hand is the designed fallback, not a failure.
 - npm publishing is **tokenless** via OIDC trusted publishing: the `release`
-  job runs Node 24 (npm >= 11.5.1) with `id-token: write` and no
+  job installs and builds on Node 22 (bundled npm 10.x matches the lockfile
+  generator — npm 11's stricter `npm ci` validation rejects that lockfile),
+  upgrades npm to >= 11.5.1 only for the publish step, runs with
+  `id-token: write` and no
   `NODE_AUTH_TOKEN`/`registry-url`, and publishes with plain
   `npm publish --provenance` — not lerna's publish path, which prefers the
   workflow's OIDC identity over `NPM_TOKEN` and fails E404 without a Trusted
@@ -77,7 +83,9 @@ See [codebase-map.md](./codebase-map.md).
 1. `npm run validate` — build, lint, and tests must pass.
 2. Start the Vite dev server (commands above) and fetch `http://localhost:5173/`
    — expect HTTP 200 and Vite transform of `/src/index.ts` returning HTTP 200.
-3. Last verified: 2026-09-24 — build ✓, lint ✓, Jest 47/47 ✓, dev server ✓.
+3. Last verified: 2026-09-24 — build ✓, lint ✓, Jest 73/73 ✓ (`npm run
+validate`, release-pipeline fix session); dev server verified earlier the
+   same day, not re-run since.
 
 ## Snapshot
 
