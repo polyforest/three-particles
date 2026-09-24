@@ -3,6 +3,15 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.15.2](https://github.com/polyforest/three-particles/compare/three-particles@0.15.1...three-particles@0.15.2) (2026-09-24)
+
+### Bug Fixes
+
+- emit TypeScript declarations in the published package build ([c8b7ce1](https://github.com/polyforest/three-particles/commit/c8b7ce1f7991cf71726fc4c2f76cbbbadbad560f))
+- emitter geometry isolation, loader texture race, timeline validation (TP-4..TP-6) ([#49](https://github.com/polyforest/three-particles/issues/49)) ([d00c033](https://github.com/polyforest/three-particles/commit/d00c0339e2079b8279c14237c1ed0aba35a7835c))
+- high-visibility rendering and loader error contract (TP-1..TP-3) ([#48](https://github.com/polyforest/three-particles/issues/48)) ([742027f](https://github.com/polyforest/three-particles/commit/742027f195286f65d8bbd344a7bdbb20f3e4dd02))
+- parse-time hardening for zones, eases, and materials (TP-7..TP-12) ([#52](https://github.com/polyforest/three-particles/issues/52)) ([884a8f0](https://github.com/polyforest/three-particles/commit/884a8f001daab8029f80c2b4d50dedafaeb04d99))
+
 ## [0.15.1](https://github.com/polyforest/three-particles/compare/three-particles@0.15.0...three-particles@0.15.1) (2025-12-05)
 
 **Note:** Version bump only for package three-particles
