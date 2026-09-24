@@ -30,6 +30,9 @@ export function parseRange(
     const min = rangeJson.min ?? rangeDefaults.min
     const max = rangeJson.max ?? rangeJson.min ?? rangeDefaults.max
     const ease = rangeJson.ease ?? rangeDefaults.ease
+    // Fail at parse time: an unknown ease id otherwise throws inside the
+    // render loop (valueFromRange -> getEase), far from the malformed JSON.
+    easing.validateEaseId(ease, 'range')
     return { min, max, ease }
 }
 

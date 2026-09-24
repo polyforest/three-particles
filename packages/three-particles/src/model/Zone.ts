@@ -1,4 +1,4 @@
-import { EaseType, getEase } from '../util'
+import { EaseType, getEase, validateEaseId } from '../util'
 import { Vector3 } from 'three'
 import { PartialDeep } from 'type-fest'
 
@@ -31,7 +31,11 @@ export const zoneDefaults = {
 } as const satisfies Zone
 
 export function parseZone(zone: PartialDeep<Zone>): Zone {
-    return { ...(zoneDefaults as Zone), ...zone }
+    const merged = { ...(zoneDefaults as Zone), ...zone }
+    // Fail at parse time: an unknown ease id otherwise throws inside the
+    // render loop (randomFromZone -> getEase), far from the malformed JSON.
+    validateEaseId(merged.ease, `zone '${merged.type}'`)
+    return merged
 }
 
 export function zoneToJson(zone: Zone): Partial<Zone> {

@@ -133,6 +133,24 @@ export type EaseType = keyof typeof easings
  * @returns An `Easer` function.
  */
 export function getEase(type: EaseType): EasingFun {
-    if (!(type in easings)) throw new Error(`Easing '${type}' was not found.`)
+    // Own-property check: an `in` check lets prototype keys like 'toString'
+    // resolve to garbage instead of throwing.
+    if (!Object.prototype.hasOwnProperty.call(easings, type))
+        throw new Error(`Easing '${type}' was not found.`)
     return easings[type]
+}
+
+/**
+ * Throws if the given id is not a known easing identifier.
+ *
+ * Parse sites call this so a malformed ease id fails at parse time with the
+ * offending value, instead of throwing inside the render loop (or silently
+ * resolving an Object.prototype key such as 'toString').
+ */
+export function validateEaseId(ease: string, context: string): void {
+    if (!Object.prototype.hasOwnProperty.call(easings, ease)) {
+        throw new Error(
+            `Invalid ease id '${ease}' in ${context}: unknown easing. Use a base easing (linear, quad, cubic, quart, quint, sine, circ, back, elastic, bounce) with an optional In/Out/InOut suffix.`,
+        )
+    }
 }
