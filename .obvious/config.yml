@@ -1,6 +1,6 @@
 # Repository policy for three-particles
 branch:
-  default: main
+    default: main
 merge:
-  method: squash
-  requireHumanMerge: true
+    method: squash
+    requireHumanMerge: true

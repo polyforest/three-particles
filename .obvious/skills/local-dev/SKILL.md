@@ -10,9 +10,9 @@ Learned during onboarding onboarding run 2026-09-24.
 ## Steps
 
 1. **Install:** `npm ci` from the repo root (npm workspaces + Lerna).
-   - Gotcha: if `node_modules` is owned by root in a fresh sandbox,
-     `npm ci` fails with EACCES. Fix with
-     `sudo chown -R user:user node_modules` and re-run.
+    - Gotcha: if `node_modules` is owned by root in a fresh sandbox,
+      `npm ci` fails with EACCES. Fix with
+      `sudo chown -R user:user node_modules` and re-run.
 2. **Emit type declarations:** `npx tsc -p packages/three-particles`
    → writes `packages/three-particles/dist/types/5.8`. The esbuild-based
    `npm run build` does NOT generate these, and ESLint's type-checked rules
