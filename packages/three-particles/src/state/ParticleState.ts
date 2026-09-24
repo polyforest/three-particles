@@ -183,7 +183,7 @@ export class ParticleState implements ParticleProperties {
 
         if (!closeTo(this.forwardVel, 0)) {
             // Move the particle forward along its orientation by forwardVel per second.
-            // Compute forward dir by rotating +Z with the current orientation Euler (XYZ order).
+            // Compute forward dir by rotating +Y with the current orientation Euler (XYZ order).
             tmpVec.set(0, 1, 0).applyEuler(this.orientation)
             this.position.addScaledVector(tmpVec, this.forwardVel * tickTime)
         }
