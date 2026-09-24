@@ -12,7 +12,10 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            'three-particles': resolve(import.meta.dirname, '../three-particles/dist'),
+            'three-particles': resolve(
+                import.meta.dirname,
+                '../three-particles/dist',
+            ),
             '/src': resolve(import.meta.dirname, 'src'),
         },
     },
