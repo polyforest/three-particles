@@ -78,6 +78,20 @@ jobs:
                       exit 1
                   fi
 
+            # Re-verified against lerna 10.0.1 (dry-run, 2026-09-24): all four
+            # version flags below remain valid and `lerna changed` output is
+            # unchanged (still greppable as 'three-particles'). v10 notes:
+            #   - ESM-only; engines ^22.13.0 || ^24 || ^26 — this workflow's
+            #     node-version: 22 resolves above 22.13.
+            #   - EBEHIND is now thrown in CI when the checkout is behind the
+            #     remote. The normal path checks out the pushed commit (not
+            #     behind); a mid-run race fails loudly instead of versioning a
+            #     stale checkout, and the newer push re-runs this flow — the
+            #     new default is kept deliberately.
+            #   - The conventional-changelog rewrite URL-encodes tag names in
+            #     compare links (%40; GitHub resolves them identically) and
+            #     emits stray blank lines — the prettier --write below already
+            #     normalizes the whitespace.
             # --no-git-tag-version bumps package.json and the changelog in the
             # working tree without committing or tagging: the version commit is
             # made below on the release branch, and the release tag is born at
