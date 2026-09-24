@@ -243,4 +243,21 @@ describe('getParticlePropertyUpdater', () => {
 
         expect(spy).toHaveBeenCalledTimes(1)
     })
+
+    it('warns on prototype-named keys instead of resolving them (TP-9)', () => {
+        const spy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+        const props = makeProps()
+
+        for (const key of ['valueOf', 'toString', 'constructor']) {
+            const updater = getParticlePropertyUpdater(key)
+            // must be a no-op, not an Object.prototype member
+            updater(props, 5)
+            expect(spy).toHaveBeenCalledWith(
+                expect.stringContaining(`the name ${key}`),
+            )
+        }
+
+        expect(props.position.x).toBe(0)
+        spy.mockRestore()
+    })
 })
