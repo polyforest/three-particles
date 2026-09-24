@@ -102,16 +102,19 @@ jobs:
                   echo "Checking out release-marker commit ${MARKER_SHA}"
                   git checkout "$MARKER_SHA"
 
-            # Tokenless npm publishing via OIDC: Node 24 bundles an npm 11.x
-            # CLI — npm >= 11.5.1 is the trusted-publishing minimum, and Node
-            # 22 only ships npm 10.x. `registry-url`/`always-auth` are
-            # deliberately omitted: with no NODE_AUTH_TOKEN they write an
-            # empty `_authToken` into .npmrc that can shadow the OIDC
-            # credential.
+            # Node 22 on purpose: `npm ci` runs on the bundled npm 10.x — the
+            # same engine that generated the lockfile and passes the validate
+            # job. npm 11's stricter lockfile validation rejects that lockfile
+            # (EUSAGE: missing @esbuild/* platform optionals — forced run
+            # 36056642774, reproduced locally with npx npm@10 vs npm@11).
+            # The OIDC-publishing npm >= 11.5.1 upgrade happens later, gated
+            # on a real release. `registry-url`/`always-auth` are deliberately
+            # omitted: with no NODE_AUTH_TOKEN they write an empty
+            # `_authToken` into .npmrc that can shadow the OIDC credential.
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: 24
+                  node-version: 22
                   cache: npm
 
             - name: Install dependencies
