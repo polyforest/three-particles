@@ -4,6 +4,15 @@ on:
     push:
         branches:
             - main
+    workflow_dispatch:
+        inputs:
+            force:
+                description: >-
+                    Release retry: skip the marker gate and publish from the
+                    latest 'chore(release): publish' commit on main
+                type: boolean
+                default: false
+                required: false
 
 jobs:
     validate:
@@ -47,15 +56,21 @@ jobs:
 
         permissions:
             contents: write
-            id-token: write
 
         steps:
-            - name: Detect release-marker merge commit
+            # Release publish conditions: a merge-commit subject starting with
+            # the lerna-format marker, or a manual dispatch with force=true
+            # (the retry lever for a failed publish). Dispatch runs have no
+            # head_commit, so without force they only validate and redeploy
+            # Pages — they can never open a release PR or loop (a push event
+            # is required for release-pr.yml).
+            - name: Detect release publish conditions
               id: rel
               env:
                   HEAD_MSG: ${{ github.event.head_commit.message }}
+                  FORCED: ${{ github.event_name == 'workflow_dispatch' && inputs.force == true }}
               run: |
-                  if [[ "$HEAD_MSG" == 'chore(release): publish'* ]]; then
+                  if [[ "$FORCED" == 'true' || "$HEAD_MSG" == 'chore(release): publish'* ]]; then
                       echo "release=true" >> "$GITHUB_OUTPUT"
                   else
                       echo "release=false" >> "$GITHUB_OUTPUT"
@@ -71,6 +86,21 @@ jobs:
                   git config --global user.name "github-actions[bot]"
                   git config --global user.email "github-actions[bot]@users.noreply.github.com"
 
+            # A forced retry dispatches from main's head, which may have moved
+            # past the release with regular commits. Check out the latest
+            # release-marker commit so the tag and the published tarball
+            # always describe the released code.
+            - name: Check out the latest release-marker commit (forced retries only)
+              if: steps.rel.outputs.release == 'true' && github.event_name == 'workflow_dispatch'
+              run: |
+                  MARKER_SHA=$(git log --grep '^chore(release): publish' -n 1 --format='%H')
+                  if [[ -z "$MARKER_SHA" ]]; then
+                      echo "No 'chore(release): publish' commit found on main to retry" >&2
+                      exit 1
+                  fi
+                  echo "Checking out release-marker commit ${MARKER_SHA}"
+                  git checkout "$MARKER_SHA"
+
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
@@ -82,19 +112,44 @@ jobs:
             - name: Install dependencies
               run: npm ci
 
-            # Only release-PR merges publish: the merge commit carries the
-            # bumped version, and lerna's from-package strategy publishes
-            # exactly the packages whose version is missing from the registry,
-            # then creates the annotated git tag at this merge commit (pushed
-            # via --follow-tags) and the GitHub release — verified against
-            # lerna 9.0.3's publish pipeline. Regular merges skip straight to
-            # the Pages deploy below without publishing.
-            - name: Tag, GitHub release, and npm publish (release-PR merges only)
+            # Only release-PR merges (or forced retries) publish, via three
+            # explicit idempotent steps. lerna 9's combined
+            # `publish from-package` path is NOT used: live run 36053533514
+            # proved it prefers OIDC id-token identity over NODE_AUTH_TOKEN,
+            # which fails E404 for a package without a Trusted Publisher on
+            # npmjs.com. The split below uses the proven pre-#47 mechanism:
+            # explicit tag (GITHUB_TOKEN), JS-DevTools/npm-publish
+            # (NPM_TOKEN), and `gh release create` (GITHUB_TOKEN).
+            - name: Tag the release-marker commit
               if: steps.rel.outputs.release == 'true'
-              run: npx lerna publish from-package --yes --create-release github
+              run: |
+                  VERSION=$(node -p "require('./packages/three-particles/package.json').version")
+                  if git ls-remote origin "refs/tags/three-particles@${VERSION}" | grep -q .; then
+                      echo "Tag three-particles@${VERSION} already exists on origin — skipping"
+                  else
+                      git tag -a "three-particles@${VERSION}" -m "three-particles@${VERSION}"
+                      git push origin "three-particles@${VERSION}"
+                      echo "Pushed annotated tag three-particles@${VERSION} at $(git rev-parse --short HEAD)"
+                  fi
+
+            - name: Publish to npm
+              if: steps.rel.outputs.release == 'true'
+              uses: JS-DevTools/npm-publish@v3
+              with:
+                  token: ${{ secrets.NPM_TOKEN }}
+                  package: ./packages/three-particles
+
+            - name: Create the GitHub release
+              if: steps.rel.outputs.release == 'true'
+              run: |
+                  VERSION=$(node -p "require('./packages/three-particles/package.json').version")
+                  if gh release view "three-particles@${VERSION}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+                      echo "Release three-particles@${VERSION} already exists — skipping"
+                  else
+                      gh release create "three-particles@${VERSION}" --title "three-particles@${VERSION}" --generate-notes
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
             # www/ is hand-maintained static content (the example page loads
             # the published package from unpkg), so it is deployed as committed.
