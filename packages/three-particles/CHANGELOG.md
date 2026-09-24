@@ -3,6 +3,25 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.16.0](https://github.com/polyforest/three-particles/compare/three-particles@0.15.2...three-particles@0.16.0) (2026-09-24)
+
+- feat!: support three 0.186.1 and widen the published peer range (#59) ([b52cfa7](https://github.com/polyforest/three-particles/commit/b52cfa75b81ac7388a6ecf687fc00fabe81ab0f6)), closes [#59](https://github.com/polyforest/three-particles/issues/59)
+
+### BREAKING CHANGES
+
+- peerDependencies.three is now >=0.186.1 <0.187.0;
+  consumers on three 0.181.x must upgrade.
+
+Co-authored-by: Nicholas Bilyk <nbilyk@gmail.com>
+
+- chore: migrate example to Timer
+
+Clock is deprecated as of three r183; the render loop now drives Timer
+per frame (update() then getDelta()) and passes the rAF timestamp
+through. Behavior is unchanged, including the 0.1s delta cap.
+
+Co-authored-by: Nicholas Bilyk <nbilyk@gmail.com>
+
 ## [0.15.2](https://github.com/polyforest/three-particles/compare/three-particles@0.15.1...three-particles@0.15.2) (2026-09-24)
 
 ### Bug Fixes
