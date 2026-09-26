@@ -147,8 +147,9 @@ export class ParticleState implements ParticleProperties {
     }
 
     constructor(private readonly model: ParticleEmitterModel) {
-        this.propertyStates = model.propertyTimelines.map((timeline) =>
-            createParticlePropertyState(this, timeline),
+        this.propertyStates = createPropertyStates(
+            this,
+            model.propertyTimelines,
         )
     }
 
@@ -226,17 +227,58 @@ export interface ParticlePropertyState {
     reset(): void
 }
 
+/**
+ * Builds one property state per SET timeline (in author order, preserving the
+ * pre-additive behavior exactly), and — for each property that has one or more
+ * `mode: "add"` timelines — a single `AdditiveFloatPropertyState` covering all
+ * of that property's timelines, placed at its first occurrence.
+ */
+function createPropertyStates(
+    particleProps: ParticleProperties,
+    timelines: readonly TimelineModel[],
+): readonly ParticlePropertyState[] {
+    const additiveProperties = new Set(
+        timelines
+            .filter((timeline) => timeline.mode === 'add')
+            .map((timeline) => timeline.property),
+    )
+    const states: ParticlePropertyState[] = []
+    const compositeStarted = new Set<string>()
+    for (const timeline of timelines) {
+        if (additiveProperties.has(timeline.property)) {
+            if (compositeStarted.has(timeline.property)) continue
+            compositeStarted.add(timeline.property)
+            states.push(
+                new AdditiveFloatPropertyState(
+                    particleProps,
+                    timelines.filter((t) => t.property === timeline.property),
+                    getParticlePropertyUpdater(timeline.property),
+                ),
+            )
+            continue
+        }
+        states.push(createParticlePropertyState(particleProps, timeline))
+    }
+    return states
+}
+
 export function createParticlePropertyState(
     particleProps: ParticleProperties,
     timeline: TimelineModel,
 ): ParticlePropertyState {
     return timeline.property === 'color'
         ? new ColorPropertyState(particleProps.tint, timeline)
-        : new FloatPropertyState(
-              particleProps,
-              timeline,
-              getParticlePropertyUpdater(timeline.property),
-          )
+        : timeline.mode === 'add'
+          ? new AdditiveFloatPropertyState(
+                particleProps,
+                [timeline],
+                getParticlePropertyUpdater(timeline.property),
+            )
+          : new FloatPropertyState(
+                particleProps,
+                timeline,
+                getParticlePropertyUpdater(timeline.property),
+            )
 }
 
 class FloatPropertyState implements ParticlePropertyState {
@@ -263,6 +305,66 @@ class FloatPropertyState implements ParticlePropertyState {
 
     reset(): void {
         this.value.reset()
+    }
+}
+
+/**
+ * State for a property that has one or more `mode: "add"` timelines.
+ *
+ * Mirrors the legacy engine's timeline accumulation (FloatTimelineInstance.apply,
+ * acornui-game.js:2291-2296): the property receives the SET timeline's tracked
+ * value (if any — the last non-empty one wins, matching per-frame assignment
+ * order) plus the SUM of every additive timeline's tracked value at time t. Each
+ * additive timeline tracks its own curve — it contributes the interpolated value
+ * at t, never its integral — and keeps its own per-leaf low/high draw.
+ *
+ * The total is computed here and assigned once through the ordinary (SET)
+ * updater, so nothing accumulates across frames.
+ */
+class AdditiveFloatPropertyState implements ParticlePropertyState {
+    private readonly entries: readonly {
+        readonly value: PropertyValue
+        readonly timeline: TimelineModel
+        readonly isAdd: boolean
+    }[]
+    private readonly updater: ParticlePropertyUpdater
+
+    constructor(
+        private readonly particleProps: ParticleProperties,
+        timelines: readonly TimelineModel[],
+        updater: ParticlePropertyUpdater,
+    ) {
+        // One PropertyValue per timeline of the property, in author order, so
+        // the per-leaf draws happen exactly as they would as individual states.
+        this.entries = timelines.map((timeline) => ({
+            value: new PropertyValue(timeline),
+            timeline,
+            isAdd: timeline.mode === 'add',
+        }))
+        this.updater = updater
+    }
+
+    apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
+        let base: number | null = null
+        let sum = 0
+        for (const entry of this.entries) {
+            // An empty timeline contributes nothing and does not win the SET
+            // base — the legacy engine skipped empty timelines the same way.
+            if (entry.timeline.timeline.length === 0) continue
+            const time = entry.timeline.useEmitterDuration
+                ? emitterAlphaClamped
+                : particleAlphaClamped
+            entry.value.setTime(time)
+            if (entry.isAdd) sum += entry.value.current
+            else base = entry.value.current
+        }
+        this.updater(this.particleProps, (base ?? 0) + sum)
+    }
+
+    reset(): void {
+        for (const entry of this.entries) {
+            entry.value.reset()
+        }
     }
 }
 
