@@ -83,9 +83,9 @@ See [codebase-map.md](./codebase-map.md).
 1. `npm run validate` — build, lint, and tests must pass.
 2. Start the Vite dev server (commands above) and fetch `http://localhost:5173/`
    — expect HTTP 200 and Vite transform of `/src/index.ts` returning HTTP 200.
-3. Last verified: 2026-09-24 — build ✓, lint ✓, Jest 73/73 ✓ (`npm run
-validate`, release-pipeline fix session); dev server verified earlier the
-   same day, not re-run since.
+3. Last verified: 2026-09-26 — build ✓, lint ✓, Jest 73/73 ✓ (`npm run
+validate`, docs/usage-guide pass); dev server verified same day (HTTP 200
+   on `/`, `/src/index.ts` transform, `/fire.json`, `/mesh.json`).
 
 ## Snapshot
 
