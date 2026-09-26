@@ -32,7 +32,12 @@ scene.add(effect)
 effect.update(delta)
 ```
 
-`fire.json` is a serialized `ParticleEffectModel`. The example app in `packages/example` shows a complete scene, also deployed as the [live demo](https://polyforest.github.io/three-particles/).
+`fire.json` is a serialized `ParticleEffectModel`. The example app in `packages/example` shows a complete scene with both render paths and playback controls, also deployed as the [live demo](https://polyforest.github.io/three-particles/).
+
+## Documentation
+
+- **[Usage guide](https://github.com/polyforest/three-particles/blob/main/docs/USAGE.md)** — installation, the effect JSON format (emitters, timelines, zones, eases), textures, materials and render paths, cleanup, and known limitations.
+- **[Live demo](https://polyforest.github.io/three-particles/)** — the example app deployed to GitHub Pages; its [README](https://github.com/polyforest/three-particles/blob/main/packages/example/README.md) documents the playback controls.
 
 ## API overview
 

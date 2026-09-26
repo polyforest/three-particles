@@ -1,13 +1,13 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <title>THREE.js Particles Fire Example</title>
+        <title>THREE.js Particles Example</title>
         <meta charset="utf-8" />
         <meta
             name="viewport"
             content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0"
         />
-        <link rel="icon" type="image/png" href="favicon.svg" />
+        <link rel="icon" type="image/png" href="favicon.png" />
 
         <style>
             body,
@@ -28,11 +28,29 @@
                 background-color: #191919;
                 animation: fadeIn ease 2s;
             }
+
+            #hint {
+                position: fixed;
+                bottom: 12px;
+                left: 50%;
+                transform: translateX(-50%);
+                padding: 6px 14px;
+                border-radius: 6px;
+                background: rgba(0, 0, 0, 0.55);
+                color: #ddd;
+                font:
+                    13px/1.4 system-ui,
+                    sans-serif;
+                pointer-events: none;
+            }
         </style>
     </head>
 
     <body>
         <canvas id="mainCanvas"></canvas>
+        <div id="hint">
+            P pause &middot; R rewind &middot; S stop &middot; X reset
+        </div>
         <script type="module" src="/src/index.ts"></script>
     </body>
 </html>

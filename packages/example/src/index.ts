@@ -17,16 +17,14 @@ import {
 import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 
-console.log('Hello!')
-
 const camera = new PerspectiveCamera()
-camera.position.set(0, 1, 2)
+camera.position.set(0, 1.4, 4.2)
 
-camera.lookAt(new Vector3(0, 0.2, 0))
+camera.lookAt(new Vector3(0, 0.4, 0))
 
 const scene = new Scene()
 scene.background = new Color(0x111111)
-scene.fog = new Fog(0x111111, 1, 10)
+scene.fog = new Fog(0x111111, 1, 12)
 
 const grid = new GridHelper(20, 20, 0x000000, 0xffffff)
 grid.material.opacity = 0.2
@@ -82,17 +80,49 @@ function onResize() {
     camera.updateProjectionMatrix()
 }
 
-// Load the particle effect.
-let particleEffect: ParticleEffect | null = null
+// Load the particle effects. fire.json renders as GPU point sprites (the
+// PointsMaterial path); mesh.json as instanced cubes (the geometry +
+// lit-material path). A ParticleEffect is a THREE.Group, so position it
+// like any other scene object.
+const effects: ParticleEffect[] = []
 const loader = new ParticleEffectLoader()
 
-loader
-    .loadAsync('./fire.json')
-    .then((model) => {
-        particleEffect = new ParticleEffect(model)
-        scene.add(particleEffect)
-    })
-    .catch(console.error)
+async function loadEffect(url: string, x: number): Promise<void> {
+    const model = await loader.loadAsync(url)
+    const effect = new ParticleEffect(model)
+    effect.position.x = x
+    scene.add(effect)
+    effects.push(effect)
+}
+
+loadEffect('./fire.json', -1.5).catch(console.error)
+loadEffect('./mesh.json', 1.5).catch(console.error)
+
+// Playback controls exercising the ParticleEffect lifecycle API.
+let paused = false
+window.addEventListener('keydown', (event) => {
+    switch (event.key.toLowerCase()) {
+        case 'p':
+            paused = !paused
+            break
+        case 'r':
+            for (const effect of effects) {
+                effect.rewind()
+            }
+            break
+        case 's':
+            // Stop emitting; particles already alive finish their lives.
+            for (const effect of effects) {
+                effect.stop(true)
+            }
+            break
+        case 'x':
+            for (const effect of effects) {
+                effect.reset()
+            }
+            break
+    }
+})
 
 // Timer replaces the r183-deprecated Clock. update() advances its internal
 // state once per frame; getDelta() then reports the frame delta in seconds.
@@ -101,7 +131,11 @@ function render(time: DOMHighResTimeStamp) {
     timer.update(time)
     const dT = Math.min(timer.getDelta(), 0.1)
     controls.update()
-    particleEffect?.update(dT)
+    if (!paused) {
+        for (const effect of effects) {
+            effect.update(dT)
+        }
+    }
     renderer.render(scene, camera)
 }
 
