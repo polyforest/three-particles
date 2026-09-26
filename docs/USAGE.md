@@ -128,14 +128,14 @@ Top level — all fields optional:
 
 A `TimelineModel` drives one property:
 
-| Field | Type | Default | Description |
-| -------------------- | ------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `property` | string | `''` | One of the [property ids](#property-ids), or `color`. |
-| `timeline` | number[] | `[]` | Flat keyframes. Times are normalized 0–1 (clamped at both ends), strictly increasing. |
-| `useEmitterDuration` | boolean | `false` | `true` drives the curve over the emitter's duration; `false` over each particle's own lifespan. `emissionRate` and `particleLifeExpectancy` default to `true`. |
-| `low`, `high` | `RangeModel` | see below | The value band the curve maps onto. `high` defaults to `low` when omitted. |
-| `relative` | boolean | `false` | `true` treats `high` as an offset from `low` instead of an absolute value. |
-| `mode` | `'set'` \\ | `'add'` | `'set'` | `'add'` layers this timeline on top of the property's other timelines instead of replacing them. Only the velocity and heading-rate ids accept `'add'`. |
+| Field                | Type               | Default   | Description                                                                                                                                                    |
+| -------------------- | ------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `property`           | string             | `''`      | One of the [property ids](#property-ids), or `color`.                                                                                                          |
+| `timeline`           | number[]           | `[]`      | Flat keyframes. Times are normalized 0–1 (clamped at both ends), strictly increasing.                                                                          |
+| `useEmitterDuration` | boolean            | `false`   | `true` drives the curve over the emitter's duration; `false` over each particle's own lifespan. `emissionRate` and `particleLifeExpectancy` default to `true`. |
+| `low`, `high`        | `RangeModel`       | see below | The value band the curve maps onto. `high` defaults to `low` when omitted.                                                                                     |
+| `relative`           | boolean            | `false`   | `true` treats `high` as an offset from `low` instead of an absolute value.                                                                                     |
+| `mode`               | `'set'` \| `'add'` | `'set'`   | `'add'` layers this timeline on top of the property's other timelines instead of replacing them. Only the velocity and heading-rate ids accept `'add'`.        |
 
 Float properties use stride-2 keyframes — `[time, value, time, value, …]`. The resolved value each frame is:
 
