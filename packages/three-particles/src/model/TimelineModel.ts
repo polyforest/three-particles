@@ -27,6 +27,17 @@ export interface TimelineModel {
     relative: boolean
 
     /**
+     * How the timeline's tracked value reaches the property each frame:
+     * - `'set'` (default): the property receives this timeline's tracked value.
+     * - `'add'`: the property receives the SET timeline's value (if any) plus the
+     *   SUM of every additive timeline's tracked value at time t. Each additive
+     *   timeline tracks its own curve — it contributes the interpolated value at
+     *   t, never its integral. Only valid for the velocity and heading-rate
+     *   properties (`additiveCapableProperties`).
+     */
+    mode: TimelineMode
+
+    /**
      * When the values are initialized / reset for a new particle, this will be the low range.
      */
     low: RangeModel
@@ -38,6 +49,25 @@ export interface TimelineModel {
 }
 
 /**
+ * How a timeline's value reaches its property — see `TimelineModel.mode`.
+ */
+export type TimelineMode = 'add' | 'set'
+
+/**
+ * The timeline properties that accept `mode: "add"`: velocity and heading-rate
+ * channels, the properties the legacy engine summed across timeline instances.
+ * Kept in sync with `particlePropertyUpdaters` by test.
+ */
+export const additiveCapableProperties: readonly string[] = [
+    'xVel',
+    'yVel',
+    'zVel',
+    'orientationXVel',
+    'orientationYVel',
+    'orientationZVel',
+]
+
+/**
  * Default PropertyTimelineModel values.
  */
 export const timelineDefaults = {
@@ -45,6 +75,7 @@ export const timelineDefaults = {
     timeline: [],
     useEmitterDuration: false,
     relative: false,
+    mode: 'set',
     low: {
         min: 0,
         max: 0,
@@ -96,6 +127,25 @@ function validateTimelineEntries(
 }
 
 /**
+ * `mode` must be a known mode, and additive mode is only expressible for the
+ * velocity and heading-rate properties. Rejecting anything else at parse keeps
+ * an unsupported `mode: "add"` from silently acting as a SET — the flattened-curl
+ * failure mode with no error.
+ */
+function validateTimelineMode(property: string, mode: string): void {
+    if (mode !== 'add' && mode !== 'set') {
+        throw new Error(
+            `Invalid timeline for property '${property}': unknown mode '${mode}', expected 'add' or 'set'.`,
+        )
+    }
+    if (mode === 'add' && !additiveCapableProperties.includes(property)) {
+        throw new Error(
+            `Invalid timeline for property '${property}': mode 'add' is only supported for the velocity and heading-rate properties (${additiveCapableProperties.join(', ')}).`,
+        )
+    }
+}
+
+/**
  * Returns a new TimelineModel with defaults applied.
  */
 export function parseTimeline(
@@ -106,6 +156,8 @@ export function parseTimeline(
         timeline.high ?? timeline.low ?? cloneDeep(timelineDefaults.high),
     )
     const property = timeline.property ?? ''
+    const mode = timeline.mode ?? timelineDefaults.mode
+    validateTimelineMode(property, mode)
     const entries = timeline.timeline ?? []
     validateTimelineEntries(property, entries)
     return {
@@ -114,6 +166,7 @@ export function parseTimeline(
         useEmitterDuration:
             timeline.useEmitterDuration ?? timelineDefaults.useEmitterDuration,
         relative: timeline.relative ?? timelineDefaults.relative,
+        mode,
         low,
         high,
     }

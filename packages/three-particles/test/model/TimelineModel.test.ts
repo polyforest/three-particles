@@ -1,5 +1,6 @@
-import { parseTimeline } from '../../src'
+import { parseTimeline, additiveCapableProperties } from '../../src'
 import { timelineDefaults } from '../../src/model/TimelineModel'
+import { particlePropertyUpdaters } from '../../src/state/ParticleState'
 
 describe('TimelineModel', () => {
     describe('parseTimeline', () => {
@@ -94,5 +95,83 @@ describe('timeline shape validation (TP-6)', () => {
         expect(() =>
             parseTimeline({ property: 'color', timeline: [0, 1, 0, 0, 1, 0] }),
         ).toThrow(/multiple of 4/)
+    })
+})
+
+describe('timeline mode (additive timelines)', () => {
+    it('defaults mode to set when omitted', () => {
+        expect(parseTimeline({ property: 'xVel' }).mode).toBe('set')
+        expect(parseTimeline({ property: 'xVel', mode: 'set' }).mode).toBe(
+            'set',
+        )
+    })
+
+    it('parses mode add for every additive-capable property', () => {
+        for (const property of additiveCapableProperties) {
+            const parsed = parseTimeline({
+                property,
+                mode: 'add',
+                timeline: [0, 0, 1, 1],
+            })
+            expect(parsed.mode).toBe('add')
+        }
+    })
+
+    it('throws on an unknown mode value', () => {
+        expect(() =>
+            parseTimeline({
+                property: 'xVel',
+                mode: 'sum' as never,
+                timeline: [0, 0, 1, 1],
+            }),
+        ).toThrow(/property 'xVel'/)
+        expect(() =>
+            parseTimeline({
+                property: 'xVel',
+                mode: 'sum' as never,
+                timeline: [0, 0, 1, 1],
+            }),
+        ).toThrow(/unknown mode 'sum'/)
+    })
+
+    it('throws when mode add targets a property outside the additive-capable set', () => {
+        // Known-but-unsupported properties must fail at parse: an add mode that
+        // silently acted as a SET would flatten layered motion without error.
+        for (const property of [
+            'x',
+            'scale',
+            'forwardVel',
+            'rotationZVel',
+            'color',
+            'totallyUnknownProperty',
+        ]) {
+            expect(() =>
+                parseTimeline({
+                    property,
+                    mode: 'add',
+                    timeline: [0, 0, 1, 1],
+                }),
+            ).toThrow(/mode 'add' is only supported/)
+            expect(() =>
+                parseTimeline({
+                    property,
+                    mode: 'add',
+                    timeline: [0, 0, 1, 1],
+                }),
+            ).toThrow(new RegExp(`property '${property}'`))
+        }
+    })
+
+    it('keeps every additive-capable property inside the updater registry', () => {
+        // The model layer's additive list and the state layer's updater registry
+        // are separate constants; this pins their sync.
+        for (const property of additiveCapableProperties) {
+            expect(
+                Object.prototype.hasOwnProperty.call(
+                    particlePropertyUpdaters,
+                    property,
+                ),
+            ).toBe(true)
+        }
     })
 })

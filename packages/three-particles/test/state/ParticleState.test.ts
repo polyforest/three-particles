@@ -1,3 +1,9 @@
+// Seeds Math.random before any other import: Zone.ts destructures `random`
+// from `Math` at module-load time, so the seed must be in place first.
+import '../helpers/lcgRandom'
+import { seedRandom } from '../helpers/lcgRandom'
+import * as fs from 'node:fs'
+import * as path from 'node:path'
 import { Euler, Vector3 } from 'three'
 import {
     parseEmitter,
@@ -16,6 +22,10 @@ function emitterWithTimelines(
         property: string
         timeline: number[]
         useEmitterDuration?: boolean
+        mode?: 'add' | 'set'
+        relative?: boolean
+        low?: { min: number; max: number }
+        high?: { min: number; max: number }
     }[],
     rotateToOrientation = false,
 ) {
@@ -53,6 +63,10 @@ function emitterWithTimelines(
             property: t.property,
             timeline: t.timeline,
             useEmitterDuration: !!t.useEmitterDuration,
+            ...(t.mode !== undefined && { mode: t.mode }),
+            ...(t.relative !== undefined && { relative: t.relative }),
+            ...(t.low && { low: { ...t.low, ease: 'linear' as const } }),
+            ...(t.high && { high: { ...t.high, ease: 'linear' as const } }),
         })),
         material: null,
         geometry: null,
@@ -260,4 +274,424 @@ describe('getParticlePropertyUpdater', () => {
         expect(props.position.x).toBe(0)
         spy.mockRestore()
     })
+})
+
+describe('additive timelines (mode: "add")', () => {
+    it('sums two additive timelines on one property', () => {
+        const emitter = emitterWithTimelines([
+            // tracked = curve(alpha) * (high - low) + low
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 1],
+                low: { min: 0, max: 0 },
+                high: { min: 1, max: 1 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 2],
+                low: { min: 0, max: 0 },
+                high: { min: 2, max: 2 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        // tracked A = 0 + 0.5 * 1 = 0.5, tracked B = 0 + 0.5 * 2 = 2 -> sum 2.5
+        expect(p.velocity.x).toBeCloseTo(2.5)
+    })
+
+    it('adds additive contributions on top of a SET timeline on the same property', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                timeline: [0, 0, 1, 1], // SET: tracked 5 at alpha 0.5
+                low: { min: 0, max: 0 },
+                high: { min: 10, max: 10 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 1],
+                low: { min: 0, max: 0 },
+                high: { min: 1.5, max: 1.5 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        expect(p.velocity.x).toBeCloseTo(5 + 0.75)
+
+        // JSON order must not matter: the SET value plus the additive sum.
+        const reversed = new ParticleState(
+            emitterWithTimelines([
+                {
+                    property: 'xVel',
+                    mode: 'add',
+                    timeline: [0, 0, 1, 1],
+                    low: { min: 0, max: 0 },
+                    high: { min: 1.5, max: 1.5 },
+                },
+                {
+                    property: 'xVel',
+                    timeline: [0, 0, 1, 1],
+                    low: { min: 0, max: 0 },
+                    high: { min: 10, max: 10 },
+                },
+            ]),
+        )
+        reversed.reset()
+        reversed.lifeExpectancy = 1
+        reversed.update(0.5, 0)
+        expect(reversed.velocity.x).toBeCloseTo(5 + 0.75)
+    })
+
+    it('uses the last non-empty SET timeline as the base when several exist', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                timeline: [0, 1, 1, 1], // constant 5 (high falls back to low)
+                low: { min: 5, max: 5 },
+            },
+            {
+                property: 'xVel',
+                timeline: [0, 1, 1, 1], // constant 7
+                low: { min: 7, max: 7 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 1, 1, 1], // constant 2
+                low: { min: 2, max: 2 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        expect(p.velocity.x).toBeCloseTo(7 + 2)
+    })
+
+    it('tracks additive curves per frame instead of accumulating them (no integral)', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 1, 1, 1], // constant tracked value 1
+                low: { min: 1, max: 1 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 1, 1, 1], // constant tracked value 2
+                low: { min: 2, max: 2 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        for (let i = 0; i < 10; i++) {
+            p.update(0.1, 0)
+            // The property must stay at the summed tracked value each frame;
+            // an accumulating implementation would grow by 3 every tick.
+            expect(p.velocity.x).toBeCloseTo(3)
+        }
+        // position integrates the (constant) velocity: 10 ticks * 3 u/s * 0.1 s
+        expect(p.position.x).toBeCloseTo(3)
+    })
+
+    it('applies an emitter-clock additive timeline against emitter alpha', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                mode: 'add',
+                useEmitterDuration: true,
+                timeline: [0, 0, 1, 10],
+                low: { min: 0, max: 0 },
+                high: { min: 10, max: 10 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        // Long life so the particle alpha stays ~0 while the emitter alpha varies.
+        p.lifeExpectancy = 100
+        p.reset()
+
+        p.update(0, 0.25)
+        // tracked = low + curve(0.25) * diff = 0 + 2.5 * 10 = 25
+        expect(p.velocity.x).toBeCloseTo(25)
+
+        // Reassigned from the emitter clock every frame, not accumulated.
+        p.update(0, 0.75)
+        expect(p.velocity.x).toBeCloseTo(75)
+    })
+
+    it('sums additive heading-rate timelines into orientationVel and integrates orientation', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'orientationZVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 1],
+                low: { min: 0, max: 0 },
+                high: { min: 1, max: 1 },
+            },
+            {
+                property: 'orientationZVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 2],
+                low: { min: 0, max: 0 },
+                high: { min: 2, max: 2 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        // tracked A = 0 + 0.5 * 1 = 0.5, tracked B = 0 + 0.5 * 2 = 2 -> 2.5 rad/s,
+        // integrated over 0.5 s
+        expect(p.orientationVel.z).toBeCloseTo(2.5)
+        expect(p.orientation.z).toBeCloseTo(1.25)
+    })
+
+    it('honors relative low/high draws per additive timeline', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                mode: 'add',
+                relative: true,
+                timeline: [0, 0, 1, 1],
+                // relative: high draw 1 folds to high = 1 + low = 2, diff = 1
+                low: { min: 1, max: 1 },
+                high: { min: 1, max: 1 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        expect(p.velocity.x).toBeCloseTo(1.5)
+    })
+})
+
+/**
+ * The example app's effect JSONs are the reference fixtures for the format
+ * (docs/USAGE.md). They contain only SET-mode timelines, so parsing them and
+ * integrating one particle per emitter must produce exactly the same numbers
+ * as before the additive-mode change — pinned here as exact goldens.
+ *
+ * Determinism: the seeded LCG (helpers/lcgRandom) fixes spawn-zone draws and
+ * per-leaf low/high draws; integration is then a pure function of the code.
+ */
+describe('fixture effects parse and integrate unchanged', () => {
+    const fixtureDir = path.join(__dirname, '../../../example/resources')
+
+    interface Snapshot {
+        position: number[]
+        velocity: number[]
+        orientation: number[]
+        orientationVel: number[]
+        forwardVel: number
+        tint: number[]
+        rotationFinal: number[]
+    }
+
+    const snapshot = (p: ParticleState): Snapshot => ({
+        position: [p.position.x, p.position.y, p.position.z],
+        velocity: [p.velocity.x, p.velocity.y, p.velocity.z],
+        orientation: [p.orientation.x, p.orientation.y, p.orientation.z],
+        orientationVel: [
+            p.orientationVel.x,
+            p.orientationVel.y,
+            p.orientationVel.z,
+        ],
+        forwardVel: p.forwardVel,
+        tint: [p.tint.r, p.tint.g, p.tint.b, p.tint.a],
+        rotationFinal: [
+            p.rotationFinal.x,
+            p.rotationFinal.y,
+            p.rotationFinal.z,
+        ],
+    })
+
+    // Exact goldens captured from the pre-change integration.
+    const GOLDEN: Record<string, Snapshot[][]> = {
+        'fire.json': [
+            [
+                {
+                    position: [
+                        -0.18455320795188285, 0.01989804292769757,
+                        0.3042648691244241,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.10101673984900117],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -0.23295882007447416, 0.4974510731924394,
+                        0.3042648691244241,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.10101673984900117],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -0.28338133270217297, 0.9949021463848792,
+                        0.3042648691244241,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.10101673984900117],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -0.38422635795757015, 1.9898042927697586,
+                        0.3042648691244241,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.10101673984900117],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+            ],
+        ],
+        'mesh.json': [
+            [
+                {
+                    position: [
+                        0.24548911716209354, 0.013213017093409149,
+                        -0.00027887726078259313,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.8491108915768564],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -0.11484367245137456, 0.3303254273352289,
+                        -0.00027887726078259313,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.8491108915768564],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -0.4901903282987371, 0.6606508546704579,
+                        -0.00027887726078259313,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.8491108915768564],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+                {
+                    position: [
+                        -1.2408836399934648, 1.3213017093409134,
+                        -0.00027887726078259313,
+                    ],
+                    velocity: [0, 0, 0],
+                    orientation: [0, 0, 0.8491108915768564],
+                    orientationVel: [0, 0, 0],
+                    forwardVel: 1,
+                    tint: [
+                        0.9399999976158142, 0.16500000655651093,
+                        0.02800000086426735, 0,
+                    ],
+                    rotationFinal: [0, 0, 0],
+                },
+            ],
+        ],
+    }
+
+    for (const fixture of ['fire.json', 'mesh.json']) {
+        it(`integrates ${fixture} identically to the pre-additive runtime`, () => {
+            // Pin the draw sequence: goldens were captured from seed 42 and
+            // must not depend on how many draws earlier tests consumed.
+            seedRandom(42)
+            const effectJson = JSON.parse(
+                fs.readFileSync(path.join(fixtureDir, fixture), 'utf8'),
+            ) as { emitters: object[] }
+
+            // Missing material/geometry references warn once per emitter —
+            // the fixtures reference ids that resolve outside this test.
+            const warnSpy = jest
+                .spyOn(console, 'warn')
+                .mockImplementation(() => {})
+
+            const results = effectJson.emitters.map((emitterJson) => {
+                const model = parseEmitter({
+                    emitterJson: emitterJson as never,
+                    materials: {},
+                    geometries: {},
+                })
+                // Every fixture timeline must parse as plain SET mode.
+                expect(
+                    model.propertyTimelines.every((t) => t.mode === 'set'),
+                ).toBe(true)
+
+                const p = new ParticleState(model)
+                p.lifeExpectancy = 2
+                p.reset()
+                const snaps: Snapshot[] = []
+                for (let tick = 1; tick <= 100; tick++) {
+                    p.update(1 / 50, 0.3)
+                    if ([1, 25, 50, 100].includes(tick)) snaps.push(snapshot(p))
+                }
+                return snaps
+            })
+
+            warnSpy.mockRestore()
+            expect(results).toEqual(GOLDEN[fixture])
+        })
+    }
 })
