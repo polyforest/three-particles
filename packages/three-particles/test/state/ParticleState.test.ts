@@ -670,7 +670,7 @@ describe('fixture effects parse and integrate unchanged', () => {
 
             const results = effectJson.emitters.map((emitterJson) => {
                 const model = parseEmitter({
-                    emitterJson: emitterJson as never,
+                    emitterJson,
                     materials: {},
                     geometries: {},
                 })
