@@ -159,6 +159,10 @@ export class ParticleState implements ParticleProperties {
         const alphaClamped = clamp(alpha, 0, 1)
 
         for (const prop of this.propertyStates) {
+            // Spawn-only timelines were applied once in reset(); re-applying
+            // them here would re-pin the property every frame and cancel the
+            // velocity integrations that follow.
+            if (prop.spawnOnly) continue
             prop.apply(alphaClamped, emitterAlpha)
         }
 
@@ -198,7 +202,7 @@ export class ParticleState implements ParticleProperties {
         }
     }
 
-    reset(): void {
+    reset(emitterAlpha = 1): void {
         this.active = false
         this.life = 0
         this._lifeExpectancy = 0
@@ -216,7 +220,7 @@ export class ParticleState implements ParticleProperties {
         this.imageIndex = 0
 
         for (const prop of this.propertyStates) {
-            prop.reset()
+            prop.reset(emitterAlpha)
         }
     }
 }
@@ -224,7 +228,19 @@ export class ParticleState implements ParticleProperties {
 export interface ParticlePropertyState {
     apply(particleAlpha: number, emitterAlpha: number): void
 
-    reset(): void
+    /**
+     * Re-samples the state's per-leaf low/high draws. States holding
+     * `applyAtSpawn` timelines also apply them here, exactly once —
+     * `emitterAlpha` is the emitter's progress at spawn (defaults to 1 for
+     * manual resets).
+     */
+    reset(emitterAlpha?: number): void
+
+    /**
+     * True when every timeline in this state is `applyAtSpawn`: `ParticleState`
+     * skips it in the per-frame pass (it was applied once in `reset()`).
+     */
+    readonly spawnOnly?: boolean
 }
 
 /**
@@ -284,6 +300,7 @@ export function createParticlePropertyState(
 class FloatPropertyState implements ParticlePropertyState {
     private readonly value: PropertyValue
     private readonly updater: ParticlePropertyUpdater
+    readonly spawnOnly: boolean
 
     constructor(
         private readonly particleProps: ParticleProperties,
@@ -292,6 +309,7 @@ class FloatPropertyState implements ParticlePropertyState {
     ) {
         this.value = new PropertyValue(timeline)
         this.updater = updater
+        this.spawnOnly = timeline.applyAtSpawn ?? false
     }
 
     apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
@@ -303,8 +321,11 @@ class FloatPropertyState implements ParticlePropertyState {
         this.updater(this.particleProps, this.value.current)
     }
 
-    reset(): void {
+    reset(emitterAlpha = 1): void {
         this.value.reset()
+        // A spawn-only timeline lands its particle-time-0 sample on the
+        // property exactly here, and never again (update skips this state).
+        if (this.spawnOnly) this.apply(0, emitterAlpha)
     }
 }
 
@@ -326,8 +347,17 @@ class AdditiveFloatPropertyState implements ParticlePropertyState {
         readonly value: PropertyValue
         readonly timeline: TimelineModel
         readonly isAdd: boolean
+        readonly spawnOnly: boolean
     }[]
     private readonly updater: ParticlePropertyUpdater
+
+    /**
+     * True when every timeline of the property is spawn-only: the whole state
+     * is skipped by the per-frame pass.
+     */
+    readonly spawnOnly: boolean
+
+    private readonly hasSpawnOnlyEntries: boolean
 
     constructor(
         private readonly particleProps: ParticleProperties,
@@ -340,8 +370,11 @@ class AdditiveFloatPropertyState implements ParticlePropertyState {
             value: new PropertyValue(timeline),
             timeline,
             isAdd: timeline.mode === 'add',
+            spawnOnly: timeline.applyAtSpawn ?? false,
         }))
         this.updater = updater
+        this.spawnOnly = this.entries.every((entry) => entry.spawnOnly)
+        this.hasSpawnOnlyEntries = this.entries.some((entry) => entry.spawnOnly)
     }
 
     apply(particleAlphaClamped: number, emitterAlphaClamped: number): void {
@@ -351,6 +384,14 @@ class AdditiveFloatPropertyState implements ParticlePropertyState {
             // An empty timeline contributes nothing and does not win the SET
             // base — the legacy engine skipped empty timelines the same way.
             if (entry.timeline.timeline.length === 0) continue
+            if (entry.spawnOnly) {
+                // Sampled once at reset: a spawn-only SET keeps its spawn value
+                // as the base so per-frame additive contributions ride on top
+                // of it; a spawn-only ADD landed once at reset and contributes
+                // nothing per-frame.
+                if (!entry.isAdd) base = entry.value.current
+                continue
+            }
             const time = entry.timeline.useEmitterDuration
                 ? emitterAlphaClamped
                 : particleAlphaClamped
@@ -361,16 +402,34 @@ class AdditiveFloatPropertyState implements ParticlePropertyState {
         this.updater(this.particleProps, (base ?? 0) + sum)
     }
 
-    reset(): void {
+    reset(emitterAlpha = 1): void {
         for (const entry of this.entries) {
             entry.value.reset()
         }
+        if (!this.hasSpawnOnlyEntries) return
+        // Land the spawn-only entries on the property once, at particle-time 0
+        // (SET base plus ADD sum). For a wholly spawn-only state this is the
+        // only application, ever; a mixed state's per-frame pass then re-uses
+        // the spawn SET's value as the base.
+        let base: number | null = null
+        let sum = 0
+        for (const entry of this.entries) {
+            if (entry.timeline.timeline.length === 0) continue
+            if (!entry.spawnOnly) continue
+            entry.value.setTime(
+                entry.timeline.useEmitterDuration ? emitterAlpha : 0,
+            )
+            if (entry.isAdd) sum += entry.value.current
+            else base = entry.value.current
+        }
+        this.updater(this.particleProps, (base ?? 0) + sum)
     }
 }
 
 class ColorPropertyState implements ParticlePropertyState {
     private readonly previous = new Float32Array(3)
     private readonly value = new Float32Array(3)
+    readonly spawnOnly: boolean
 
     constructor(
         private readonly color: RgbaColor,
@@ -380,6 +439,7 @@ class ColorPropertyState implements ParticlePropertyState {
             throw new Error(
                 `invalid color timeline, expected stride to be 4, was length ${timeline.timeline.length}`,
             )
+        this.spawnOnly = timeline.applyAtSpawn ?? false
     }
 
     apply(particleAlpha: number, emitterAlpha: number): void {
@@ -397,9 +457,19 @@ class ColorPropertyState implements ParticlePropertyState {
         color.b = this.value[2]
     }
 
-    reset(): void {
+    reset(emitterAlpha = 1): void {
         getTimelineValues(this.timeline.timeline, 3, 0, this.value)
         this.previous.set(this.value)
+        // A spawn-only color timeline lands its spawn sample on the tint
+        // exactly here; the per-frame pass skips this state entirely.
+        if (this.spawnOnly && this.timeline.timeline.length > 0) {
+            const time = this.timeline.useEmitterDuration ? emitterAlpha : 0
+            getTimelineValues(this.timeline.timeline, 3, time, this.value)
+            this.color.r = this.value[0]
+            this.color.g = this.value[1]
+            this.color.b = this.value[2]
+            this.previous.set(this.value)
+        }
     }
 }
 

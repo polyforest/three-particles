@@ -175,3 +175,27 @@ describe('timeline mode (additive timelines)', () => {
         }
     })
 })
+
+describe('applyAtSpawn (spawn-only timelines)', () => {
+    it('defaults to false when omitted', () => {
+        expect(parseTimeline({ property: 'orientationZ' }).applyAtSpawn).toBe(
+            false,
+        )
+        expect(
+            parseTimeline({
+                property: 'orientationZ',
+                applyAtSpawn: false,
+            }).applyAtSpawn,
+        ).toBe(false)
+    })
+
+    it('parses true (and the field rides through the parsed emitter model)', () => {
+        expect(
+            parseTimeline({
+                property: 'orientationZ',
+                applyAtSpawn: true,
+                timeline: [0, 0],
+            }).applyAtSpawn,
+        ).toBe(true)
+    })
+})
