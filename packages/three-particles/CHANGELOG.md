@@ -3,6 +3,16 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.20.0](https://github.com/polyforest/three-particles/compare/three-particles%400.19.0...three-particles%400.20.0) (2026-09-27)
+
+- feat(timelines)!: single-keyframe SET timelines apply once at spawn ([edaf2c4](https://github.com/polyforest/three-particles/commit/edaf2c44cb0d7297890131ec77a8d966ffa97999))
+
+### BREAKING CHANGES
+
+- the applyAtSpawn timeline field is removed. A stray
+  applyAtSpawn key in effect JSON is ignored; give a timeline a single
+  keyframe to set a property's starting value.
+
 # [0.19.0](https://github.com/polyforest/three-particles/compare/three-particles%400.18.0...three-particles%400.19.0) (2026-09-27)
 
 ### Features
