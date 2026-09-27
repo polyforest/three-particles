@@ -11,6 +11,7 @@ The library is ESM-only and expects `three` `>=0.186.1 <0.187.0` as a peer depen
 - Effect JSON reference
 - Textures in practice
 - Materials and rendering paths
+- Custom shaders
 - Cleanup and lifetimes
 - Known limitations
 - The example app
@@ -222,10 +223,72 @@ Practical notes:
 
 The renderer is chosen per emitter from the first material in its `material` id list:
 
+- A `ShaderMaterial` with a `userData.particleShader` block uses the renderer its `render` field names (see [Custom shaders](#custom-shaders)).
 - A `PointsMaterial` renders the emitter as `THREE.Points` — GPU point sprites with per-particle color (including alpha) and Z-axis sprite rotation via a patched shader.
 - Anything else renders as an instanced mesh — per-instance matrices and RGB colors, real geometry and lighting, and stock three.js material behavior (including `alphaMap` and uv transforms).
 
 Materials are plain three.js `MaterialLoader` JSON blobs. `fire.json` shows a textured additive-blended `PointsMaterial`; `mesh.json` shows a lit instanced mesh with a `cube` geometry.
+
+## Custom shaders
+
+A `ShaderMaterial` whose JSON has a `userData.particleShader` block is a particle shader. The library feeds it per-particle data and a few uniforms, so a shader can react to each particle's color, age, and a stable random seed.
+
+```json
+"materials": {
+    "glow": {
+        "type": "ShaderMaterial",
+        "uniforms": {
+            "uHot": { "type": "c", "value": 16765578 },
+            "uNoise": { "type": "t", "value": "noiseTex" }
+        },
+        "fragmentShader": "uniform vec3 uHot;\nuniform sampler2D uNoise;\nvoid main() {\n    float d = length(vUv - 0.5) * 2.0;\n    if (d > 1.0) discard;\n    gl_FragColor = vec4(uHot * vColor.rgb, (1.0 - d) * vColor.a * (1.0 - vAge));\n}\n",
+        "userData": {
+            "particleShader": { "mode": "fragment", "render": "points", "size": 0.35 }
+        }
+    }
+}
+```
+
+`userData.particleShader` fields:
+
+| Field     | Values                 | Default      | Meaning                                                                                                                  |
+| --------- | ---------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `mode`    | `"fragment"`, `"full"` | `"fragment"` | Fragment mode: the library supplies the vertex shader and you write only the fragment shader. Full mode: you write both. |
+| `render`  | `"points"`, `"mesh"`   | `"points"`   | Point sprites, or an instanced mesh using the emitter's `geometry`.                                                      |
+| `size`    | number                 | `1`          | Points only: world-space point size at `scaleX = 1`.                                                                     |
+| `library` | `{ id, revision }`     | none         | Provenance for editors that keep a shader library. Ignored at runtime.                                                   |
+
+Unless the material JSON sets them, particle shaders default to `transparent: true`, additive blending, and `depthWrite: false`. Uniforms use three's `ShaderMaterial` JSON format (`c` color, `v2`/`v3`/`v4` vectors, `t` texture, plain numbers), and a `t` uniform's value is a key into the effect's `textures`. A `ShaderMaterial` without a `particleShader` block keeps the older behavior: rendered as an instanced mesh, with its shaders used as written.
+
+### The contract
+
+| Name                                | Kind      | Type    | Paths        | Fragment mode                      | Full mode       |
+| ----------------------------------- | --------- | ------- | ------------ | ---------------------------------- | --------------- |
+| `particleColor`                     | attribute | `vec4`  | points, mesh | as `vColor`                        | declare it      |
+| `particleAge`                       | attribute | `float` | points, mesh | as `vAge`                          | declare it      |
+| `particleLife`                      | attribute | `float` | points, mesh | as `vLife`                         | declare it      |
+| `particleSeed`                      | attribute | `float` | points, mesh | as `vSeed`                         | declare it      |
+| `particleSize`                      | attribute | `float` | points       | used by the supplied vertex shader | declare it      |
+| `particleRotation`                  | attribute | `float` | points       | rotates `vUv`                      | declare it      |
+| `uTime`                             | uniform   | `float` | points, mesh | declared for you                   | declare it      |
+| `uEmitterAlpha`                     | uniform   | `float` | points, mesh | declared for you                   | declare it      |
+| `uResolution`                       | uniform   | `vec2`  | points, mesh | declared for you                   | declare it      |
+| `vUv`                               | varying   | `vec2`  | points, mesh | declared for you                   | n/a             |
+| `PARTICLE_POINTS` / `PARTICLE_MESH` | define    |         | per path     | defined for you                    | defined for you |
+
+- `particleColor` is the tint and alpha from the color timelines. On meshes this is the only way to get per-particle alpha; standard mesh materials still ignore it.
+- `particleAge` is life / life expectancy (0 at spawn, 1 at death); `particleLife` is seconds since spawn.
+- `particleSeed` is a value in `[0, 1)`, stable for a particle's life and different on each spawn.
+- `uTime` is seconds the emitter has been updated since it was created or reset; `uEmitterAlpha` is the emitter's progress through its duration (0–1); `uResolution` is the drawing buffer size in device pixels.
+- On points, `vUv` is the sprite coordinate rotated by the particle's rotation, matching how `PointsMaterial` sprites rotate. On meshes it is the geometry's `uv`.
+
+In fragment mode, don't redeclare the names the library declares for you (`vUv`, `vColor`, `vAge`, `vLife`, `vSeed`, `uTime`, `uEmitterAlpha`, `uResolution`); declare your own uniforms as usual. Three's usual shader prelude (`#include` chunks, `modelViewMatrix`, `projectionMatrix`, `position`, `uv`) is available in both modes.
+
+In full mode the library only adds the render define: declare the attributes and uniforms you use, and on the mesh path apply `instanceMatrix` yourself (`modelViewMatrix * instanceMatrix * vec4(position, 1.0)`). For points, the supplied fragment-mode vertex shader sets `gl_PointSize = particleSize * (uResolution.y * 0.5) / -mvPosition.z`, like `PointsMaterial` with size attenuation.
+
+`buildParticleShaderSources(settings, { vertexShader, fragmentShader })` returns the exact sources the library compiles, for editors that compile-check shaders; `particleFragmentPrefixLines(settings)` says how many lines precede the authored fragment source, for mapping compile-error line numbers back. `PARTICLE_SHADER_CONTRACT` lists every name above.
+
+The example app's `shader.json` is a fragment-mode points shader.
 
 ## Cleanup and lifetimes
 
@@ -249,4 +312,4 @@ Textures, materials, and geometries created by the loader are fresh instances pe
 
 ## The example app
 
-[`packages/example`](../packages/example) is a Vite app demonstrating the full runtime: a `Points`-path fire and an instanced-mesh emitter side by side, with keyboard playback controls (`P` pause, `R` rewind, `S` stop, `X` reset). See its [README](../packages/example/README.md) for run instructions.
+[`packages/example`](../packages/example) is a Vite app demonstrating the full runtime: a `Points`-path fire, a fragment-mode particle shader, and an instanced-mesh emitter side by side, with keyboard playback controls (`P` pause, `R` rewind, `S` stop, `X` reset). See its [README](../packages/example/README.md) for run instructions.

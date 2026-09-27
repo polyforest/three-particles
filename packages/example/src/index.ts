@@ -97,6 +97,8 @@ async function loadEffect(url: string, x: number): Promise<void> {
 
 loadEffect('./fire.json', -1.5).catch(console.error)
 loadEffect('./mesh.json', 1.5).catch(console.error)
+// shader.json: a fragment-mode particle ShaderMaterial (see docs/USAGE.md).
+loadEffect('./shader.json', 0).catch(console.error)
 
 // Playback controls exercising the ParticleEffect lifecycle API.
 let paused = false

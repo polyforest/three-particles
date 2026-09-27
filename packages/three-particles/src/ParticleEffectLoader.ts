@@ -19,6 +19,7 @@ import { decodeText } from './util'
 import { cloneDeep } from 'lodash'
 import { getDefaultRadial } from './materialDefaults'
 import { ReadonlyDeep } from 'type-fest'
+import { applyParticleShaderDefaults } from './object/particleShader'
 
 /**
  * Loads a JSON file describing a particle effect.
@@ -162,10 +163,13 @@ export class ParticleEffectLoader extends Loader<ParticleEffectModel> {
         const bundledMaterials: Record<string, Material> = {}
         if (json.materials) {
             for (const [key, material] of Object.entries(json.materials)) {
-                bundledMaterials[key] =
-                    typeof material === 'string'
-                        ? await mLoader.loadAsync(material)
-                        : mLoader.parse(material)
+                if (typeof material === 'string') {
+                    bundledMaterials[key] = await mLoader.loadAsync(material)
+                } else {
+                    const parsed = mLoader.parse(material)
+                    applyParticleShaderDefaults(parsed, material)
+                    bundledMaterials[key] = parsed
+                }
             }
         }
 

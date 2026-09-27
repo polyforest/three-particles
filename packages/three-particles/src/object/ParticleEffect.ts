@@ -1,6 +1,7 @@
 import { ParticleEmitterPoints } from './ParticleEmitterPoints'
 import { ParticleEmitterInstancedMesh } from './ParticleEmitterInstancedMesh'
 import { Group, PointsMaterial } from 'three'
+import { firstMaterial, getParticleShaderSettings } from './particleShader'
 import {
     isParticleEmitterObject,
     ParticleEmitterObject,
@@ -44,10 +45,13 @@ export class ParticleEffect extends Group {
         this.clear()
 
         for (const emitter of this.model.emitters) {
-            const mat = Array.isArray(emitter.material)
-                ? emitter.material[0]
-                : emitter.material
-            const usePoints = mat instanceof PointsMaterial
+            const mat = firstMaterial(emitter.material)
+            // Particle shaders pick their renderer explicitly; standard
+            // materials render as points only for PointsMaterial.
+            const shader = getParticleShaderSettings(mat)
+            const usePoints = shader
+                ? shader.render === 'points'
+                : mat instanceof PointsMaterial
             const instance = usePoints
                 ? new ParticleEmitterPoints(emitter)
                 : new ParticleEmitterInstancedMesh(emitter)

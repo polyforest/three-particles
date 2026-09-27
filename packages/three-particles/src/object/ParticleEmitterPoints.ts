@@ -1,7 +1,19 @@
-import { Float32BufferAttribute, Points, PointsMaterial } from 'three'
+import {
+    Float32BufferAttribute,
+    Points,
+    PointsMaterial,
+    ShaderMaterial,
+} from 'three'
 import { ParticleEmitterState } from '../state'
 import { ParticleEmitterObject } from './ParticleEmitterObject'
 import { ParticleEmitterModel } from '../model'
+import {
+    firstMaterial,
+    getParticleShaderSettings,
+    ParticleShaderSettings,
+    prepareParticleShaderMaterial,
+    updateParticleShaderUniforms,
+} from './particleShader'
 
 /**
  * ParticleEmitterPoints is a Points Object3D and renders ParticleEmitterState
@@ -14,6 +26,9 @@ export class ParticleEmitterPoints
 {
     readonly isParticleEmitterObject = true
     private readonly state: ParticleEmitterState
+    /** Set when the material is a particle ShaderMaterial. */
+    private readonly shader: ParticleShaderSettings | null
+    private shaderTime = 0
 
     constructor(model: ParticleEmitterModel) {
         // Registry-resolved geometries are shared by every emitter that
@@ -47,6 +62,35 @@ export class ParticleEmitterPoints
 
         this.configureMaterialForRotation()
 
+        const material = firstMaterial(model.material)
+        this.shader = getParticleShaderSettings(material)
+        if (this.shader) {
+            prepareParticleShaderMaterial(
+                material as ShaderMaterial,
+                this.shader,
+            )
+            // The shader contract's per-particle data (see particleShader.ts).
+            // Standard PointsMaterial emitters don't pay for these buffers.
+            const attr = (itemSize: number) =>
+                new Float32BufferAttribute(
+                    new Float32Array(n * itemSize),
+                    itemSize,
+                )
+            this.geometry.setAttribute('particleColor', attr(4))
+            this.geometry.setAttribute('particleAge', attr(1))
+            this.geometry.setAttribute('particleLife', attr(1))
+            this.geometry.setAttribute('particleSeed', attr(1))
+            this.geometry.setAttribute('particleSize', attr(1))
+            this.geometry.setAttribute('particleRotation', attr(1))
+            this.onBeforeRender = (renderer, _scene, _camera, _geometry, mat) =>
+                updateParticleShaderUniforms(
+                    mat,
+                    renderer,
+                    this.shaderTime,
+                    this.state.alpha,
+                )
+        }
+
         // Particles may spread beyond the geometry's bounding sphere, which this
         // emitter never updates; default culling would hide live particles when
         // the origin sits offscreen. Mirrors ParticleEmitterInstancedMesh.
@@ -61,6 +105,7 @@ export class ParticleEmitterPoints
         this.state.update(dT)
         // Update geometry buffers from state
         if (!this.state.model.enabled) return
+        if (this.shader) this.shaderTime += dT
         const posArr = this.geometry.attributes.position.array as Float32Array
         const colorArr = this.geometry.attributes.color.array as Float32Array
         const rotationArr = this.geometry.attributes.rotation
@@ -85,6 +130,7 @@ export class ParticleEmitterPoints
             // Use the particle's Z Euler rotation to rotate the point sprite.
             // rotationFinal includes orientation when enabled on the emitter.
             rotationArr[i] = particle.rotationFinal.z
+            if (this.shader) this.writeShaderAttributes(i, particle)
             i++
         }
 
@@ -92,6 +138,37 @@ export class ParticleEmitterPoints
         this.geometry.attributes.position.needsUpdate = true
         this.geometry.attributes.color.needsUpdate = true
         this.geometry.attributes.rotation.needsUpdate = true
+        if (this.shader) {
+            const a = this.geometry.attributes
+            a.particleColor.needsUpdate = true
+            a.particleAge.needsUpdate = true
+            a.particleLife.needsUpdate = true
+            a.particleSeed.needsUpdate = true
+            a.particleSize.needsUpdate = true
+            a.particleRotation.needsUpdate = true
+        }
+    }
+
+    private writeShaderAttributes(
+        i: number,
+        particle: ParticleEmitterState['particles'][number],
+    ): void {
+        const a = this.geometry.attributes
+        const color = a.particleColor.array as Float32Array
+        const k = i * 4
+        color[k] = particle.tint.r
+        color[k + 1] = particle.tint.g
+        color[k + 2] = particle.tint.b
+        color[k + 3] = particle.tint.a
+        const expectancy = particle.lifeExpectancy
+        ;(a.particleAge.array as Float32Array)[i] =
+            expectancy > 0 ? Math.min(particle.life / expectancy, 1) : 0
+        ;(a.particleLife.array as Float32Array)[i] = particle.life
+        ;(a.particleSeed.array as Float32Array)[i] = particle.seed
+        ;(a.particleSize.array as Float32Array)[i] =
+            particle.scale.x * this.shader!.size
+        ;(a.particleRotation.array as Float32Array)[i] =
+            particle.rotationFinal.z
     }
 
     /**
@@ -157,5 +234,6 @@ export class ParticleEmitterPoints
 
     reset(): void {
         this.state.reset()
+        this.shaderTime = 0
     }
 }
