@@ -88,6 +88,8 @@ const effect = new ParticleEffect(model)
 | `stop(allowCompletion)` | Stops emission; with `true`, live particles finish their lives before the effect goes quiet.                              |
 | `reset()`               | Immediately resets all emitters and particles to their initial state.                                                     |
 | `clone()`               | Returns a new `ParticleEffect` sharing the same model — cheap way to place a second copy of an effect.                    |
+| `dispose()`             | Releases the emitters' own buffers and the sub-emitter pools. The effect rebuilds them if updated again.                  |
+| `subEmitterSystem`      | The sub-emitter pools (`pools`, keyed by template uuid, with `activeStates`), or `null` when no emitter has sub-emitters. |
 | `model`                 | The `ParticleEffectModel` this effect renders (readonly).                                                                 |
 | `emittersNeedUpdate`    | Set `true` after mutating `model.emitters` (adding or removing emitters); the change is picked up on the next `update()`. |
 
@@ -120,6 +122,8 @@ Top level — all fields optional:
 | `propertyTimelines`      | array        | `[]`            | Per-property animation curves — the heart of an effect.                                                                           |
 | `geometry`               | id or `null` | `null`          | Key into the geometries registry. Only used by the mesh render path.                                                              |
 | `material`               | id or array  | `null`          | Key (or keys) into the materials registry. Exactly one material is used; more than one throws at parse time.                      |
+| `subEmitters`            | array        | `[]`            | Emitters to start at this emitter's particles when a trigger fires. See [Sub-emitters](#sub-emitters-chained-effects).            |
+| `subEmitterMaxInstances` | number       | `32`            | For a sub-emitter template: the most instances that may run at once.                                                              |
 
 ### Ranges
 
@@ -290,9 +294,116 @@ In full mode the library only adds the render define: declare the attributes and
 
 The example app's `shader.json` is a fragment-mode points shader.
 
+## Sub-emitters (chained effects)
+
+An emitter can start other emitters of the same effect at its particles: a firework whose sparks each burst again, or waterfall drops that turn into splash and mist at the bottom. There is no collision; triggers are based on time or position.
+
+```json
+"subEmitters": [
+    {
+        "emitter": "splash",
+        "trigger": { "type": "position", "axis": "y", "op": "<", "value": 0 },
+        "probability": 0.5,
+        "inheritVelocity": 0,
+        "inheritColor": false,
+        "killParticle": true
+    }
+]
+```
+
+| Trigger                                                      | Fires                                                                                                                                                                 |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `{ "type": "birth" }`                                        | When the parent particle spawns.                                                                                                                                      |
+| `{ "type": "death" }`                                        | When the parent reaches the end of its life. A particle removed by `killParticle` does not also fire its death triggers.                                              |
+| `{ "type": "age", "at": 0.5, "unit": "fraction" }`           | Once, when the parent's age reaches `at`: a fraction of its life (default) or, with `"unit": "seconds"`, seconds.                                                     |
+| `{ "type": "position", "axis": "y", "op": "<", "value": 0 }` | Once, when the parent's position on `axis` is past `value`. `"space": "local"` (default) is the effect's local space; `"world"` applies the effect's world transform. |
+
+| Field             | Default | Description                                                                                         |
+| ----------------- | ------- | --------------------------------------------------------------------------------------------------- |
+| `emitter`         | —       | The uuid of the template emitter.                                                                   |
+| `probability`     | `1`     | Chance, 0–1, that a firing trigger spawns.                                                          |
+| `inheritVelocity` | `0`     | Fraction, 0–1, of the parent's motion (velocity plus forward motion) added to every child particle. |
+| `inheritColor`    | `false` | Multiply the children's color and alpha by the parent's at trigger time.                            |
+| `killParticle`    | `false` | Age and position triggers only: remove the parent once its triggers have fired this frame.          |
+
+How it runs:
+
+- **Templates.** An emitter referenced by any `subEmitters` entry is a template. It never emits on its own; it runs only as instances started at a parent particle. Each instance plays the template's duration, emission rate and timelines once, on its own clock, even if the template has `loops: true`, and then returns to the pool. A disabled template disables its chain.
+- **Several triggers in one frame.** Every trigger a particle crosses in a frame fires, so one line can spawn both a splash and a mist; `killParticle` removes the particle after they have all fired.
+- **Chains.** Templates can have their own `subEmitters`, up to three levels (root → child → grandchild → great-grandchild). Unknown uuids, self-references, cycles and deeper chains throw at parse time.
+- **Limits.** Each template keeps at most `subEmitterMaxInstances` instances alive; spawns past that are dropped (running instances always finish). Across the effect, live instances may reserve at most `MAX_SUB_EMITTER_PARTICLES` (20,000) particles, counting each instance at its template's `count`.
+- **Rendering.** All instances of a template render through one `Points` or `InstancedMesh` with capacity `count × subEmitterMaxInstances`, so a chain costs one draw call per template regardless of how many instances are live. Custom particle shaders work on template emitters too; `uEmitterAlpha` there is the newest instance's emission progress.
+- **Determinism.** Only a `probability` below 1 draws a random number, and effects without `subEmitters` run exactly as before.
+
+A firework in three stages (abridged; `firework-chain.json` in the example app is complete):
+
+```json
+{
+    "emitters": [
+        {
+            "uuid": "rocket",
+            "count": 1,
+            "subEmitters": [
+                {
+                    "emitter": "burst",
+                    "trigger": { "type": "death" },
+                    "inheritVelocity": 0.2
+                }
+            ]
+        },
+        {
+            "uuid": "burst",
+            "count": 60,
+            "subEmitterMaxInstances": 4,
+            "subEmitters": [
+                {
+                    "emitter": "crackle",
+                    "trigger": { "type": "death" },
+                    "probability": 0.3
+                }
+            ]
+        },
+        { "uuid": "crackle", "count": 10, "subEmitterMaxInstances": 64 }
+    ]
+}
+```
+
+A waterfall whose drops splash and mist at `y < 0` (`waterfall.json`):
+
+```json
+{
+    "uuid": "drops",
+    "subEmitters": [
+        {
+            "emitter": "splash",
+            "trigger": {
+                "type": "position",
+                "axis": "y",
+                "op": "<",
+                "value": 0
+            },
+            "probability": 0.5,
+            "killParticle": true
+        },
+        {
+            "emitter": "mist",
+            "trigger": {
+                "type": "position",
+                "axis": "y",
+                "op": "<",
+                "value": 0
+            },
+            "probability": 0.15
+        }
+    ]
+}
+```
+
+For a burst, give the template a short `duration` (e.g. 0.15 s) with an `emissionRate` high enough to fill its `count` on the first frame. A random heading per particle comes from one-keyframe `orientationX`/`orientationZ` timelines with a wide `low` range, which are sampled once at spawn, pushed along by `forwardVel`.
+
 ## Cleanup and lifetimes
 
-The library performs no GPU-resource disposal — no `dispose()` calls anywhere in the render path — because it cannot know which resources are shared between effects. When you discard an effect permanently, dispose what you know you own:
+`ParticleEffect.dispose()` releases only what each effect owns: its emitters' own buffers and its sub-emitter pools. The library does not dispose textures, materials or shared geometries, because it cannot know which are shared between effects. When you discard an effect permanently, dispose what you know you own:
 
 ```ts
 for (const texture of Object.values(model.textures)) texture.dispose()
@@ -312,4 +423,4 @@ Textures, materials, and geometries created by the loader are fresh instances pe
 
 ## The example app
 
-[`packages/example`](../packages/example) is a Vite app demonstrating the full runtime: a `Points`-path fire, a fragment-mode particle shader, and an instanced-mesh emitter side by side, with keyboard playback controls (`P` pause, `R` rewind, `S` stop, `X` reset). See its [README](../packages/example/README.md) for run instructions.
+[`packages/example`](../packages/example) is a Vite app demonstrating the full runtime: a `Points`-path fire, a fragment-mode particle shader, an instanced-mesh emitter, and two sub-emitter effects (a chained firework and a waterfall that splashes) side by side, with keyboard playback controls (`P` pause, `R` rewind, `S` stop, `X` reset). See its [README](../packages/example/README.md) for run instructions.
