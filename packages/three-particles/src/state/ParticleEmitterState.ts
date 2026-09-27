@@ -1,8 +1,34 @@
-import { ParticleState } from './ParticleState'
-import { ParticleEmitterModel, valueFromRange } from '../model'
+import { RgbaColor, ParticleState } from './ParticleState'
+import { ParticleEmitterModel, SubEmitterModel, valueFromRange } from '../model'
 import { PropertyValue } from './PropertyValue'
 import { arrayOf } from '../util'
 import { clamp } from 'lodash'
+import { Vector3 } from 'three'
+
+/**
+ * Receives sub-emitter triggers from an emitter state. Implemented by the
+ * effect's sub-emitter system (see object/SubEmitterSystem.ts).
+ */
+export interface SubEmitterSink {
+    /** Starts `sub`'s template at `particle`, emitted by `source`. */
+    spawn(
+        sub: SubEmitterModel,
+        particle: ParticleState,
+        source: ParticleEmitterState,
+    ): void
+    /** Converts an effect-local position to world space, in place. */
+    localToWorld(position: Vector3): Vector3
+}
+
+export interface ParticleEmitterStateOptions {
+    /**
+     * Run a single cycle even if the model loops. Sub-emitter instances use
+     * this: an instance plays its template's duration once, then completes.
+     */
+    once?: boolean
+}
+
+const tmpPosition = new Vector3()
 
 export class ParticleEmitterState {
     readonly particles: readonly ParticleState[]
@@ -22,6 +48,34 @@ export class ParticleEmitterState {
 
     private readonly emissionRateValue: PropertyValue
     private readonly particleLifeExpectancyValue: PropertyValue
+    private readonly once: boolean
+
+    /**
+     * Where this state's particles sit in the effect's local space. Zero for
+     * root emitters; a sub-emitter instance's spawn point otherwise.
+     */
+    readonly offset = new Vector3()
+
+    /**
+     * Color multiplier for rendering this state's particles (a sub-emitter
+     * instance inheriting its parent's color), or null for none.
+     */
+    tintMultiplier: RgbaColor | null = null
+
+    /** Velocity given to every particle this state spawns (inherited). */
+    readonly spawnVelocity = new Vector3()
+
+    /** Where sub-emitter triggers go; set by ParticleEffect. */
+    subEmitterSink: SubEmitterSink | null = null
+
+    // Age/position triggers checked each frame, with their index in
+    // model.subEmitters (the particle's fired-bit).
+    private readonly frameTriggers: readonly {
+        sub: SubEmitterModel
+        bit: number
+    }[]
+    private readonly birthTriggers: readonly SubEmitterModel[]
+    private readonly deathTriggers: readonly SubEmitterModel[]
 
     get activeCount(): number {
         return this._activeCount
@@ -54,13 +108,69 @@ export class ParticleEmitterState {
         return this._isComplete
     }
 
-    constructor(readonly model: ParticleEmitterModel) {
+    constructor(
+        readonly model: ParticleEmitterModel,
+        options: ParticleEmitterStateOptions = {},
+    ) {
+        this.once = options.once ?? false
         this.particles = arrayOf(model.count, () => new ParticleState(model))
         this.emissionRateValue = new PropertyValue(model.emissionRate)
         this.particleLifeExpectancyValue = new PropertyValue(
             model.particleLifeExpectancy,
         )
+        const subs = model.subEmitters
+        this.birthTriggers = subs.filter((s) => s.trigger.type === 'birth')
+        this.deathTriggers = subs.filter((s) => s.trigger.type === 'death')
+        this.frameTriggers = subs
+            .map((sub, i) => ({ sub, bit: 1 << i }))
+            .filter(
+                ({ sub }) =>
+                    sub.trigger.type === 'age' ||
+                    sub.trigger.type === 'position',
+            )
         this.rewind()
+    }
+
+    private get hasSubEmitters(): boolean {
+        return this.subEmitterSink !== null
+    }
+
+    private fire(sub: SubEmitterModel, particle: ParticleState): void {
+        // Only a probability below 1 draws a random number, so effects
+        // that always fire keep the same random sequence.
+        if (sub.probability < 1 && Math.random() >= sub.probability) return
+        this.subEmitterSink!.spawn(sub, particle, this)
+    }
+
+    /**
+     * Checks age/position triggers for an active particle after its update.
+     * Returns true if a firing trigger killed the particle.
+     */
+    private checkFrameTriggers(particle: ParticleState): boolean {
+        for (const { sub, bit } of this.frameTriggers) {
+            if (particle.subEmitterFired & bit) continue
+            const t = sub.trigger
+            let hit = false
+            if (t.type === 'age') {
+                const age =
+                    t.unit === 'seconds'
+                        ? particle.life
+                        : particle.lifeExpectancy > 0
+                          ? particle.life / particle.lifeExpectancy
+                          : 0
+                hit = age >= t.at
+            } else if (t.type === 'position') {
+                const p = tmpPosition.copy(particle.position).add(this.offset)
+                if (t.space === 'world') this.subEmitterSink!.localToWorld(p)
+                const v = p[t.axis]
+                hit = t.op === '<' ? v < t.value : v > t.value
+            }
+            if (!hit) continue
+            particle.subEmitterFired |= bit
+            this.fire(sub, particle)
+            if (sub.killParticle) return true
+        }
+        return false
     }
 
     update(dT: number): void {
@@ -103,8 +213,13 @@ export class ParticleEmitterState {
                         particle.active = true
                         particle.lifeExpectancy =
                             this.particleLifeExpectancyValue.current
+                        particle.inheritedVelocity.copy(this.spawnVelocity)
                         this._activeCount++
                         this.accumulator--
+                        if (this.hasSubEmitters) {
+                            for (const sub of this.birthTriggers)
+                                this.fire(sub, particle)
+                        }
                     }
                     if (this._activeCount >= this.model.count)
                         this.accumulator = 0
@@ -113,10 +228,22 @@ export class ParticleEmitterState {
             }
         }
 
+        const triggers = this.hasSubEmitters
         for (const particle of this.particles) {
             if (particle.active) {
                 particle.update(dT, alphaClamped)
                 if (particle.life > particle.lifeExpectancy) {
+                    if (triggers) {
+                        for (const sub of this.deathTriggers)
+                            this.fire(sub, particle)
+                    }
+                    particle.active = false
+                    this._activeCount--
+                } else if (
+                    triggers &&
+                    this.frameTriggers.length > 0 &&
+                    this.checkFrameTriggers(particle)
+                ) {
                     particle.active = false
                     this._activeCount--
                 }
@@ -159,7 +286,7 @@ export class ParticleEmitterState {
     rewind(): void {
         const e = this.model
         this._isComplete = false
-        this.loops = e.loops
+        this.loops = e.loops && !this.once
         this.delayBefore = valueFromRange(e.duration.delayBefore)
         this.delayAfter = valueFromRange(e.duration.delayAfter)
         this.time = -this.delayBefore
