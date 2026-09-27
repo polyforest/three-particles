@@ -1,4 +1,9 @@
-import { parseTimeline, additiveCapableProperties } from '../../src'
+import {
+    additiveCapableProperties,
+    isSpawnTimeline,
+    parseTimeline,
+    type TimelineModelJson,
+} from '../../src'
 import { timelineDefaults } from '../../src/model/TimelineModel'
 import { particlePropertyUpdaters } from '../../src/state/ParticleState'
 
@@ -176,26 +181,59 @@ describe('timeline mode (additive timelines)', () => {
     })
 })
 
-describe('applyAtSpawn (spawn-only timelines)', () => {
-    it('defaults to false when omitted', () => {
-        expect(parseTimeline({ property: 'orientationZ' }).applyAtSpawn).toBe(
-            false,
-        )
+describe('isSpawnTimeline (single-keyframe SET timelines)', () => {
+    it('is true for a SET timeline with exactly one keyframe', () => {
         expect(
-            parseTimeline({
-                property: 'orientationZ',
-                applyAtSpawn: false,
-            }).applyAtSpawn,
+            isSpawnTimeline(
+                parseTimeline({ property: 'orientationZ', timeline: [0, 0] }),
+            ),
+        ).toBe(true)
+        expect(
+            isSpawnTimeline(
+                parseTimeline({ property: 'color', timeline: [0, 1, 0.5, 0] }),
+            ),
+        ).toBe(true)
+    })
+
+    it('is false for empty, multi-keyframe and ADD timelines', () => {
+        expect(
+            isSpawnTimeline(parseTimeline({ property: 'orientationZ' })),
+        ).toBe(false)
+        expect(
+            isSpawnTimeline(
+                parseTimeline({
+                    property: 'orientationZ',
+                    timeline: [0, 0, 1, 1],
+                }),
+            ),
+        ).toBe(false)
+        expect(
+            isSpawnTimeline(
+                parseTimeline({
+                    property: 'color',
+                    timeline: [0, 1, 1, 1, 1, 0, 0, 0],
+                }),
+            ),
+        ).toBe(false)
+        expect(
+            isSpawnTimeline(
+                parseTimeline({
+                    property: 'xVel',
+                    mode: 'add',
+                    timeline: [0, 1],
+                }),
+            ),
         ).toBe(false)
     })
 
-    it('parses true (and the field rides through the parsed emitter model)', () => {
-        expect(
-            parseTimeline({
-                property: 'orientationZ',
-                applyAtSpawn: true,
-                timeline: [0, 0],
-            }).applyAtSpawn,
-        ).toBe(true)
+    it('ignores a stray applyAtSpawn key from older effect JSON', () => {
+        const legacy = {
+            property: 'orientationZ',
+            applyAtSpawn: false,
+            timeline: [0, 0],
+        } as unknown as TimelineModelJson
+        const parsed = parseTimeline(legacy)
+        expect(parsed).not.toHaveProperty('applyAtSpawn')
+        expect(isSpawnTimeline(parsed)).toBe(true)
     })
 })

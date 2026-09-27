@@ -85,8 +85,8 @@ export class ParticleEmitterState {
                 let timeOffset = 0
                 for (const particle of this.particles) {
                     if (!particle.active) {
-                        // Spawn-time emitter alpha: applyAtSpawn timelines
-                        // sample once, here.
+                        // Spawn-time emitter alpha: single-keyframe SET
+                        // timelines (isSpawnTimeline) sample once, here.
                         particle.reset(alphaClamped)
                         particle.life += timeOffset
                         timeOffset -= accumRateInv
