@@ -144,9 +144,12 @@ export class ParticleEmitterState {
 
     /**
      * Checks age/position triggers for an active particle after its update.
-     * Returns true if a firing trigger killed the particle.
+     * Every trigger that fires this frame spawns (e.g. both a splash and a
+     * mist at the same line); the particle is then removed if any of them
+     * has killParticle. Returns true if it was removed.
      */
     private checkFrameTriggers(particle: ParticleState): boolean {
+        let kill = false
         for (const { sub, bit } of this.frameTriggers) {
             if (particle.subEmitterFired & bit) continue
             const t = sub.trigger
@@ -168,9 +171,9 @@ export class ParticleEmitterState {
             if (!hit) continue
             particle.subEmitterFired |= bit
             this.fire(sub, particle)
-            if (sub.killParticle) return true
+            if (sub.killParticle) kill = true
         }
-        return false
+        return kill
     }
 
     update(dT: number): void {
