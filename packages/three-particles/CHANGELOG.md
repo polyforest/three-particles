@@ -3,6 +3,18 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.22.0](https://github.com/polyforest/three-particles/compare/three-particles%400.21.0...three-particles%400.22.0) (2026-09-27)
+
+### Bug Fixes
+
+- **sub-emitters:** fire every trigger crossed in a frame before a kill ([1a24abf](https://github.com/polyforest/three-particles/commit/1a24abfee8ae56c7308b7fea43d6859e754a0da6))
+
+### Features
+
+- **example:** chained firework and splashing waterfall effects ([431fa64](https://github.com/polyforest/three-particles/commit/431fa64870213a65c8c8c84f75255c3efacbee59))
+- **model:** sub-emitter entries on emitters, validated as a graph ([ee7f378](https://github.com/polyforest/three-particles/commit/ee7f3786424b8452973d603295c7126738d07a43))
+- **sub-emitters:** chain effects by starting emitters at particles ([c79807b](https://github.com/polyforest/three-particles/commit/c79807b5856dd4aa2810536c7cc89556bbac86b8))
+
 # [0.21.0](https://github.com/polyforest/three-particles/compare/three-particles%400.20.0...three-particles%400.21.0) (2026-09-27)
 
 ### Features
