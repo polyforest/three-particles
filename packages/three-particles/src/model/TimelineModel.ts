@@ -38,6 +38,15 @@ export interface TimelineModel {
     mode: TimelineMode
 
     /**
+     * If true, this timeline is sampled exactly once, when the particle spawns
+     * (in `ParticleState.reset()`), instead of every frame: the property starts
+     * from this timeline's value at particle-time 0 and then evolves freely —
+     * e.g. a spawn heading that keeps integrating under `orientationVel` curl.
+     * Default: `false` (applied every frame, as before).
+     */
+    applyAtSpawn?: boolean
+
+    /**
      * When the values are initialized / reset for a new particle, this will be the low range.
      */
     low: RangeModel
@@ -76,6 +85,7 @@ export const timelineDefaults = {
     useEmitterDuration: false,
     relative: false,
     mode: 'set',
+    applyAtSpawn: false,
     low: {
         min: 0,
         max: 0,
@@ -167,6 +177,7 @@ export function parseTimeline(
             timeline.useEmitterDuration ?? timelineDefaults.useEmitterDuration,
         relative: timeline.relative ?? timelineDefaults.relative,
         mode,
+        applyAtSpawn: timeline.applyAtSpawn ?? timelineDefaults.applyAtSpawn,
         low,
         high,
     }

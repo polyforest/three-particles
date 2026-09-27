@@ -72,6 +72,7 @@ export class ParticleEmitterState {
         }
 
         const emitterAlpha = this.time * this.durationInv
+        const alphaClamped = clamp(emitterAlpha, 0, 1)
         this.emissionRateValue.setTime(emitterAlpha)
         this.particleLifeExpectancyValue.setTime(emitterAlpha)
 
@@ -84,7 +85,9 @@ export class ParticleEmitterState {
                 let timeOffset = 0
                 for (const particle of this.particles) {
                     if (!particle.active) {
-                        particle.reset()
+                        // Spawn-time emitter alpha: applyAtSpawn timelines
+                        // sample once, here.
+                        particle.reset(alphaClamped)
                         particle.life += timeOffset
                         timeOffset -= accumRateInv
                         particle.active = true
@@ -100,7 +103,6 @@ export class ParticleEmitterState {
             }
         }
 
-        const alphaClamped = clamp(emitterAlpha, 0, 1)
         for (const particle of this.particles) {
             if (particle.active) {
                 particle.update(dT, alphaClamped)

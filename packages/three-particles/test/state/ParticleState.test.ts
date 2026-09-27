@@ -16,6 +16,7 @@ import {
     RgbaColor,
     type ParticleProperties,
 } from '../../src/state/ParticleState'
+import { ParticleEmitterState } from '../../src/state/ParticleEmitterState'
 
 function emitterWithTimelines(
     timelines: {
@@ -24,10 +25,12 @@ function emitterWithTimelines(
         useEmitterDuration?: boolean
         mode?: 'add' | 'set'
         relative?: boolean
+        applyAtSpawn?: boolean
         low?: { min: number; max: number }
         high?: { min: number; max: number }
     }[],
     rotateToOrientation = false,
+    emissionRate = 1,
 ) {
     const json: Partial<ParticleEmitterModelJson> = {
         uuid: 'test',
@@ -39,8 +42,8 @@ function emitterWithTimelines(
         emissionRate: {
             property: 'emissionRate',
             useEmitterDuration: true,
-            low: { min: 1, max: 1, ease: 'linear' },
-            high: { min: 1, max: 1, ease: 'linear' },
+            low: { min: emissionRate, max: emissionRate, ease: 'linear' },
+            high: { min: emissionRate, max: emissionRate, ease: 'linear' },
         },
         particleLifeExpectancy: {
             property: 'particleLifeExpectancy',
@@ -65,6 +68,9 @@ function emitterWithTimelines(
             useEmitterDuration: !!t.useEmitterDuration,
             ...(t.mode !== undefined && { mode: t.mode }),
             ...(t.relative !== undefined && { relative: t.relative }),
+            ...(t.applyAtSpawn !== undefined && {
+                applyAtSpawn: t.applyAtSpawn,
+            }),
             ...(t.low && { low: { ...t.low, ease: 'linear' as const } }),
             ...(t.high && { high: { ...t.high, ease: 'linear' as const } }),
         })),
@@ -478,6 +484,222 @@ describe('additive timelines (mode: "add")', () => {
 
         p.update(0.5, 0)
         expect(p.velocity.x).toBeCloseTo(1.5)
+    })
+})
+
+describe('spawn-only timelines (applyAtSpawn)', () => {
+    it('applies exactly once at reset and never re-samples during update', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'orientationZ',
+                applyAtSpawn: true,
+                // tracked = curve(alpha) * 8 + 2: 2 at spawn, 6 at alpha 0.5.
+                // A per-frame re-application would move the property off the
+                // spawn sample as alpha advances; spawn-only must not.
+                timeline: [0, 0, 1, 1],
+                low: { min: 2, max: 2 },
+                high: { min: 10, max: 10 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // The spawn sample (curve(0) = 0 -> low = 2) lands at reset, before
+        // any update.
+        expect(p.orientation.z).toBeCloseTo(2)
+
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(2)
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(2)
+    })
+
+    it('lets the heading integrate under orientationVel after the spawn init', () => {
+        const emitter = emitterWithTimelines([
+            {
+                // Legacy theta0: heading starts at pi/2 ...
+                property: 'orientationZ',
+                applyAtSpawn: true,
+                timeline: [0, 0],
+                low: { min: Math.PI / 2, max: Math.PI / 2 },
+                high: { min: Math.PI / 2, max: Math.PI / 2 },
+            },
+            {
+                // ... then curls at a constant 1 rad/s.
+                property: 'orientationZVel',
+                mode: 'add',
+                timeline: [0, 1, 1, 1],
+                low: { min: 1, max: 1 },
+                high: { min: 1, max: 1 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        p.update(0.5, 0)
+        expect(p.orientationVel.z).toBeCloseTo(1)
+        // pi/2 + 1 rad/s * 0.5 s: the curl integrated on top of the init —
+        // a per-frame SET on orientationZ would have cancelled it.
+        expect(p.orientation.z).toBeCloseTo(Math.PI / 2 + 0.5)
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(Math.PI / 2 + 1.0)
+    })
+
+    it('applies a per-frame additive timeline on top of the spawn value', () => {
+        // Additive mode is gated to the velocity/heading-rate ids, so the
+        // coexistence case lives on xVel: a per-leaf initial velocity plus a
+        // per-frame additive wind layer on the same property.
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                applyAtSpawn: true,
+                timeline: [0, 0],
+                low: { min: 2, max: 2 },
+                high: { min: 2, max: 2 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                timeline: [0, 0, 1, 1],
+                low: { min: 0, max: 0 },
+                high: { min: 4, max: 4 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // Init lands at reset ...
+        expect(p.velocity.x).toBeCloseTo(2)
+        // ... and the additive drift rides on top of the spawn value instead
+        // of replacing it with a zero base.
+        p.update(0.5, 0)
+        expect(p.velocity.x).toBeCloseTo(2 + 2)
+        p.update(0.5, 0)
+        expect(p.velocity.x).toBeCloseTo(2 + 4)
+    })
+
+    it('applies a wholly spawn-only composite once and leaves it alone after', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'xVel',
+                applyAtSpawn: true,
+                timeline: [0, 0],
+                low: { min: 2, max: 2 },
+                high: { min: 2, max: 2 },
+            },
+            {
+                property: 'xVel',
+                mode: 'add',
+                applyAtSpawn: true,
+                timeline: [0, 0],
+                low: { min: 0, max: 0 },
+                high: { min: 3, max: 3 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // SET 2 plus spawn ADD curve(0) * 3 = 0, once.
+        expect(p.velocity.x).toBeCloseTo(2)
+        p.update(0.5, 0)
+        p.update(0.5, 0)
+        // The spawn velocity persisted untouched — and position integrated it:
+        // 2 u/s over two 0.5s ticks.
+        expect(p.velocity.x).toBeCloseTo(2)
+        expect(p.position.x).toBeCloseTo(2)
+    })
+
+    it('samples an emitter-clock spawn-only timeline at the spawn emitter alpha', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'orientationZ',
+                applyAtSpawn: true,
+                useEmitterDuration: true,
+                timeline: [0, 0, 1, 1],
+                low: { min: 0, max: 0 },
+                high: { min: 10, max: 10 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.lifeExpectancy = 100
+        p.reset(0.25)
+
+        expect(p.orientation.z).toBeCloseTo(2.5)
+        // Never re-sampled: the emitter alpha moving on must not re-pin it.
+        p.update(0, 0.75)
+        expect(p.orientation.z).toBeCloseTo(2.5)
+    })
+
+    it('never applies an empty spawn-only timeline (guard unchanged)', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'orientationZ',
+                applyAtSpawn: true,
+                timeline: [],
+                low: { min: 2, max: 2 },
+                high: { min: 2, max: 2 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // The empty-keys guard holds in the spawn pass too — the spec keeps
+        // acorn's empty-timeline semantics out of scope.
+        expect(p.orientation.z).toBeCloseTo(0)
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(0)
+    })
+
+    it('leaves per-frame SET application unchanged when the flag is absent', () => {
+        const emitter = emitterWithTimelines([
+            {
+                property: 'orientationZ',
+                timeline: [0, 0, 1, 1],
+                low: { min: 2, max: 2 },
+                high: { min: 10, max: 10 },
+            },
+        ])
+        const p = new ParticleState(emitter)
+        p.reset()
+        p.lifeExpectancy = 1
+
+        // Nothing lands at reset (the first application is the first update) ...
+        expect(p.orientation.z).toBeCloseTo(0)
+        // ... and the property is re-pinned every frame, exactly as before.
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(6)
+        p.update(0.5, 0)
+        expect(p.orientation.z).toBeCloseTo(10)
+    })
+
+    it('hands the spawn emitter alpha through ParticleEmitterState', () => {
+        const emitter = emitterWithTimelines(
+            [
+                {
+                    property: 'orientationZ',
+                    applyAtSpawn: true,
+                    useEmitterDuration: true,
+                    timeline: [0, 0, 1, 1],
+                    low: { min: 0, max: 0 },
+                    high: { min: 10, max: 10 },
+                },
+            ],
+            false,
+            // Emission at 10/s: one 0.15s tick accumulates 1.5 spawns.
+            10,
+        )
+        const state = new ParticleEmitterState(emitter)
+        state.update(0.15)
+
+        expect(state.activeCount).toBe(1)
+        // Spawn at emitter alpha 0.15 -> tracked = curve(0.15) * 10 = 1.5,
+        // applied once at reset and not re-pinned by the same tick's update.
+        expect(state.particles[0].orientation.z).toBeCloseTo(1.5)
     })
 })
 

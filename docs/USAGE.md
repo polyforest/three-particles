@@ -128,14 +128,15 @@ Top level — all fields optional:
 
 A `TimelineModel` drives one property:
 
-| Field                | Type               | Default   | Description                                                                                                                                                    |
-| -------------------- | ------------------ | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `property`           | string             | `''`      | One of the [property ids](#property-ids), or `color`.                                                                                                          |
-| `timeline`           | number[]           | `[]`      | Flat keyframes. Times are normalized 0–1 (clamped at both ends), strictly increasing.                                                                          |
-| `useEmitterDuration` | boolean            | `false`   | `true` drives the curve over the emitter's duration; `false` over each particle's own lifespan. `emissionRate` and `particleLifeExpectancy` default to `true`. |
-| `low`, `high`        | `RangeModel`       | see below | The value band the curve maps onto. `high` defaults to `low` when omitted.                                                                                     |
-| `relative`           | boolean            | `false`   | `true` treats `high` as an offset from `low` instead of an absolute value.                                                                                     |
-| `mode`               | `'set'` \| `'add'` | `'set'`   | `'add'` layers this timeline on top of the property's other timelines instead of replacing them. Only the velocity and heading-rate ids accept `'add'`.        |
+| Field                | Type               | Default   | Description                                                                                                                                                                                                                                           |
+| -------------------- | ------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `property`           | string             | `''`      | One of the [property ids](#property-ids), or `color`.                                                                                                                                                                                                 |
+| `timeline`           | number[]           | `[]`      | Flat keyframes. Times are normalized 0–1 (clamped at both ends), strictly increasing.                                                                                                                                                                 |
+| `useEmitterDuration` | boolean            | `false`   | `true` drives the curve over the emitter's duration; `false` over each particle's own lifespan. `emissionRate` and `particleLifeExpectancy` default to `true`.                                                                                        |
+| `low`, `high`        | `RangeModel`       | see below | The value band the curve maps onto. `high` defaults to `low` when omitted.                                                                                                                                                                            |
+| `relative`           | boolean            | `false`   | `true` treats `high` as an offset from `low` instead of an absolute value.                                                                                                                                                                            |
+| `mode`               | `'set'` \| `'add'` | `'set'`   | `'add'` layers this timeline on top of the property's other timelines instead of replacing them. Only the velocity and heading-rate ids accept `'add'`.                                                                                               |
+| `applyAtSpawn`       | boolean            | `false`   | `true` samples this timeline exactly once, when the particle spawns, instead of every frame: the property starts from the curve's value at time 0 and then evolves freely — e.g. a spawn heading that keeps integrating under `orientationZVel` curl. |
 
 Float properties use stride-2 keyframes — `[time, value, time, value, …]`. The resolved value each frame is:
 
@@ -146,6 +147,8 @@ value = curve(alpha) × (high − low) + low
 where `alpha` is the normalized emitter or particle progress and `curve` is the piecewise-linear interpolation of the keyframes.
 
 Multiple timelines may target the same property. With the default `mode: "set"` the last non-empty timeline wins each frame. A timeline with `mode: "add"` instead contributes its resolved value on top: the property receives the SET timeline's value (if any) plus the sum of every additive timeline's value at the same instant. Additive timelines track their curve — they never accumulate an integral across frames — and each keeps its own `low`/`high` draw. Supported ids: `xVel`, `yVel`, `zVel`, `orientationXVel`, `orientationYVel`, `orientationZVel`; any other property with `mode: "add"` throws at parse time.
+
+A timeline with `applyAtSpawn: true` initializes a property instead of driving it: the property receives the curve's value at time 0 once, when the particle spawns (sampled at the current emitter progress for `useEmitterDuration` timelines), and the timeline never applies again — velocity integration then carries the property onward. A spawn-only timeline can coexist with per-frame `mode: "add"` timelines on the same property: the additive sum rides on top of the spawn value. The flag is only available on particle property timelines — `emissionRate` and `particleLifeExpectancy` are emitter-level drives that apply every tick and reject the flag at parse time.
 
 The special `color` property uses stride-4 keyframes — `[time, r, g, b, …]` — with raw 0–1 channel values (not mapped through `low`/`high`). Control alpha with a separate `colorA` timeline. Wrong strides and non-increasing times throw at parse time.
 
