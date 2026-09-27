@@ -4,7 +4,8 @@ import {
     PointsMaterial,
     ShaderMaterial,
 } from 'three'
-import { ParticleEmitterState } from '../state'
+import { ParticleEmitterState, SubEmitterSink } from '../state'
+import type { SubEmitterPool } from './SubEmitterSystem'
 import { ParticleEmitterObject } from './ParticleEmitterObject'
 import { ParticleEmitterModel } from '../model'
 import {
@@ -25,12 +26,21 @@ export class ParticleEmitterPoints
     implements ParticleEmitterObject
 {
     readonly isParticleEmitterObject = true
-    private readonly state: ParticleEmitterState
+    /** The emitter's own state; null when rendering a sub-emitter pool. */
+    private readonly state: ParticleEmitterState | null
+    /** Set when this object renders every instance of a sub-emitter template. */
+    private readonly pool: SubEmitterPool | null
+    private readonly single: readonly ParticleEmitterState[]
     /** Set when the material is a particle ShaderMaterial. */
     private readonly shader: ParticleShaderSettings | null
     private shaderTime = 0
 
-    constructor(model: ParticleEmitterModel) {
+    /**
+     * @param pool When given, renders all live instances of this sub-emitter
+     * template in one draw (capacity: count × subEmitterMaxInstances)
+     * instead of running the emitter itself.
+     */
+    constructor(model: ParticleEmitterModel, pool?: SubEmitterPool) {
         // Registry-resolved geometries are shared by every emitter that
         // references the same id, but this constructor writes per-emitter
         // position/color/rotation buffers and a drawRange into `this.geometry`.
@@ -38,8 +48,10 @@ export class ParticleEmitterPoints
         // independent; with no geometry given, Points allocates one that is
         // already emitter-owned.
         super(model.geometry?.clone() ?? undefined, model.material ?? undefined)
-        this.state = new ParticleEmitterState(model)
-        const n = model.count
+        this.pool = pool ?? null
+        this.state = pool ? null : new ParticleEmitterState(model)
+        this.single = this.state ? [this.state] : []
+        const n = pool ? pool.capacity : model.count
 
         // Create a Float32BufferAttribute for position data:
         this.geometry.setAttribute(
@@ -87,7 +99,7 @@ export class ParticleEmitterPoints
                     mat,
                     renderer,
                     this.shaderTime,
-                    this.state.alpha,
+                    this.state?.alpha ?? this.pool!.alpha,
                 )
         }
 
@@ -100,41 +112,57 @@ export class ParticleEmitterPoints
         // this.geometry.boundingSphere = new Sphere(new Vector3(0, 0, 0), 10)
     }
 
+    /** Routes this emitter's sub-emitter triggers (root emitters only). */
+    setSubEmitterSink(sink: SubEmitterSink | null): void {
+        if (this.state && this.state.model.subEmitters.length > 0)
+            this.state.subEmitterSink = sink
+    }
+
     update(dT: number): void {
         // Progress internal particle simulation
-        this.state.update(dT)
+        if (this.pool) this.pool.update(dT)
+        else this.state!.update(dT)
         // Update geometry buffers from state
-        if (!this.state.model.enabled) return
+        const model = this.pool ? this.pool.template : this.state!.model
+        if (!model.enabled) return
         if (this.shader) this.shaderTime += dT
         const posArr = this.geometry.attributes.position.array as Float32Array
         const colorArr = this.geometry.attributes.color.array as Float32Array
         const rotationArr = this.geometry.attributes.rotation
             .array as Float32Array
 
+        const capacity = posArr.length / 3
         let i = 0
-        for (const particle of this.state.particles) {
-            if (!particle.active) continue
-            const position = particle.position
-            const j = i * 3
-            posArr[j] = position.x
-            posArr[j + 1] = position.y
-            posArr[j + 2] = position.z
+        const states = this.pool ? this.pool.activeStates : this.single
+        outer: for (const state of states) {
+            const offset = state.offset
+            const mul = state.tintMultiplier
+            for (const particle of state.particles) {
+                if (!particle.active) continue
+                if (i >= capacity) break outer
+                const position = particle.position
+                const j = i * 3
+                posArr[j] = position.x + offset.x
+                posArr[j + 1] = position.y + offset.y
+                posArr[j + 2] = position.z + offset.z
 
-            const tint = particle.tint
-            const k = i * 4
-            colorArr[k] = tint.r
-            colorArr[k + 1] = tint.g
-            colorArr[k + 2] = tint.b
-            colorArr[k + 3] = tint.a
+                const tint = particle.tint
+                const k = i * 4
+                colorArr[k] = mul ? tint.r * mul.r : tint.r
+                colorArr[k + 1] = mul ? tint.g * mul.g : tint.g
+                colorArr[k + 2] = mul ? tint.b * mul.b : tint.b
+                colorArr[k + 3] = mul ? tint.a * mul.a : tint.a
 
-            // Use the particle's Z Euler rotation to rotate the point sprite.
-            // rotationFinal includes orientation when enabled on the emitter.
-            rotationArr[i] = particle.rotationFinal.z
-            if (this.shader) this.writeShaderAttributes(i, particle)
-            i++
+                // Use the particle's Z Euler rotation to rotate the point sprite.
+                // rotationFinal includes orientation when enabled on the emitter.
+                rotationArr[i] = particle.rotationFinal.z
+                if (this.shader)
+                    this.writeShaderAttributes(i, particle, colorArr)
+                i++
+            }
         }
 
-        this.geometry.setDrawRange(0, this.state.activeCount)
+        this.geometry.setDrawRange(0, i)
         this.geometry.attributes.position.needsUpdate = true
         this.geometry.attributes.color.needsUpdate = true
         this.geometry.attributes.rotation.needsUpdate = true
@@ -152,14 +180,16 @@ export class ParticleEmitterPoints
     private writeShaderAttributes(
         i: number,
         particle: ParticleEmitterState['particles'][number],
+        tinted: Float32Array,
     ): void {
         const a = this.geometry.attributes
         const color = a.particleColor.array as Float32Array
         const k = i * 4
-        color[k] = particle.tint.r
-        color[k + 1] = particle.tint.g
-        color[k + 2] = particle.tint.b
-        color[k + 3] = particle.tint.a
+        // Same (possibly inherited-multiplied) tint as the color attribute.
+        color[k] = tinted[k]
+        color[k + 1] = tinted[k + 1]
+        color[k + 2] = tinted[k + 2]
+        color[k + 3] = tinted[k + 3]
         const expectancy = particle.lifeExpectancy
         ;(a.particleAge.array as Float32Array)[i] =
             expectancy > 0 ? Math.min(particle.life / expectancy, 1) : 0
@@ -225,15 +255,23 @@ export class ParticleEmitterPoints
     }
 
     rewind(): void {
-        this.state.rewind()
+        // Pool instances are spawned by their parents, not rewound.
+        this.state?.rewind()
     }
 
     stop(allowCompletion: boolean): void {
-        this.state.stop(allowCompletion)
+        if (this.state) this.state.stop(allowCompletion)
+        else if (!allowCompletion) this.pool!.reset()
     }
 
     reset(): void {
-        this.state.reset()
+        if (this.state) this.state.reset()
+        else this.pool!.reset()
         this.shaderTime = 0
+    }
+
+    /** Releases this emitter's GPU buffers (its geometry is its own clone). */
+    dispose(): void {
+        this.geometry.dispose()
     }
 }

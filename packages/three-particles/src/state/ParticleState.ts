@@ -162,6 +162,18 @@ export class ParticleState implements ParticleProperties {
      */
     seed = 0
 
+    /**
+     * Velocity inherited from a sub-emitter's parent particle, integrated on
+     * top of the timeline-driven velocity. Zero for root emitters.
+     */
+    readonly inheritedVelocity = new Vector3()
+
+    /**
+     * Bit i is set once this particle's i-th age/position sub-emitter trigger
+     * has fired, so each fires at most once per life.
+     */
+    subEmitterFired = 0
+
     private readonly slot = nextParticleSlot++
     private spawns = 0
 
@@ -201,6 +213,10 @@ export class ParticleState implements ParticleProperties {
             this.position.add(
                 tmpVec.copy(this.velocity).multiplyScalar(tickTime),
             )
+        }
+
+        if (isVec3NotZero(this.inheritedVelocity)) {
+            this.position.addScaledVector(this.inheritedVelocity, tickTime)
         }
 
         if (isVec3NotZero(this.rotationVel)) {
@@ -248,6 +264,8 @@ export class ParticleState implements ParticleProperties {
         this.tint.set(1, 1, 1, 1)
         this.origin.set(0.5, 0.5, 0.5)
         this.imageIndex = 0
+        this.inheritedVelocity.set(0, 0, 0)
+        this.subEmitterFired = 0
         this.seed = hashToUnit(this.slot, ++this.spawns)
 
         for (const prop of this.propertyStates) {

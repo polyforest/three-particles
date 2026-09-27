@@ -6,7 +6,8 @@ import {
     isParticleEmitterObject,
     ParticleEmitterObject,
 } from './ParticleEmitterObject'
-import { ParticleEffectModel } from '../model'
+import { ParticleEffectModel, ParticleEmitterModel } from '../model'
+import { SubEmitterPool, SubEmitterSystem } from './SubEmitterSystem'
 
 /**
  * A Particle effect. This is a group of particle emitters with properties
@@ -20,11 +21,23 @@ export class ParticleEffect extends Group {
      */
     public emittersNeedUpdate: boolean = true
 
+    /** Present when any emitter has sub-emitters (chained effects). */
+    private subEmitters: SubEmitterSystem | null = null
+
     /**
      * Constructs a new ParticleEffect from the given data.
      */
     constructor(readonly model: ParticleEffectModel) {
         super()
+    }
+
+    /**
+     * The effect's sub-emitter pools (live instances per template), or null
+     * when no emitter has sub-emitters.
+     */
+    get subEmitterSystem(): SubEmitterSystem | null {
+        if (this.emittersNeedUpdate) this.refreshEmitters()
+        return this.subEmitters
     }
 
     private forEachEmitter(cb: (emitter: ParticleEmitterObject) => void) {
@@ -42,21 +55,48 @@ export class ParticleEffect extends Group {
     private refreshEmitters() {
         this.emittersNeedUpdate = false
         // TODO: smart recycle
-        this.clear()
+        this.disposeEmitters()
 
+        const hasSubEmitters = this.model.emitters.some(
+            (e) => e.subEmitters.length > 0,
+        )
+        const system = hasSubEmitters
+            ? new SubEmitterSystem(this.model, this)
+            : null
+        this.subEmitters = system
+
+        // Root emitters first, then template pools parent-before-child, so a
+        // trigger fired this frame starts an instance that also runs this
+        // frame. Templates never emit on their own.
         for (const emitter of this.model.emitters) {
-            const mat = firstMaterial(emitter.material)
-            // Particle shaders pick their renderer explicitly; standard
-            // materials render as points only for PointsMaterial.
-            const shader = getParticleShaderSettings(mat)
-            const usePoints = shader
-                ? shader.render === 'points'
-                : mat instanceof PointsMaterial
-            const instance = usePoints
-                ? new ParticleEmitterPoints(emitter)
-                : new ParticleEmitterInstancedMesh(emitter)
+            if (system?.pools.has(emitter.uuid)) continue
+            const instance = createEmitterObject(emitter)
+            instance.setSubEmitterSink(system)
             this.add(instance)
         }
+        if (system) {
+            for (const pool of system.orderedPools(this.model)) {
+                this.add(createEmitterObject(pool.template, pool))
+            }
+        }
+    }
+
+    private disposeEmitters() {
+        for (const child of [...this.children]) {
+            if (isParticleEmitterObject(child)) child.dispose()
+        }
+        this.subEmitters?.dispose()
+        this.subEmitters = null
+        this.clear()
+    }
+
+    /**
+     * Releases the emitters' buffers and sub-emitter pools. The effect can
+     * be updated again afterwards; emitters are rebuilt on demand.
+     */
+    dispose(): void {
+        this.disposeEmitters()
+        this.emittersNeedUpdate = true
     }
 
     /**
@@ -92,4 +132,20 @@ export class ParticleEffect extends Group {
     clone(): this {
         return new ParticleEffect(this.model) as this
     }
+}
+
+function createEmitterObject(
+    emitter: ParticleEmitterModel,
+    pool?: SubEmitterPool,
+): ParticleEmitterObject & Group['children'][number] {
+    const mat = firstMaterial(emitter.material)
+    // Particle shaders pick their renderer explicitly; standard
+    // materials render as points only for PointsMaterial.
+    const shader = getParticleShaderSettings(mat)
+    const usePoints = shader
+        ? shader.render === 'points'
+        : mat instanceof PointsMaterial
+    return usePoints
+        ? new ParticleEmitterPoints(emitter, pool)
+        : new ParticleEmitterInstancedMesh(emitter, pool)
 }

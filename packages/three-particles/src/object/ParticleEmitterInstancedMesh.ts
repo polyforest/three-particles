@@ -5,7 +5,8 @@ import {
     Object3D,
     ShaderMaterial,
 } from 'three'
-import { ParticleEmitterState } from '../state'
+import { ParticleEmitterState, SubEmitterSink } from '../state'
+import type { SubEmitterPool } from './SubEmitterSystem'
 import { ParticleEmitterObject } from './ParticleEmitterObject'
 import { ParticleEmitterModel } from '../model'
 import {
@@ -25,7 +26,11 @@ export class ParticleEmitterInstancedMesh
     implements ParticleEmitterObject
 {
     readonly isParticleEmitterObject = true as const
-    private readonly state: ParticleEmitterState
+    /** The emitter's own state; null when rendering a sub-emitter pool. */
+    private readonly state: ParticleEmitterState | null
+    /** Set when this object renders every instance of a sub-emitter template. */
+    private readonly pool: SubEmitterPool | null
+    private readonly single: readonly ParticleEmitterState[]
 
     private readonly color = new Color()
     private readonly capacity: number
@@ -34,8 +39,13 @@ export class ParticleEmitterInstancedMesh
     private readonly shader: ParticleShaderSettings | null
     private shaderTime = 0
 
-    constructor(model: ParticleEmitterModel) {
-        const count = model.count
+    /**
+     * @param pool When given, renders all live instances of this sub-emitter
+     * template in one draw (capacity: count × subEmitterMaxInstances)
+     * instead of running the emitter itself.
+     */
+    constructor(model: ParticleEmitterModel, pool?: SubEmitterPool) {
+        const count = pool ? pool.capacity : model.count
         const shader = getParticleShaderSettings(firstMaterial(model.material))
         // Shader emitters add per-instance attributes to the geometry, so a
         // registry geometry shared across emitters must be cloned first;
@@ -47,7 +57,9 @@ export class ParticleEmitterInstancedMesh
         this.shader = shader
 
         this.capacity = count
-        this.state = new ParticleEmitterState(model)
+        this.pool = pool ?? null
+        this.state = pool ? null : new ParticleEmitterState(model)
+        this.single = this.state ? [this.state] : []
 
         // Enable shadows by default so lit materials work in demos.
         this.castShadow = true
@@ -76,42 +88,62 @@ export class ParticleEmitterInstancedMesh
                     mat,
                     renderer,
                     this.shaderTime,
-                    this.state.alpha,
+                    this.state?.alpha ?? this.pool!.alpha,
                 )
         }
     }
 
+    /** Routes this emitter's sub-emitter triggers (root emitters only). */
+    setSubEmitterSink(sink: SubEmitterSink | null): void {
+        if (this.state && this.state.model.subEmitters.length > 0)
+            this.state.subEmitterSink = sink
+    }
+
     update(dT: number): void {
         // progress simulation
-        this.state.update(dT)
-        if (!this.state.model.enabled) return
+        if (this.pool) this.pool.update(dT)
+        else this.state!.update(dT)
+        const model = this.pool ? this.pool.template : this.state!.model
+        if (!model.enabled) return
         if (this.shader) this.shaderTime += dT
 
         let index = 0
+        const states = this.pool ? this.pool.activeStates : this.single
+        outer: for (const state of states) {
+            const offset = state.offset
+            const mul = state.tintMultiplier
+            for (const p of state.particles) {
+                if (!p.active) continue
+                if (index >= this.capacity) break outer
 
-        for (const p of this.state.particles) {
-            if (!p.active) continue
+                // Position
+                this.obj.position.copy(p.position).add(offset)
 
-            // Position
-            this.obj.position.copy(p.position)
+                // Rotation
+                this.obj.rotation.copy(p.rotationFinal)
 
-            // Rotation
-            this.obj.rotation.copy(p.rotationFinal)
+                // Scale
+                this.obj.scale.copy(p.scale)
 
-            // Scale
-            this.obj.scale.copy(p.scale)
+                this.obj.updateMatrix()
+                this.setMatrixAt(index, this.obj.matrix)
 
-            this.obj.updateMatrix()
-            this.setMatrixAt(index, this.obj.matrix)
+                // Instance color (RGB). Alpha is not supported per-instance on standard materials.
+                if (mul) {
+                    this.color.setRGB(
+                        p.tint.r * mul.r,
+                        p.tint.g * mul.g,
+                        p.tint.b * mul.b,
+                    )
+                } else {
+                    this.color.setRGB(p.tint.r, p.tint.g, p.tint.b)
+                }
+                this.setColorAt(index, this.color)
 
-            // Instance color (RGB). Alpha is not supported per-instance on standard materials.
-            this.color.setRGB(p.tint.r, p.tint.g, p.tint.b)
-            this.setColorAt(index, this.color)
+                if (this.shader) this.writeShaderAttributes(index, p, mul)
 
-            if (this.shader) this.writeShaderAttributes(index, p)
-
-            index++
-            if (index >= this.capacity) break
+                index++
+            }
         }
 
         // Update how many instances to draw
@@ -130,14 +162,16 @@ export class ParticleEmitterInstancedMesh
     private writeShaderAttributes(
         i: number,
         particle: ParticleEmitterState['particles'][number],
+        mul: ParticleEmitterState['tintMultiplier'],
     ): void {
         const a = this.geometry.attributes
         const color = a.particleColor.array as Float32Array
         const k = i * 4
-        color[k] = particle.tint.r
-        color[k + 1] = particle.tint.g
-        color[k + 2] = particle.tint.b
-        color[k + 3] = particle.tint.a
+        const t = particle.tint
+        color[k] = mul ? t.r * mul.r : t.r
+        color[k + 1] = mul ? t.g * mul.g : t.g
+        color[k + 2] = mul ? t.b * mul.b : t.b
+        color[k + 3] = mul ? t.a * mul.a : t.a
         const expectancy = particle.lifeExpectancy
         ;(a.particleAge.array as Float32Array)[i] =
             expectancy > 0 ? Math.min(particle.life / expectancy, 1) : 0
@@ -146,15 +180,18 @@ export class ParticleEmitterInstancedMesh
     }
 
     rewind(): void {
-        this.state.rewind()
+        // Pool instances are spawned by their parents, not rewound.
+        this.state?.rewind()
     }
 
     stop(allowCompletion: boolean): void {
-        this.state.stop(allowCompletion)
+        if (this.state) this.state.stop(allowCompletion)
+        else if (!allowCompletion) this.pool!.reset()
     }
 
     reset(): void {
-        this.state.reset()
+        if (this.state) this.state.reset()
+        else this.pool!.reset()
         this.shaderTime = 0
     }
 }
