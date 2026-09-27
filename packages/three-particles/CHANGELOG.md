@@ -3,6 +3,12 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [0.19.0](https://github.com/polyforest/three-particles/compare/three-particles%400.18.0...three-particles%400.19.0) (2026-09-27)
+
+### Features
+
+- **timelines:** spawn-only timeline application ([#74](https://github.com/polyforest/three-particles/issues/74)) ([416cc0a](https://github.com/polyforest/three-particles/commit/416cc0a923113c5278b2325cdcb0d5832e34333a))
+
 # [0.18.0](https://github.com/polyforest/three-particles/compare/three-particles%400.17.3...three-particles%400.18.0) (2026-09-26)
 
 ### Features
