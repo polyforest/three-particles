@@ -1,4 +1,7 @@
 import { seedRandom } from '../helpers/lcgRandom'
+import fs from 'fs'
+import path from 'path'
+import { ParticleEffectLoader } from '../../src/ParticleEffectLoader'
 import { Points, PointsMaterial, ShaderMaterial } from 'three'
 import {
     parseParticleEffect,
@@ -568,5 +571,59 @@ describe('sub-emitters', () => {
         expect(pool(effect, 'splash').activeStates).toHaveLength(1)
         expect(pool(effect, 'mist').activeStates).toHaveLength(1)
         expect((effect.children[0] as Points).geometry.drawRange.count).toBe(0)
+    })
+
+    describe('example effects', () => {
+        const load = async (name: string) => {
+            const json = JSON.parse(
+                fs.readFileSync(
+                    path.join(__dirname, '../../../example/resources', name),
+                    'utf8',
+                ),
+            ) as {
+                textures?: unknown
+                materials: Record<string, { map?: string }>
+            }
+            // Decoding the embedded sprite needs a DOM; the simulation
+            // doesn't use it.
+            delete json.textures
+            for (const material of Object.values(json.materials))
+                delete material.map
+            return new ParticleEffect(
+                await new ParticleEffectLoader().parseAsync(
+                    json as unknown as ParticleEffectModelJson,
+                ),
+            )
+        }
+
+        it('firework-chain bursts, and some sparks crackle', async () => {
+            const effect = await load('firework-chain.json')
+            let bursts = 0
+            let crackles = 0
+            for (let i = 0; i < 60 * 2.5; i++) {
+                effect.update(1 / 60)
+                bursts = Math.max(
+                    bursts,
+                    pool(effect, 'burst').activeStates.length,
+                )
+                crackles = Math.max(
+                    crackles,
+                    pool(effect, 'crackle').activeStates.length,
+                )
+            }
+            expect(bursts).toBe(1)
+            expect(crackles).toBeGreaterThan(3)
+            // Templates render through their own pooled objects.
+            expect(effect.children).toHaveLength(3)
+        })
+
+        it('waterfall drops splash and mist below y = 0', async () => {
+            const effect = await load('waterfall.json')
+            for (let i = 0; i < 60 * 1.5; i++) effect.update(1 / 60)
+            const splashes = pool(effect, 'splash').activeStates
+            expect(splashes.length).toBeGreaterThan(5)
+            for (const s of splashes) expect(s.offset.y).toBeLessThan(0.05)
+            expect(pool(effect, 'mist').activeStates.length).toBeGreaterThan(0)
+        })
     })
 })
