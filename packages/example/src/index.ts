@@ -87,10 +87,10 @@ function onResize() {
 const effects: ParticleEffect[] = []
 const loader = new ParticleEffectLoader()
 
-async function loadEffect(url: string, x: number): Promise<void> {
+async function loadEffect(url: string, x: number, z = 0): Promise<void> {
     const model = await loader.loadAsync(url)
     const effect = new ParticleEffect(model)
-    effect.position.x = x
+    effect.position.set(x, 0, z)
     scene.add(effect)
     effects.push(effect)
 }
@@ -99,6 +99,11 @@ loadEffect('./fire.json', -1.5).catch(console.error)
 loadEffect('./mesh.json', 1.5).catch(console.error)
 // shader.json: a fragment-mode particle ShaderMaterial (see docs/USAGE.md).
 loadEffect('./shader.json', 0).catch(console.error)
+// Sub-emitters (chained effects, see docs/USAGE.md): each spark of the
+// firework's burst can crackle into its own smaller burst, and waterfall
+// drops splash and mist where they cross y < 0.
+loadEffect('./firework-chain.json', -3, -4).catch(console.error)
+loadEffect('./waterfall.json', 3.5, -1).catch(console.error)
 
 // Playback controls exercising the ParticleEffect lifecycle API.
 let paused = false
