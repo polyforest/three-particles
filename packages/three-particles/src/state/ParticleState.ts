@@ -11,6 +11,22 @@ import { closeTo, getTimelineValues } from '../util'
 
 const tmpVec = new Vector3()
 
+// Identity for particleSeed: every ParticleState gets a slot id, and each
+// spawn bumps a per-slot counter, so seeds differ per life without drawing
+// from Math.random (the integration goldens pin the random sequence).
+let nextParticleSlot = 0
+
+/** Deterministic hash of two integers to [0, 1). */
+function hashToUnit(a: number, b: number): number {
+    let h =
+        Math.imul(a ^ 0x9e3779b9, 0x85ebca6b) ^
+        Math.imul(b + 0x632be5ab, 0xc2b2ae35)
+    h = Math.imul(h ^ (h >>> 16), 0x7feb352d)
+    h = Math.imul(h ^ (h >>> 15), 0x846ca68b)
+    h ^= h >>> 16
+    return (h >>> 0) / 4294967296
+}
+
 /**
  * Updates the particle state.
  */
@@ -140,6 +156,15 @@ export class ParticleState implements ParticleProperties {
 
     imageIndex = 0
 
+    /**
+     * A value in [0, 1) that is stable for the life of the particle and
+     * changes on every spawn. Exposed to custom shaders as `particleSeed`.
+     */
+    seed = 0
+
+    private readonly slot = nextParticleSlot++
+    private spawns = 0
+
     private readonly propertyStates: readonly ParticlePropertyState[]
 
     get lifeExpectancy(): number {
@@ -223,6 +248,7 @@ export class ParticleState implements ParticleProperties {
         this.tint.set(1, 1, 1, 1)
         this.origin.set(0.5, 0.5, 0.5)
         this.imageIndex = 0
+        this.seed = hashToUnit(this.slot, ++this.spawns)
 
         for (const prop of this.propertyStates) {
             prop.reset(emitterAlpha)

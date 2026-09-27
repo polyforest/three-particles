@@ -18,6 +18,7 @@ export class ParticleEmitterState {
     private _isComplete = false
     private loops = false
     private accumulator = 0
+    private _alpha = 0
 
     private readonly emissionRateValue: PropertyValue
     private readonly particleLifeExpectancyValue: PropertyValue
@@ -39,6 +40,14 @@ export class ParticleEmitterState {
     get progress(): number {
         if (this.totalTime <= 0) return 1
         return (this.time + this.delayBefore) / this.totalTime
+    }
+
+    /**
+     * The emitter's progress through its duration at the last update,
+     * clamped to 0..1 (the emitter alpha timelines sample at).
+     */
+    get alpha(): number {
+        return this._alpha
     }
 
     get isComplete(): boolean {
@@ -73,6 +82,7 @@ export class ParticleEmitterState {
 
         const emitterAlpha = this.time * this.durationInv
         const alphaClamped = clamp(emitterAlpha, 0, 1)
+        this._alpha = alphaClamped
         this.emissionRateValue.setTime(emitterAlpha)
         this.particleLifeExpectancyValue.setTime(emitterAlpha)
 
