@@ -185,16 +185,6 @@ export function parseEmitter({
         emitterJson.particleLifeExpectancy ??
             cloneDeep(particleEmitterModelDefaults.particleLifeExpectancy),
     )
-    // `applyAtSpawn` is meaningless on the emitter-level timelines: they are
-    // driven per tick by ParticleEmitterState and never become particle
-    // property states, so the flag would silently do nothing.
-    for (const emitterLevelTimeline of [emissionRate, particleLifeExpectancy]) {
-        if (emitterLevelTimeline.applyAtSpawn) {
-            throw new Error(
-                `Invalid timeline for property '${emitterLevelTimeline.property}': applyAtSpawn is only supported for particle property timelines, not the emitter-level emissionRate/particleLifeExpectancy timelines.`,
-            )
-        }
-    }
     const propertyTimelines = (emitterJson.propertyTimelines ?? [])
         .filter(isNonNil)
         .map((t) => parseTimeline(t))

@@ -1,4 +1,5 @@
 import { PointsMaterial } from 'three'
+import type { TimelineModelJson } from '../../src/model/TimelineModel'
 import {
     parseEmitter,
     particleEmitterModelDefaults,
@@ -40,35 +41,14 @@ describe('ParticleEmitterModel', () => {
             ).toThrow(/only one material per emitter is supported/)
         })
 
-        it('rejects applyAtSpawn on the emitter-level timelines (silent no-op otherwise)', () => {
-            // These emitter-level timelines are driven per tick by
-            // ParticleEmitterState and never become particle property states,
-            // so the flag could never apply — fail loudly at parse instead.
+        it('ignores a stray applyAtSpawn key on emitter-level timelines', () => {
+            const emissionRate = {
+                ...particleEmitterModelDefaults.emissionRate,
+                applyAtSpawn: true,
+            } as unknown as TimelineModelJson
             expect(() =>
-                parseEmitter({
-                    emitterJson: {
-                        emissionRate: {
-                            ...particleEmitterModelDefaults.emissionRate,
-                            applyAtSpawn: true,
-                        },
-                    },
-                }),
-            ).toThrow(
-                /applyAtSpawn is only supported for particle property timelines/,
-            )
-
-            expect(() =>
-                parseEmitter({
-                    emitterJson: {
-                        particleLifeExpectancy: {
-                            ...particleEmitterModelDefaults.particleLifeExpectancy,
-                            applyAtSpawn: true,
-                        },
-                    },
-                }),
-            ).toThrow(
-                /applyAtSpawn is only supported for particle property timelines/,
-            )
+                parseEmitter({ emitterJson: { emissionRate } }),
+            ).not.toThrow()
         })
 
         it('keeps single-material emitters unchanged (TP-10)', () => {

@@ -38,15 +38,6 @@ export interface TimelineModel {
     mode: TimelineMode
 
     /**
-     * If true, this timeline is sampled exactly once, when the particle spawns
-     * (in `ParticleState.reset()`), instead of every frame: the property starts
-     * from this timeline's value at particle-time 0 and then evolves freely —
-     * e.g. a spawn heading that keeps integrating under `orientationVel` curl.
-     * Default: `false` (applied every frame, as before).
-     */
-    applyAtSpawn?: boolean
-
-    /**
      * When the values are initialized / reset for a new particle, this will be the low range.
      */
     low: RangeModel
@@ -85,7 +76,6 @@ export const timelineDefaults = {
     useEmitterDuration: false,
     relative: false,
     mode: 'set',
-    applyAtSpawn: false,
     low: {
         min: 0,
         max: 0,
@@ -109,6 +99,31 @@ export type TimelineModelJson = Omit<
 }
 
 /**
+ * Entries per keyframe, time included: color timelines carry r/g/b per
+ * keyframe (ColorPropertyState, stride 4); every other property is a single
+ * value per keyframe (stride 2).
+ */
+export function timelineStride(property: string): number {
+    return property === 'color' ? 4 : 2
+}
+
+/**
+ * True for a SET timeline with exactly one keyframe. Such a timeline is
+ * time-invariant, so the particle samples it once at spawn (in
+ * `ParticleState.reset()`) instead of every frame: the property starts from
+ * that value and then evolves freely, e.g. a start heading that keeps turning
+ * under `orientationZVel`. For a property nothing else changes this is the
+ * same as applying it every frame. ADD timelines always apply every frame: a
+ * single-keyframe ADD is a constant contribution, not a starting value.
+ */
+export function isSpawnTimeline(timeline: TimelineModel): boolean {
+    return (
+        timeline.mode === 'set' &&
+        timeline.timeline.length === timelineStride(timeline.property)
+    )
+}
+
+/**
  * Timeline JSON is a flat keyframe array: `[time, value, ...]` pairs for float
  * properties, `[time, r, g, b, ...]` for `color`. Consumers
  * (`getTimelineValue`/`getTimelineValues`) assume that stride and sorted
@@ -119,9 +134,7 @@ function validateTimelineEntries(
     property: string,
     entries: readonly number[],
 ): void {
-    // Color timelines carry r/g/b per keyframe (ColorPropertyState, stride 4);
-    // every other property is a single value per keyframe (stride 2).
-    const stride = property === 'color' ? 4 : 2
+    const stride = timelineStride(property)
     if (entries.length % stride !== 0) {
         throw new Error(
             `Invalid timeline for property '${property}': expected a multiple of ${stride} entries (time/value keyframes), got ${entries.length}; the entry at index ${entries.length - 1} has no complete keyframe.`,
@@ -177,7 +190,6 @@ export function parseTimeline(
             timeline.useEmitterDuration ?? timelineDefaults.useEmitterDuration,
         relative: timeline.relative ?? timelineDefaults.relative,
         mode,
-        applyAtSpawn: timeline.applyAtSpawn ?? timelineDefaults.applyAtSpawn,
         low,
         high,
     }
