@@ -542,4 +542,31 @@ describe('sub-emitters', () => {
         expect(color[1]).toBeCloseTo(0.5)
         expect((attrs.particleAge.array as Float32Array)[0]).toBeGreaterThan(0)
     })
+
+    it('all triggers firing in one frame spawn before a kill removes the particle', () => {
+        const line = {
+            type: 'position',
+            axis: 'y',
+            op: '<',
+            value: -0.1,
+        } as const
+        const effect = makeEffect([
+            emitter('root', {
+                count: 1,
+                life: 10,
+                duration: 0.02,
+                timelines: [constant('yVel', -1)],
+                subEmitters: [
+                    { emitter: 'splash', trigger: line, killParticle: true },
+                    { emitter: 'mist', trigger: line },
+                ],
+            }),
+            emitter('splash', { count: 1, life: 100, duration: 10 }),
+            emitter('mist', { count: 1, life: 100, duration: 10 }),
+        ])
+        step(effect, 0.3)
+        expect(pool(effect, 'splash').activeStates).toHaveLength(1)
+        expect(pool(effect, 'mist').activeStates).toHaveLength(1)
+        expect((effect.children[0] as Points).geometry.drawRange.count).toBe(0)
+    })
 })
