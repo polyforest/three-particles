@@ -10,6 +10,7 @@ import {
     ParticleEmitterModelJson,
 } from './ParticleEmitterModel'
 import { PartialDeep, ReadonlyDeep } from 'type-fest'
+import { validateSubEmitterGraph } from './SubEmitterModel'
 import {
     BufferGeometry,
     BufferGeometryJSON,
@@ -124,6 +125,7 @@ export function parseParticleEffect({
                 geometries: allGeometries,
             }),
         )
+    validateSubEmitterGraph(emitters)
     return {
         version: effectJson.version ?? particleEffectDefaults.version,
         emitters,

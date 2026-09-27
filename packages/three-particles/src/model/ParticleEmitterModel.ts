@@ -15,6 +15,12 @@ import { PartialDeep, ReadonlyDeep } from 'type-fest'
 import { isNonNil } from '../util/object'
 import { Maybe, MaybeArray } from '../util/type'
 import { parseZone, Zone, zoneDefaults, ZoneJson } from './Zone'
+import {
+    DEFAULT_SUB_EMITTER_MAX_INSTANCES,
+    parseSubEmitter,
+    SubEmitterModel,
+    SubEmitterModelJson,
+} from './SubEmitterModel'
 
 /**
  * Data for a particle emitter.
@@ -81,6 +87,19 @@ export interface ParticleEmitterModel {
      * The material(s) to use for this emitter.
      */
     material: Material | Material[] | null
+
+    /**
+     * Emitters to start at this emitter's particles when a trigger fires
+     * (chained effects). The referenced emitters become templates: they no
+     * longer emit on their own and only run as spawned instances.
+     */
+    subEmitters: SubEmitterModel[]
+
+    /**
+     * When this emitter is a sub-emitter template: the most instances of it
+     * that may run at once. Spawns past the cap are dropped.
+     */
+    subEmitterMaxInstances: number
 }
 
 /**
@@ -96,6 +115,7 @@ export type ParticleEmitterModelJson = Omit<
     | 'propertyTimelines'
     | 'geometry'
     | 'material'
+    | 'subEmitters'
 > & {
     duration?: EmitterDurationModelJson
     emissionRate?: TimelineModelJson
@@ -104,6 +124,7 @@ export type ParticleEmitterModelJson = Omit<
     propertyTimelines?: TimelineModelJson[]
     geometry?: string | null
     material?: MaybeArray<string> | null
+    subEmitters?: SubEmitterModelJson[]
 }
 
 /**
@@ -157,6 +178,7 @@ export const particleEmitterModelDefaults = {
     spawn: zoneDefaults,
     rotateToOrientation: false,
     propertyTimelines: [],
+    subEmitterMaxInstances: DEFAULT_SUB_EMITTER_MAX_INSTANCES,
 } as const satisfies ParticleEmitterModelJson
 
 /**
@@ -198,6 +220,17 @@ export function parseEmitter({
         )
     }
     const geometry = toGeometry(emitterJson.geometry, geometries ?? {})
+    const subEmitters = (emitterJson.subEmitters ?? [])
+        .filter(isNonNil)
+        .map((sub) => parseSubEmitter(sub, id))
+    const maxInstances =
+        emitterJson.subEmitterMaxInstances ??
+        particleEmitterModelDefaults.subEmitterMaxInstances
+    if (!Number.isInteger(maxInstances) || maxInstances < 1) {
+        throw new Error(
+            `Invalid subEmitterMaxInstances for emitter '${id}': must be a whole number >= 1.`,
+        )
+    }
 
     return {
         uuid: id,
@@ -215,6 +248,8 @@ export function parseEmitter({
         propertyTimelines,
         material,
         geometry,
+        subEmitters,
+        subEmitterMaxInstances: maxInstances,
     }
 }
 
