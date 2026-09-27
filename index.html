@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>three-particles</title>
+        <meta
+            name="description"
+            content="A particle engine for THREE.js. Effects are JSON documents: author them visually in the editor, load one into your scene, and call update()."
+        />
+        <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Scope+One&display=swap"
+            rel="stylesheet"
+        />
+        <style>
+            :root {
+                --bg: #191919;
+                --panel: #212121;
+                --panel-edge: #333;
+                --text: #e8e4dc;
+                --text-dim: #a5a09a;
+                --accent: #e08b3d;
+                --accent-dim: #a9642d;
+            }
+            * {
+                box-sizing: border-box;
+            }
+            body {
+                margin: 0;
+                background: var(--bg);
+                color: var(--text);
+                font-family:
+                    system-ui,
+                    -apple-system,
+                    'Segoe UI',
+                    sans-serif;
+                line-height: 1.6;
+            }
+            h1,
+            h2,
+            h3 {
+                font-family: 'Scope One', serif;
+                font-weight: 400;
+                line-height: 1.2;
+                margin: 0 0 0.5rem;
+            }
+            h1 {
+                font-size: clamp(2.2rem, 6vw, 3.4rem);
+            }
+            h2 {
+                font-size: 1.6rem;
+                padding-top: 2.5rem;
+            }
+            a {
+                color: var(--accent);
+            }
+            code {
+                font-family: ui-monospace, 'Cascadia Code', Menlo, monospace;
+                font-size: 0.92em;
+                background: #262626;
+                border-radius: 4px;
+                padding: 0.1em 0.35em;
+            }
+            pre code {
+                display: block;
+                padding: 1rem;
+                overflow-x: auto;
+            }
+            .wrap {
+                max-width: 60rem;
+                margin: 0 auto;
+                padding: 0 1.25rem;
+            }
+            /* Hero */
+            .hero {
+                padding: 4.5rem 0 2.5rem;
+            }
+            .eyebrow {
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                font-size: 0.8rem;
+                color: var(--text-dim);
+                margin: 0 0 0.75rem;
+            }
+            .tagline {
+                max-width: 34rem;
+                font-size: 1.1rem;
+                color: var(--text-dim);
+            }
+            .install {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                margin: 1.75rem 0;
+            }
+            .install code {
+                font-size: 1rem;
+                padding: 0.6rem 0.9rem;
+                border: 1px solid var(--panel-edge);
+            }
+            .btn {
+                display: inline-block;
+                border: 1px solid var(--accent-dim);
+                color: var(--accent);
+                background: transparent;
+                border-radius: 6px;
+                padding: 0.55rem 1.1rem;
+                font-size: 0.95rem;
+                text-decoration: none;
+                cursor: pointer;
+                font-family: inherit;
+            }
+            .btn:hover {
+                background: rgba(224, 139, 61, 0.12);
+            }
+            .btn.primary {
+                background: var(--accent);
+                border-color: var(--accent);
+                color: #191919;
+                font-weight: 600;
+            }
+            .btn.primary:hover {
+                background: #eb9a52;
+            }
+            .cta-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                margin-top: 1.25rem;
+            }
+            /* Showcase */
+            .cards {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+                gap: 1.25rem;
+                margin: 1.5rem 0 1rem;
+            }
+            .cards figure {
+                margin: 0;
+                background: var(--panel);
+                border: 1px solid var(--panel-edge);
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .cards canvas {
+                display: block;
+                width: 100%;
+                aspect-ratio: 4 / 3;
+                background: #111111;
+            }
+            .cards figcaption {
+                padding: 0.6rem 0.9rem;
+                font-size: 0.85rem;
+                color: var(--text-dim);
+            }
+            /* Sections */
+            section p {
+                max-width: 40rem;
+            }
+            .steps li {
+                margin-bottom: 1rem;
+            }
+            footer {
+                margin-top: 4rem;
+                padding: 1.5rem 0 3rem;
+                border-top: 1px solid var(--panel-edge);
+                color: var(--text-dim);
+                font-size: 0.9rem;
+            }
+            footer nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 1.25rem;
+            }
+        </style>
+        <script type="importmap">
+            {
+                "imports": {
+                    "three": "https://unpkg.com/three@0.186.1/build/three.module.js",
+                    "three-particles": "https://unpkg.com/three-particles@0.17.3/dist/index.js"
+                }
+            }
+        </script>
+    </head>
+
+    <body>
+        <div class="wrap">
+            <header class="hero">
+                <p class="eyebrow">Poly Forest</p>
+                <h1>three-particles</h1>
+                <p class="tagline">
+                    A particle engine for
+                    <a href="https://threejs.org">THREE.js</a>. An effect is a
+                    JSON document describing emitters, textures, zones, and
+                    timelines. Load one, add it to your scene as a
+                    <code>Group</code>, and call <code>update()</code> once per
+                    frame.
+                </p>
+                <div class="install">
+                    <code>npm install three-particles</code>
+                    <button class="btn" id="copyInstall" type="button">
+                        Copy
+                    </button>
+                </div>
+                <div class="cta-row">
+                    <a class="btn primary" href="./example.html">Live demo</a>
+                    <button class="btn" id="codepenBtn" type="button">
+                        Try it on CodePen
+                    </button>
+                    <a
+                        class="btn"
+                        href="https://particles.polyforest.com"
+                        target="_blank"
+                        rel="noopener"
+                        >Open the editor</a
+                    >
+                    <a
+                        class="btn"
+                        href="https://github.com/polyforest/three-particles"
+                        target="_blank"
+                        rel="noopener"
+                        >GitHub</a
+                    >
+                </div>
+            </header>
+
+            <section>
+                <h2>Example effects</h2>
+                <p>
+                    Both render paths, running the same flame emitter: sprite
+                    points on the left, instanced meshes on the right.
+                </p>
+                <div class="cards">
+                    <figure>
+                        <canvas
+                            data-effect="./effects/fire.json"
+                            aria-label="Live flame effect rendered with sprite points"
+                        ></canvas>
+                        <figcaption>Points renderer</figcaption>
+                    </figure>
+                    <figure>
+                        <canvas
+                            data-effect="./effects/mesh.json"
+                            aria-label="Live flame effect rendered with instanced meshes"
+                        ></canvas>
+                        <figcaption>Instanced mesh renderer</figcaption>
+                    </figure>
+                </div>
+                <p>
+                    <a href="./example.html">Open the full demo</a> for orbit
+                    controls, shadows, and an effect authored in the editor.
+                </p>
+            </section>
+
+            <section>
+                <h2>Get started</h2>
+                <ol class="steps">
+                    <li>
+                        Install the library. It is ESM-only and expects
+                        <code>three</code>
+                        <code>&gt;=0.186.1 &lt;0.187.0</code> as a peer
+                        dependency:
+                        <pre><code>npm install three-particles</code></pre>
+                    </li>
+                    <li>
+                        Load an effect and add it to your scene:
+                        <pre><code>import { ParticleEffect, ParticleEffectLoader } from 'three-particles'
+
+const model = await new ParticleEffectLoader().loadAsync('./fire.json')
+const effect = new ParticleEffect(model)
+scene.add(effect)
+
+// Once per frame, with the frame delta in seconds:
+effect.update(delta)</code></pre>
+                    </li>
+                    <li>
+                        Or skip the setup and
+                        <button
+                            class="btn"
+                            id="codepenBtn2"
+                            type="button"
+                            style="padding: 0.1rem 0.6rem; font-size: 0.85rem"
+                        >
+                            open this example on CodePen</button
+                        >.
+                    </li>
+                </ol>
+                <p>
+                    The full effect JSON format (emitters, timelines, zones,
+                    eases, materials) is documented in the
+                    <a
+                        href="https://github.com/polyforest/three-particles/blob/main/docs/USAGE.md"
+                        target="_blank"
+                        rel="noopener"
+                        >usage guide</a
+                    >.
+                </p>
+            </section>
+
+            <section>
+                <h2>Author effects visually</h2>
+                <p>
+                    The
+                    <a
+                        href="https://particles.polyforest.com"
+                        target="_blank"
+                        rel="noopener"
+                        >particle editor</a
+                    >
+                    edits effects in the browser and exports the same JSON the
+                    runtime loads, so what you design there drops straight into
+                    your scene. The tornado in the
+                    <a href="./example.html">demo</a> was made with it.
+                </p>
+            </section>
+
+            <footer>
+                <nav>
+                    <a
+                        href="https://github.com/polyforest/three-particles"
+                        target="_blank"
+                        rel="noopener"
+                        >GitHub</a
+                    >
+                    <a
+                        href="https://www.npmjs.com/package/three-particles"
+                        target="_blank"
+                        rel="noopener"
+                        >npm</a
+                    >
+                    <a
+                        href="https://github.com/polyforest/three-particles/blob/main/docs/USAGE.md"
+                        target="_blank"
+                        rel="noopener"
+                        >Docs</a
+                    >
+                    <a href="https://www.polyforest.com">Poly Forest</a>
+                </nav>
+                <p>Apache License 2.0</p>
+            </footer>
+        </div>
+
+        <script type="module">
+            import {
+                AmbientLight,
+                Clock,
+                DirectionalLight,
+                PerspectiveCamera,
+                Scene,
+                WebGLRenderer,
+            } from 'three'
+            import {
+                ParticleEffect,
+                ParticleEffectLoader,
+            } from 'three-particles'
+
+            const prefersReducedMotion = matchMedia(
+                '(prefers-reduced-motion: reduce)',
+            ).matches
+            const loader = new ParticleEffectLoader()
+
+            function setupPreview(canvas) {
+                const scene = new Scene()
+                const camera = new PerspectiveCamera(55, 1, 0.1, 100)
+                camera.position.set(0, 2.6, 6.5)
+                camera.lookAt(0, 1.1, 0)
+
+                const renderer = new WebGLRenderer({ canvas, antialias: true })
+                renderer.setClearColor(0x111111)
+
+                // The instanced-mesh path uses a lit material; without lights
+                // the meshes render black on the dark background.
+                scene.add(new AmbientLight(0xffffff, 0.2))
+                const dirLight = new DirectionalLight(0xffffff, 2)
+                dirLight.position.set(3, 4, 2)
+                scene.add(dirLight)
+
+                const clock = new Clock()
+                let effect = null
+                let running = false
+
+                function resize() {
+                    const width = canvas.clientWidth
+                    const height = canvas.clientHeight
+                    if (width === 0 || height === 0) return
+                    renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5))
+                    renderer.setSize(width, height, false)
+                    camera.aspect = width / height
+                    camera.updateProjectionMatrix()
+                }
+
+                function render() {
+                    if (effect) effect.update(Math.min(clock.getDelta(), 0.1))
+                    renderer.render(scene, camera)
+                }
+
+                function start() {
+                    if (running || prefersReducedMotion) return
+                    running = true
+                    clock.start()
+                    renderer.setAnimationLoop(render)
+                }
+
+                function stop() {
+                    running = false
+                    renderer.setAnimationLoop(null)
+                }
+
+                addEventListener('resize', resize)
+                resize()
+
+                loader
+                    .loadAsync(canvas.dataset.effect)
+                    .then((model) => {
+                        effect = new ParticleEffect(model)
+                        scene.add(effect)
+                        if (prefersReducedMotion) {
+                            // Settle a few seconds in, then show one still frame.
+                            effect.update(3)
+                            renderer.render(scene, camera)
+                        } else {
+                            start()
+                        }
+                    })
+                    .catch((err) => {
+                        console.error(
+                            `Failed to load ${canvas.dataset.effect}`,
+                            err,
+                        )
+                        canvas.closest('figure').style.display = 'none'
+                    })
+
+                new IntersectionObserver(
+                    (entries) => {
+                        for (const entry of entries) {
+                            entry.isIntersecting ? start() : stop()
+                        }
+                    },
+                    { threshold: 0.1 },
+                ).observe(canvas)
+            }
+
+            document
+                .querySelectorAll('canvas[data-effect]')
+                .forEach(setupPreview)
+
+            // Copy button for the install command.
+            document
+                .querySelector('#copyInstall')
+                .addEventListener('click', (e) => {
+                    navigator.clipboard
+                        .writeText('npm install three-particles')
+                        .then(() => {
+                            e.target.textContent = 'Copied'
+                            setTimeout(
+                                () => (e.target.textContent = 'Copy'),
+                                1500,
+                            )
+                        })
+                })
+
+            // "Try it on CodePen" posts a minimal starter pen.
+            function openCodePen() {
+                const starter = [
+                    '<!doctype html>',
+                    '<html lang="en">',
+                    '<head>',
+                    '<meta charset="utf-8" />',
+                    '<style>html,body{margin:0;height:100%}canvas{display:block;background:#191919}</style>',
+                    '<script type="importmap">',
+                    '{"imports":{"three":"https://unpkg.com/three@0.186.1/build/three.module.js","three-particles":"https://unpkg.com/three-particles@0.17.3/dist/index.js"}}',
+                    '<\/script>',
+                    '</head>',
+                    '<body>',
+                    '<canvas id="c"></canvas>',
+                    '<script type="module">',
+                    "import { PerspectiveCamera, Scene, WebGLRenderer, Clock } from 'three'",
+                    "import { ParticleEffect, ParticleEffectLoader } from 'three-particles'",
+                    '',
+                    "const renderer = new WebGLRenderer({ canvas: document.querySelector('#c') })",
+                    'renderer.setSize(innerWidth, innerHeight)',
+                    '',
+                    'const scene = new Scene()',
+                    'const camera = new PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 100)',
+                    'camera.position.set(0, 3, 8)',
+                    'camera.lookAt(0, 1, 0)',
+                    '',
+                    '// Load an effect JSON and add it to the scene.',
+                    'const model = await new ParticleEffectLoader().loadAsync(',
+                    "    'https://polyforest.github.io/three-particles/effects/fire.json',",
+                    ')',
+                    'const effect = new ParticleEffect(model)',
+                    'scene.add(effect)',
+                    '',
+                    'const clock = new Clock()',
+                    'renderer.setAnimationLoop(() => {',
+                    '    effect.update(Math.min(clock.getDelta(), 0.1))',
+                    '    renderer.render(scene, camera)',
+                    '})',
+                    '',
+                    "addEventListener('resize', () => {",
+                    '    renderer.setSize(innerWidth, innerHeight)',
+                    '    camera.aspect = innerWidth / innerHeight',
+                    '    camera.updateProjectionMatrix()',
+                    '})',
+                    '<\/script>',
+                    '</body>',
+                    '</html>',
+                ].join('\n')
+
+                const form = document.createElement('form')
+                form.action = 'https://codepen.io/pen/define'
+                form.method = 'POST'
+                form.target = '_blank'
+                const input = document.createElement('input')
+                input.type = 'hidden'
+                input.name = 'data'
+                input.value = JSON.stringify({
+                    title: 'three-particles starter',
+                    html: starter,
+                    editors: '100',
+                })
+                form.appendChild(input)
+                document.body.appendChild(form)
+                form.submit()
+                document.body.removeChild(form)
+            }
+
+            document
+                .querySelector('#codepenBtn')
+                .addEventListener('click', openCodePen)
+            document
+                .querySelector('#codepenBtn2')
+                .addEventListener('click', openCodePen)
+        </script>
+    </body>
+</html>
