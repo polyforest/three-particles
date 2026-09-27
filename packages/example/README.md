@@ -4,12 +4,15 @@ A Vite app demonstrating the `three-particles` library in a complete scene. It i
 
 ## What it shows
 
-| Effect                | Render path                                                                              |
-| --------------------- | ---------------------------------------------------------------------------------------- |
-| `resources/fire.json` | `PointsMaterial` → GPU point sprites with per-particle color, alpha, and sprite rotation |
-| `resources/mesh.json` | geometry + lit material → instanced mesh cubes with per-instance transforms and shadows  |
+| Effect                          | Render path                                                                                         |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `resources/fire.json`           | `PointsMaterial` → GPU point sprites with per-particle color, alpha, and sprite rotation            |
+| `resources/mesh.json`           | geometry + lit material → instanced mesh cubes with per-instance transforms and shadows             |
+| `resources/shader.json`         | a fragment-mode particle `ShaderMaterial` on point sprites                                          |
+| `resources/firework-chain.json` | sub-emitters: a rocket bursts into sparks, some of which crackle into smaller bursts (three levels) |
+| `resources/waterfall.json`      | sub-emitters: drops splash and mist where they cross y < 0 (a position trigger with `killParticle`) |
 
-Both effects load through `ParticleEffectLoader` and are added to the scene as `ParticleEffect` groups (a `THREE.Group` subclass), positioned like any other scene object. The render loop advances them with `update(delta)`, clamping the frame delta to avoid jumps after tab switches.
+All effects load through `ParticleEffectLoader` and are added to the scene as `ParticleEffect` groups (a `THREE.Group` subclass), positioned like any other scene object. The render loop advances them with `update(delta)`, clamping the frame delta to avoid jumps after tab switches.
 
 ## Playback controls
 
