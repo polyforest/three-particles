@@ -7,7 +7,7 @@
 A particle engine for [THREE.js](https://threejs.org). An effect is a JSON document describing emitters — points or instanced meshes — with their textures, zones, and timelines. Load one, add it to your scene as a `Group`, and call `update()` once per frame.
 
 - **Docs and live demo:** <https://polyforest.github.io/three-particles/>
-- **Author effects visually** in [polyforest/particles-editor](https://github.com/polyforest/particles-editor), the companion editor for this library.
+- **Author effects visually** in <https://particles.polyforest.com>, the companion editor for this library.
 
 ## Installation
 
